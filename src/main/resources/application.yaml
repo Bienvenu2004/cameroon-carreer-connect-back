@@ -1,0 +1,18 @@
+# Remove the raw variables at the top.
+# Spring-dotenv will inject variables from your .env file into the Environment automatically.
+
+spring:
+  application:
+    name: DigitalPlatformForJobSearchAndRecruitmentInCameroon
+  datasource:
+    username: postgres
+    password: 1234567890
+    url: jdbc:postgresql://localhost:5432/jobdb
+
+app:
+  storage:
+    base-dir: C:/Users/AMBASSA/Downloads/jobPortal/
+    base-url: http://localhost:8762/
+    logo-dir: C:/Users/AMBASSA/Downloads/jobPortal/logo/
+  logo-url: https://testapi.landlordnde24.com/logo/dark.png
+  client-url: http://localhost:3000/
