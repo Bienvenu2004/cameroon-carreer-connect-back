@@ -39,4 +39,6 @@ public class JobPostActivityDto {
     private String jobTitle;
 
     private Integer createdDaysAgo;
+
+    private String benefits;
 }

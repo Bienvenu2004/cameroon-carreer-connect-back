@@ -28,4 +28,10 @@ public interface JobPostActivityService {
     PageResponseDto<JobPostActivityDto> getAll(JobActivityFilterDto filter);
 
     List<JobPostActivityDto> search(String job, String location, List<String> remote, List<String> type, LocalDate searchDate);
+
+    JobPost update(UUID id, JobPostActivityDto dto);
+
+    void delete(UUID id);
+
+    void close(UUID id);
 }

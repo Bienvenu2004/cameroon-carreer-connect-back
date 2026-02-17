@@ -45,4 +45,7 @@ public class JobPost extends BaseEntity {
     private JobSite site;
     private LocalDate postedDate = LocalDate.now();
     private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String benefits;
 }

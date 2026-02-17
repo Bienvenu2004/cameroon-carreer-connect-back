@@ -129,4 +129,63 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
         );
         return posts.stream().map(jobPostActivityMapper::toDto).toList();
     }
+
+    @Override
+    public JobPost update(UUID id, JobPostActivityDto dto) {
+        JobPost jobPost = jobPostActivityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        // Update fields
+        jobPost.setJobTitle(dto.getJobTitle());
+        jobPost.setDescriptionOfJob(dto.getDescriptionOfJob());
+        jobPost.setJobType(dto.getJobType());
+        jobPost.setSalary(dto.getSalary());
+        jobPost.setSalaryCurrency(dto.getSalaryCurrency());
+        jobPost.setJobSite(dto.getJobSite());
+        jobPost.setBenefits(dto.getBenefits());
+        
+        // Update Location if provided
+        if (dto.getJobLocation() != null) {
+            JobLocation location = jobPost.getLocation();
+            if (location == null) {
+                location = new JobLocation();
+            }
+            // Assuming simple update for now, or use mapper/service if complex
+            location.setCity(dto.getJobLocation().getCity());
+            location.setCountry(dto.getJobLocation().getCountry());
+            location.setState(dto.getJobLocation().getState());
+            jobLocationRepository.save(location);
+            jobPost.setLocation(location);
+        }
+
+        // Update Company if provided
+        if (dto.getJobCompany() != null) {
+            JobCompany company = jobPost.getCompany();
+             if (company == null) {
+                company = new JobCompany();
+            }
+            company.setName(dto.getJobCompany().getName());
+            company.setLogo(dto.getJobCompany().getLogo());
+            jobCompanyRepository.save(company);
+            jobPost.setCompany(company);
+        }
+
+        return jobPostActivityRepository.save(jobPost);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        if (!jobPostActivityRepository.existsById(id)) {
+             throw new RuntimeException("Job not found");
+        }
+        jobPostActivityRepository.deleteById(id);
+    }
+
+    @Override
+    public void close(UUID id) {
+        JobPost jobPost = jobPostActivityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+        jobPost.setActive(false);
+        jobPostActivityRepository.save(jobPost);
+    }
 }
