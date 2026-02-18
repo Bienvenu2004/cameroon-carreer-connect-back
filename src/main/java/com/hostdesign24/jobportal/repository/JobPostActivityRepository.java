@@ -1,14 +1,15 @@
 package com.hostdesign24.jobportal.repository;
 
-import com.hostdesign24.jobportal.model.JobPost;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import com.hostdesign24.jobportal.model.JobPost;
 
 public interface JobPostActivityRepository extends JpaRepository<JobPost, UUID>, JpaSpecificationExecutor<JobPost> {
 
@@ -26,4 +27,8 @@ public interface JobPostActivityRepository extends JpaRepository<JobPost, UUID>,
                          @Param("remote") List<String> remote,
                          @Param("type") List<String> type,
                          @Param("date") LocalDate searchDate);
+    List<JobPost> findByCompanyId(UUID companyId);
+
+    @Query("SELECT COALESCE(SUM(j.views), 0) FROM JobPost j")
+    Long getTotalViews();
 }

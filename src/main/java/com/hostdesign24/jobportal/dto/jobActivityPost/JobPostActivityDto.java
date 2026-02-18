@@ -1,32 +1,34 @@
 package com.hostdesign24.jobportal.dto.jobActivityPost;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.SalaryCurrency;
-import jakarta.persistence.*;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter
 public class JobPostActivityDto {
     private UUID id;
 
-    private JobLocationDto jobLocation;
+    private JobLocationDto location;
 
-    private JobCompanyDto jobCompany;
+    private JobCompanyDto company;
 
     private boolean isActive = true;
 
     private boolean isSaved = false;
 
-    private String descriptionOfJob;
+    private String description;
 
     @Enumerated(EnumType.STRING)
-    private JobType jobType;
+    private JobType type;
 
     private BigDecimal salary;
 
@@ -34,11 +36,13 @@ public class JobPostActivityDto {
     private SalaryCurrency salaryCurrency = SalaryCurrency.XAF;
 
     @Enumerated(EnumType.STRING)
-    private JobSite jobSite;
+    private JobSite site;
 
-    private String jobTitle;
+    private String title;
 
     private Integer createdDaysAgo;
 
     private String benefits;
+
+    private Integer views;
 }

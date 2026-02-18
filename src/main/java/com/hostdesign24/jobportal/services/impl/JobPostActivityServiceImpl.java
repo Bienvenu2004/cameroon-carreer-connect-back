@@ -1,26 +1,33 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
 import com.hostdesign24.jobportal.dto.RecruiterJobsDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.*;
+import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
+import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyDto;
+import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
+import com.hostdesign24.jobportal.dto.jobActivityPost.JobPostActivityDto;
 import com.hostdesign24.jobportal.mapper.JobCompanyMapper;
 import com.hostdesign24.jobportal.mapper.JobLocationMapper;
 import com.hostdesign24.jobportal.mapper.JobPostActivityMapper;
-import com.hostdesign24.jobportal.model.*;
+import com.hostdesign24.jobportal.model.JobCompany;
+import com.hostdesign24.jobportal.model.JobLocation;
+import com.hostdesign24.jobportal.model.JobPost;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
 import com.hostdesign24.jobportal.repository.JobLocationRepository;
 import com.hostdesign24.jobportal.repository.JobPostActivityRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobActivitySpecification;
 import com.hostdesign24.jobportal.services.JobPostActivityService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +44,8 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     @Override
     public JobPost addNew(JobPostActivityDto dto) {
         JobPost jobPost = jobPostActivityMapper.toEntity(dto);
-        JobLocation jobLocation = createJobLocation(dto.getJobLocation());
-        JobCompany jobCompany = createJobCompany(dto.getJobCompany());
+        JobLocation jobLocation = createJobLocation(dto.getLocation());
+        JobCompany jobCompany = createJobCompany(dto.getCompany());
         jobPost.setLocation(jobLocation);
         jobPost.setCompany(jobCompany);
         return jobPostActivityRepository.save(jobPost);
@@ -96,6 +103,11 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     public JobPostActivityDto getOne(UUID id) {
         JobPost job = jobPostActivityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        // Increment views
+        job.setViews(job.getViews() == null ? 1 : job.getViews() + 1);
+        jobPostActivityRepository.save(job);
+
         return jobPostActivityMapper.toDto(job);
     }
 
@@ -136,36 +148,36 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
         // Update fields
-        jobPost.setJobTitle(dto.getJobTitle());
-        jobPost.setDescriptionOfJob(dto.getDescriptionOfJob());
-        jobPost.setJobType(dto.getJobType());
+        jobPost.setTitle(dto.getTitle());
+        jobPost.setDescription(dto.getDescription());
+        jobPost.setType(dto.getType());
         jobPost.setSalary(dto.getSalary());
         jobPost.setSalaryCurrency(dto.getSalaryCurrency());
-        jobPost.setJobSite(dto.getJobSite());
+        jobPost.setSite(dto.getSite());
         jobPost.setBenefits(dto.getBenefits());
         
         // Update Location if provided
-        if (dto.getJobLocation() != null) {
+        if (dto.getLocation() != null) {
             JobLocation location = jobPost.getLocation();
             if (location == null) {
                 location = new JobLocation();
             }
             // Assuming simple update for now, or use mapper/service if complex
-            location.setCity(dto.getJobLocation().getCity());
-            location.setCountry(dto.getJobLocation().getCountry());
-            location.setState(dto.getJobLocation().getState());
+            location.setCity(dto.getLocation().getCity());
+            location.setCountry(dto.getLocation().getCountry());
+            location.setState(dto.getLocation().getState());
             jobLocationRepository.save(location);
             jobPost.setLocation(location);
         }
 
         // Update Company if provided
-        if (dto.getJobCompany() != null) {
+        if (dto.getCompany() != null) {
             JobCompany company = jobPost.getCompany();
              if (company == null) {
                 company = new JobCompany();
             }
-            company.setName(dto.getJobCompany().getName());
-            company.setLogo(dto.getJobCompany().getLogo());
+            company.setName(dto.getCompany().getName());
+            company.setLogo(dto.getCompany().getLogo());
             jobCompanyRepository.save(company);
             jobPost.setCompany(company);
         }

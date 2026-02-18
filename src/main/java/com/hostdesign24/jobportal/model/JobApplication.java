@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.model;
 
+import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,4 +27,7 @@ public class JobApplication extends BaseEntity implements Serializable {
     private LocalDate applyDate = LocalDate.now();
 
     private String coverLetter;
+
+    @Enumerated(EnumType.STRING)
+    private ApplicationStatus status = ApplicationStatus.APPLIED;
 }
