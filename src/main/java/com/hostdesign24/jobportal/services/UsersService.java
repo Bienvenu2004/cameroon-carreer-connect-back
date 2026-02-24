@@ -8,7 +8,7 @@ import jakarta.validation.Valid;
 import java.util.Optional;
 
 public interface UsersService {
-    User addNew(@Valid UserRegistrationDto dto);
+    User createUser(@Valid UserRegistrationDto dto);
 
     Object getCurrentUserProfile();
 
@@ -19,4 +19,6 @@ public interface UsersService {
     User findByEmail(String currentUsername);
 
     Optional<User> getUserByEmail(String email);
+
+    boolean emailExists(String email);
 }

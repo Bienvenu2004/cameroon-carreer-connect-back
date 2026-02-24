@@ -30,6 +30,9 @@
         @NotNull
         private UserRole role;
 
-        @Temporal(TemporalType.TIMESTAMP)
         private Date passwordChangedAt;
+
+        private Date lastLogin;
+
+        private Date lastTokenRefresh;
     }

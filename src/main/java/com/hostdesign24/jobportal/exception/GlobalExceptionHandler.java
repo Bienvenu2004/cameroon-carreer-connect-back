@@ -27,6 +27,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
+    @ExceptionHandler(DeviceBlockedException.class)
+    public ResponseEntity<ErrorResponse> deviceBlockedException(
+            DeviceBlockedException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(HtmlUtils.htmlEscape(e.getMessage()));
+        errorResponse.setErrorCode("USER_DEVICE_BLOCKED");
+        errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        errorResponse.setTimestamp(System.currentTimeMillis());
+        errorResponse.setErrorDescription(HtmlUtils.htmlEscape(request.getDescription(false)));
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(
             UserAlreadyExistsException e, WebRequest request) {
@@ -270,5 +282,17 @@ public class GlobalExceptionHandler {
         errorResponse.setTimestamp(System.currentTimeMillis());
         errorResponse.setErrorDescription(HtmlUtils.htmlEscape(request.getDescription(false)));
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponse);
+    }
+
+    @ExceptionHandler(DeviceIdGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(DeviceIdGenerationException e,
+                                                                        WebRequest request) {
+        ErrorResponse error = new ErrorResponse();
+        error.setMessage(HtmlUtils.htmlEscape(e.getMessage()));
+        error.setErrorCode("DEVICE_ID_GENERATION_FAILED");
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setTimestamp(System.currentTimeMillis());
+        error.setErrorDescription(HtmlUtils.htmlEscape(request.getDescription(false)));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
