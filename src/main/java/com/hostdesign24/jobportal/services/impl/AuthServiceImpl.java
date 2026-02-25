@@ -91,11 +91,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("User {} authenticated successfully from verified device: {} (IP: {})",
                     user.getEmail(), deviceName, ip);
 
-            try {
-                userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
-            } catch (Exception e) {
-                log.error("Failed to record login activity for user {} device {}: {}", user.getEmail(), deviceId, e.getMessage(), e);
-            }
+            userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
 
             userNotificationService.newConnectionDeviceNotification(userId, deviceName, deviceId);
             notificationAsyncService.notifyDeviceLogin(user.getEmail(), deviceName, ip);

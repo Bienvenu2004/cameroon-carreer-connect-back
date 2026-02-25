@@ -19,5 +19,5 @@ public class UserRegistrationDto {
     private String password;
 
     @NotNull
-    private UserRole userRole;
+    private UserRole role;
 }

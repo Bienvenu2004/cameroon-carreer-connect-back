@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome to Our Platform!</title>
+    <title>New Device Login Notification</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -34,6 +34,18 @@
         .content {
             padding: 32px;
         }
+        .info-table {
+            width: 100%;
+            margin: 24px 0;
+            background: #e3eaf6;
+            border-radius: 6px;
+            padding: 16px;
+            font-size: 15px;
+            color: #1976d2;
+        }
+        .info-table td {
+            padding: 8px 0;
+        }
         .button {
             display: inline-block;
             background: #1976d2;
@@ -56,15 +68,32 @@
 <body>
 <div class="container">
     <div class="header">
-        <img th:src="${logoUrl}" alt="Platform Logo"/>
-        <h1>Welcome to Our Job Search Platform!</h1>
+        <img th:src="${logo}" alt="Platform Logo"/>
+        <h1>New Device Login Detected</h1>
     </div>
     <div class="content">
-        <p>Hi <span th:text="${name}">User</span>,</p>
-        <p>We're excited to have you join our community as a <b th:text="${role}">Job Seeker/Recruiter</b>!</p>
-        <p>Your registered email: <b th:text="${email}">user@email.com</b></p>
-        <p>Start exploring opportunities or managing your recruitment process by logging in to your dashboard.</p>
-        <a class="button" th:href="${loginUrl}">Go to Dashboard</a>
+        <p>Hello,</p>
+        <p>We noticed a new login to your account with the following details:</p>
+        <table class="info-table">
+            <tr>
+                <td><b>Device Name:</b></td>
+                <td th:text="${deviceName}">Unknown Device</td>
+            </tr>
+            <tr>
+                <td><b>IP Address:</b></td>
+                <td th:text="${ipAddress}">0.0.0.0</td>
+            </tr>
+            <tr>
+                <td><b>Location:</b></td>
+                <td th:text="${location}">Unknown</td>
+            </tr>
+            <tr>
+                <td><b>Login Time:</b></td>
+                <td th:text="${loginTime}">Feb 25, 2026 14:00</td>
+            </tr>
+        </table>
+        <p>If this was you, no further action is needed. If you do not recognize this activity, please review your account security immediately.</p>
+        <a class="button" th:href="${securityUrl}">Review Security Settings</a>
     </div>
     <div class="footer">
         &copy; <span th:text="${year}">2026</span> Digital Job Search Platform. All rights reserved.
@@ -72,3 +101,4 @@
 </div>
 </body>
 </html>
+
