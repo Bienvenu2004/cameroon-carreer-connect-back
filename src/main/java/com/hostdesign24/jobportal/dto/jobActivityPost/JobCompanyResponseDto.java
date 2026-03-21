@@ -1,12 +1,12 @@
 package com.hostdesign24.jobportal.dto.jobActivityPost;
 
+import com.hostdesign24.jobportal.dto.file.FileDto;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
-public class JobCompanyDto {
+public class JobCompanyResponseDto {
     private String name;
-    private MultipartFile logo;
+    private FileDto logo;
 }

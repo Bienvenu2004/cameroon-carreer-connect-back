@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -23,25 +24,26 @@ public class JobActivitySpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            User currentUser = Utils.getCurrentUser().orElseThrow(
-                    () -> new UsernameNotFoundException("User not authenticated")
-            );
+            Optional<User> currentOptUser = Utils.getCurrentUser();
 
-            if (currentUser.getRole() == UserRole.RECRUITER){
-                predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
-            } else {
-                includeSavedJobs(filter, root, query, cb, currentUser, predicates);
-                Subquery<UUID> sub = query.subquery(UUID.class);
-                Root<JobApplication> subRoot = sub.from(JobApplication.class);
-                sub.select(subRoot.get("job").get("id"));  // Select job ID from JobSeekerApply
-                sub.where(
-                        cb.equal(subRoot.get("job").get("id"), root.get("id")),  // Compare job IDs
-                        cb.equal(subRoot.get("profile").get("user").get("id"), currentUser.getId())
-                );
-                predicates.add(cb.exists(sub));
+            if (currentOptUser.isPresent()){
+                User currentUser = currentOptUser.get();
 
+                if (currentUser.getRole() == UserRole.RECRUITER){
+                    predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
+                } else {
+                    includeSavedJobs(filter, root, query, cb, currentUser, predicates);
+                    Subquery<UUID> sub = query.subquery(UUID.class);
+                    Root<JobApplication> subRoot = sub.from(JobApplication.class);
+                    sub.select(subRoot.get("job").get("id"));  // Select job ID from JobSeekerApply
+                    sub.where(
+                            cb.equal(subRoot.get("job").get("id"), root.get("id")),  // Compare job IDs
+                            cb.equal(subRoot.get("profile").get("user").get("id"), currentUser.getId())
+                    );
+                    predicates.add(cb.exists(sub));
+
+                }
             }
-
             if (filter.getJobTitle() != null && !filter.getJobTitle().isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("jobTitle").as(String.class)),
                         "%" + filter.getJobTitle().toLowerCase() + "%"));

@@ -1,6 +1,7 @@
 package com.hostdesign24.jobportal.dto.jobActivityPost;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.model.enums.JobSite;
@@ -14,12 +15,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class JobPostActivityDto {
+public class JobPostActivityUpsertDto {
     private UUID id;
 
     private JobLocationDto location;
 
     private JobCompanyDto company;
+
+    List<UUID> filesToRemove;
 
     private boolean isActive = true;
 

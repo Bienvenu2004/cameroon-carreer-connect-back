@@ -5,16 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.hostdesign24.jobportal.common.utils.Utils;
+import com.hostdesign24.jobportal.dto.jobActivityPost.*;
+import com.hostdesign24.jobportal.mapper.FileMapper;
+import com.hostdesign24.jobportal.services.FileService;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.hostdesign24.jobportal.dto.RecruiterJobsDto;
+import com.hostdesign24.jobportal.dto.JobPostResponseDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobPostActivityDto;
 import com.hostdesign24.jobportal.mapper.JobCompanyMapper;
 import com.hostdesign24.jobportal.mapper.JobLocationMapper;
 import com.hostdesign24.jobportal.mapper.JobPostActivityMapper;
@@ -33,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JobPostActivityServiceImpl implements JobPostActivityService {
 
+    public static final String COMPANY_LOGO = "COMPANY_LOGO";
     private final JobPostActivityRepository jobPostActivityRepository;
     private final JobPostActivityMapper jobPostActivityMapper;
     private final JobCompanyMapper jobCompanyMapper;
@@ -40,9 +43,14 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     private final JobLocationMapper jobLocationMapper;
     private final JobLocationRepository jobLocationRepository;
     private final JobActivitySpecification jobPostActivitySpecification;
+    private final FileMapper fileMapper;
+    private final FileService fileService;
+
+    @Value("${app.storage.base-url}")
+    private String publicUrl;
 
     @Override
-    public JobPost addNew(JobPostActivityDto dto) {
+    public JobPost addNew(JobPostActivityUpsertDto dto) {
         JobPost jobPost = jobPostActivityMapper.toEntity(dto);
         JobLocation jobLocation = createJobLocation(dto.getLocation());
         JobCompany jobCompany = createJobCompany(dto.getCompany());
@@ -58,7 +66,16 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
         }
 
         JobCompany company = jobCompanyMapper.toEntity(jobCompany);
-        return jobCompanyRepository.save(company);
+        company = jobCompanyRepository.save(company);
+
+        company.setLogo(fileService.uploadFile(
+                jobCompany.getLogo(),
+                company.getId(),
+                COMPANY_LOGO,
+                Utils.getClassSimpleName(company)
+        ));
+
+    return jobCompanyRepository.save(company);
 
     }
 
@@ -72,24 +89,19 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     }
 
     @Override
-    public PageResponseDto<RecruiterJobsDto> getRecruiterJobs(JobActivityFilterDto filter) {
+    public PageResponseDto<JobPostResponseDto> getRecruiterJobs(JobActivityFilterDto filter) {
 
         Specification<JobPost> spec = jobPostActivitySpecification.build(filter);
         Page<JobPost> jobsPage = jobPostActivityRepository.findAll(spec, filter.toPageable());
 
-        List<RecruiterJobsDto> recruiterJobsDtoList = new ArrayList<>();
+        List<JobPostResponseDto> jobPostResponseDtoList = new ArrayList<>();
 
         for (JobPost job : jobsPage.getContent()) {
-            RecruiterJobsDto dto = new RecruiterJobsDto();
-            dto.setJobPostId(job.getId());
-            dto.setJobTitle(job.getTitle());
-            dto.setJobCompany(jobCompanyMapper.toDto(job.getCompany()));
-            dto.setJobLocation(jobLocationMapper.toDto(job.getLocation()));
-            dto.setTotalCandidates(0L);// for the moment
-            recruiterJobsDtoList.add(dto);
+            JobPostResponseDto dto = getJobPostResponseDto(job);
+            jobPostResponseDtoList.add(dto);
         }
         return new PageResponseDto<>(
-                recruiterJobsDtoList,
+                jobPostResponseDtoList,
                 jobsPage.getNumber(),
                 jobsPage.getSize(),
                 jobsPage.getTotalElements(),
@@ -99,8 +111,28 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
 
     }
 
+    private @NonNull JobPostResponseDto getJobPostResponseDto(JobPost job) {
+        JobPostResponseDto dto = new JobPostResponseDto();
+        dto.setJobPostId(job.getId());
+        dto.setJobTitle(job.getTitle());
+        dto.setJobCompany(getJobCompanyResponse(job.getCompany()));
+        dto.setJobLocation(jobLocationMapper.toDto(job.getLocation()));
+        dto.setTotalCandidates(0L);// for the moment
+        return dto;
+    }
+
+    private JobCompanyResponseDto getJobCompanyResponse(JobCompany company) {
+        JobCompanyResponseDto dto = new JobCompanyResponseDto();
+        dto.setName(company.getName());
+        if (company.getLogo() != null) {
+            dto.setLogo(fileMapper.toDto(company.getLogo(), publicUrl));
+        }
+
+        return dto;
+    }
+
     @Override
-    public JobPostActivityDto getOne(UUID id) {
+    public JobPostResponseDto getOne(UUID id) {
         JobPost job = jobPostActivityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
@@ -108,15 +140,15 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
         job.setViews(job.getViews() == null ? 1 : job.getViews() + 1);
         jobPostActivityRepository.save(job);
 
-        return jobPostActivityMapper.toDto(job);
+        return getJobPostResponseDto(job);
     }
 
     @Override
-    public PageResponseDto<JobPostActivityDto> getAll(JobActivityFilterDto filter) {
+    public PageResponseDto<JobPostActivityUpsertDto> getAll(JobActivityFilterDto filter) {
         Specification<JobPost> spec = jobPostActivitySpecification.build(filter);
         Page<JobPost> page = jobPostActivityRepository.findAll(spec, filter.toPageable());
 
-        List<JobPostActivityDto> jobPostActivities = page.getContent().stream()
+        List<JobPostActivityUpsertDto> jobPostActivities = page.getContent().stream()
                 .map(jobPostActivityMapper::toDto)
                 .toList();
 
@@ -131,7 +163,7 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     }
 
     @Override
-    public List<JobPostActivityDto> search(String job, String location, List<String> remote, List<String> type, LocalDate searchDate) {
+    public List<JobPostActivityUpsertDto> search(String job, String location, List<String> remote, List<String> type, LocalDate searchDate) {
         List<JobPost> posts = jobPostActivityRepository.search(
                 job == null ? "" : job,
                 location == null ? "" : location,
@@ -143,7 +175,7 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
     }
 
     @Override
-    public JobPost update(UUID id, JobPostActivityDto dto) {
+    public JobPost update(UUID id, JobPostActivityUpsertDto dto) {
         JobPost jobPost = jobPostActivityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
@@ -170,6 +202,10 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
             jobPost.setLocation(location);
         }
 
+        if (dto.getFilesToRemove() != null && !dto.getFilesToRemove().isEmpty()) {
+            dto.getFilesToRemove().forEach(fileService::deleteFile);
+        }
+
         // Update Company if provided
         if (dto.getCompany() != null) {
             JobCompany company = jobPost.getCompany();
@@ -177,7 +213,16 @@ public class JobPostActivityServiceImpl implements JobPostActivityService {
                 company = new JobCompany();
             }
             company.setName(dto.getCompany().getName());
-            company.setLogo(dto.getCompany().getLogo());
+
+             if (company.getLogo() != null) {
+                 company.setLogo(fileService.uploadFile(
+                         dto.getCompany().getLogo(),
+                         company.getId(),
+                         COMPANY_LOGO,
+                         Utils.getClassSimpleName(company)
+                 ));
+             }
+
             jobCompanyRepository.save(company);
             jobPost.setCompany(company);
         }

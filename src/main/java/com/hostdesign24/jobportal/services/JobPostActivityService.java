@@ -1,9 +1,9 @@
 package com.hostdesign24.jobportal.services;
 
-import com.hostdesign24.jobportal.dto.RecruiterJobsDto;
+import com.hostdesign24.jobportal.dto.JobPostResponseDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobPostActivityDto;
+import com.hostdesign24.jobportal.dto.jobActivityPost.JobPostActivityUpsertDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
 import com.hostdesign24.jobportal.model.JobCompany;
@@ -15,21 +15,21 @@ import java.util.List;
 import java.util.UUID;
 
 public interface JobPostActivityService {
-    JobPost addNew(JobPostActivityDto dto);
+    JobPost addNew(JobPostActivityUpsertDto dto);
 
     JobCompany createJobCompany(JobCompanyDto jobCompany);
 
     JobLocation createJobLocation(JobLocationDto jobLocation);
 
-    PageResponseDto<RecruiterJobsDto> getRecruiterJobs(JobActivityFilterDto filter);
+    PageResponseDto<JobPostResponseDto> getRecruiterJobs(JobActivityFilterDto filter);
 
-    JobPostActivityDto getOne(UUID id);
+    JobPostResponseDto getOne(UUID id);
 
-    PageResponseDto<JobPostActivityDto> getAll(JobActivityFilterDto filter);
+    PageResponseDto<JobPostActivityUpsertDto> getAll(JobActivityFilterDto filter);
 
-    List<JobPostActivityDto> search(String job, String location, List<String> remote, List<String> type, LocalDate searchDate);
+    List<JobPostActivityUpsertDto> search(String job, String location, List<String> remote, List<String> type, LocalDate searchDate);
 
-    JobPost update(UUID id, JobPostActivityDto dto);
+    JobPost update(UUID id, JobPostActivityUpsertDto dto);
 
     void delete(UUID id);
 

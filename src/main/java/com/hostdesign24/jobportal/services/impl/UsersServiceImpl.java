@@ -86,9 +86,13 @@ public class UsersServiceImpl implements UsersService {
                 user.getEmail(), user.getRole());
 
         if (user.getRole().equals(UserRole.RECRUITER)) {
-            recruiterProfileRepository.save(new RecruiterProfile(user));
+            RecruiterProfile profile = new RecruiterProfile(user);
+            recruiterProfileRepository.save(profile);
+            user.setRecruiterProfile(profile);
         } else {
-            jobSeekerProfileRepository.save(new JobSeekerProfile(user));
+            JobSeekerProfile profile = new JobSeekerProfile(user);
+            jobSeekerProfileRepository.save(profile);
+            user.setJobSeekerProfile(profile);
         }
 
         return user;

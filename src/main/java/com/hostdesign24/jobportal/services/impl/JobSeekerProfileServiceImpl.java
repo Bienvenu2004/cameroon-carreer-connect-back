@@ -68,16 +68,20 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         JobSeekerProfile jobSeekerProfile = jobSeekerProfileRepository.findByUserId(currentUser.getId());
         jobSeekerProfileMapper.updateFromDto(dto, jobSeekerProfile);
 
-        // getRelated entity
+        // save
+        jobSeekerProfile = jobSeekerProfileRepository.save(jobSeekerProfile);
         String relatedEntity = Utils.getClassSimpleName(jobSeekerProfile);
 
-        File resume = fileService.uploadFile(dto.getResumeFile(), jobSeekerProfile.getId(), "JOB_SEEKER_RESUME", relatedEntity);
-        File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), jobSeekerProfile.getId(), "JOB_SEEKER_PROFILE", relatedEntity);
+        if (dto.getResumeFile() != null && !dto.getResumeFile().isEmpty()) {
+            File resume = fileService.uploadFile(dto.getResumeFile(), jobSeekerProfile.getId(), "JOB_SEEKER_RESUME", relatedEntity);
+            jobSeekerProfile.setResume(resume);
+        }
+        
+        if (dto.getProfilePhoto() != null && !dto.getProfilePhoto().isEmpty()) {
+            File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), jobSeekerProfile.getId(), "JOB_SEEKER_PROFILE", relatedEntity);
+            jobSeekerProfile.setProfilePhoto(profilePicture);
+        }
 
-        jobSeekerProfile.setResume(resume);
-        jobSeekerProfile.setProfilePhoto(profilePicture);
-
-        // save
         jobSeekerProfile = jobSeekerProfileRepository.save(jobSeekerProfile);
 
         List<Skill> skills = createSkillsFromDto(dto, jobSeekerProfile);

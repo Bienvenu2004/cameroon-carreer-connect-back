@@ -56,8 +56,10 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
         // upload
         String relatedEntity = Utils.getClassSimpleName(profile);
 
-        File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), profile.getId(), "RECRUITER_PROFILE", relatedEntity);
-        profile.setProfilePhoto(profilePicture);
+        if (dto.getProfilePhoto() != null && !dto.getProfilePhoto().isEmpty()) {
+            File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), profile.getId(), "RECRUITER_PROFILE", relatedEntity);
+            profile.setProfilePhoto(profilePicture);
+        }
 
         return recruiterProfileRepository.save(profile);
     }

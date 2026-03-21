@@ -8,19 +8,19 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public abstract class FileMapper {
 
-  @Mapping(target = "url", expression = "java(buildFullUrl(file.getUrl(), publicUrl))")
+  @Mapping(target = "url", expression = "java(buildFullUrl(file, publicUrl))")
   public abstract FileDto toDto(File file, String publicUrl);
 
   public abstract File toEntity(FileDto dto);
 
-  protected String buildFullUrl(String url, String publicUrl) {
-    if (url == null) {
+  protected String buildFullUrl(File file, String publicUrl) {
+    if (file == null || file.getUrl() == null) {
       return null;
     }
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
+    if (file.getUrl().startsWith("http://") || file.getUrl().startsWith("https://")) {
+      return file.getUrl();
     }
-    return publicUrl + url;
+    return publicUrl + file.getUrl();
   }
 }
 

@@ -6,6 +6,7 @@ import com.hostdesign24.jobportal.dto.RecruiterProfileSaveDto;
 import com.hostdesign24.jobportal.dto.common.ApiResponse;
 import com.hostdesign24.jobportal.services.RecruiterProfileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -34,7 +35,6 @@ public class RecruiterProfileController {
 
         return ApiResponse.success(response, "recruiter profile retrieved successfully");
     }
-
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ApiResponse<RecruiterProfileDto> createOrUpdate(
