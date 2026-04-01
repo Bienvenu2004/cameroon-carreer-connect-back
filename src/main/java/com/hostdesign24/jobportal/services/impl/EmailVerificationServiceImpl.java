@@ -184,13 +184,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 sendEmailVerification(email, newCode);
                 log.info("Resent new device login verification email for: {}", email);
             }
-            case EMAIL_CHANGE, TWO_FACTOR_AUTH -> {
-                User user = findUserByEmail(email);
-                verification.setUserId(user.getId());
-                emailVerificationRepository.save(verification);
-                sendEmailVerification(email, newCode);
-                log.info("Resent {} verification email for: {}", type, email);
-            }
         }
     }
 

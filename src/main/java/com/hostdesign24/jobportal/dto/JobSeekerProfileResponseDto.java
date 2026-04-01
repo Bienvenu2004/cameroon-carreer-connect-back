@@ -23,6 +23,4 @@ public class JobSeekerProfileResponseDto {
     private FileDto profilePhoto;
     private FileDto resume;
     private List<SkillDto> skills;
-
-
 }

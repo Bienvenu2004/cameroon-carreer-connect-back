@@ -31,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Year;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,8 +56,11 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public User createUser(@Valid UserRegistrationDto request) {
-        log.info("Completing registration for email: {}", request.getEmail());
-        EmailVerification verifiedEmail = emailVerificationRepository.findFirstByEmailAndVerificationTypeAndEmailVerifiedOrderByCreatedAtDesc(request.getEmail(),
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        request.setEmail(normalizedEmail);
+
+        log.info("Completing registration for email: {}", normalizedEmail);
+        EmailVerification verifiedEmail = emailVerificationRepository.findFirstByEmailAndVerificationTypeAndEmailVerifiedOrderByCreatedAtDesc(normalizedEmail,
                         VerificationType.EMAIL_REGISTRATION,
                         true)
                 .orElseThrow(() -> {
@@ -70,7 +74,7 @@ public class UsersServiceImpl implements UsersService {
 
         // Check max attempts
         if (verifiedEmail.getVerificationAttempts() >= MAX_VERIFICATION_ATTEMPTS) {
-            log.error("Max verification attempts exceeded for: {}", request.getEmail());
+            log.error("Max verification attempts exceeded for: {}", normalizedEmail);
             emailVerificationRepository.delete(verifiedEmail);
             throw new TooManyAttemptsException(
                     "Too many failed attempts. Please start registration again.");
@@ -87,11 +91,11 @@ public class UsersServiceImpl implements UsersService {
 
         if (user.getRole().equals(UserRole.RECRUITER)) {
             RecruiterProfile profile = new RecruiterProfile(user);
-            recruiterProfileRepository.save(profile);
+            profile = recruiterProfileRepository.save(profile);
             user.setRecruiterProfile(profile);
         } else {
             JobSeekerProfile profile = new JobSeekerProfile(user);
-            jobSeekerProfileRepository.save(profile);
+            profile = jobSeekerProfileRepository.save(profile);
             user.setJobSeekerProfile(profile);
         }
 
@@ -109,7 +113,7 @@ public class UsersServiceImpl implements UsersService {
             User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
             UUID userId = user.getId();
 
-            if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("Recruiter"))) {
+            if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("RECRUITER"))) {
                 return recruiterProfileRepository.findById(userId).orElse(new RecruiterProfile(user));
             } else {
                 return jobSeekerProfileRepository.findById(userId).orElse(new JobSeekerProfile(user));
@@ -189,6 +193,10 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public boolean emailExists(String email) {
-        return userRepository.existsByEmailAndDeletedFalse(email);
+        return userRepository.existsByEmailAndDeletedFalse(normalizeEmail(email));
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

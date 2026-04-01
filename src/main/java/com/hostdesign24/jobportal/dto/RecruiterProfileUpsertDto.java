@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
-public class RecruiterProfileSaveDto {
+public class RecruiterProfileUpsertDto {
     private String firstName;
     private String lastName;
     private String city;

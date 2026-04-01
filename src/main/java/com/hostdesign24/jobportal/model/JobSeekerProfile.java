@@ -5,12 +5,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
-import java.util.UUID;
-
 @Entity
 @Table(name = "job_seeker_profile")
 @Getter
 @Setter
+@NoArgsConstructor
 public class JobSeekerProfile extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "user_id")

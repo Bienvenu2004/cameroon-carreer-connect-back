@@ -32,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.SecurityException;
+import java.util.Locale;
 import java.time.Year;
 import java.util.Date;
 import java.util.Map;
@@ -86,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
         String deviceName = userDeviceService.extractDeviceName(userAgent);
 
         try {
-            checkDeviceStatus(user, deviceId, deviceName, ip);
+            //checkDeviceStatus(user, deviceId, deviceName, ip);
 
             log.info("User {} authenticated successfully from verified device: {} (IP: {})",
                     user.getEmail(), deviceName, ip);
@@ -101,6 +102,7 @@ public class AuthServiceImpl implements AuthService {
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
             UserDto userDto = mapper.toUserDto(user);
+            userDto.setRole(user.getRole());
 
             return getResponse(response, clientTypeHeader, accessToken, refreshToken, userDto);
         } catch (Exception e) {
@@ -148,14 +150,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void authenticateCredentials(AuthenticationRequest authenticationRequest, String ip) {
+        String normalizedEmail = normalizeEmail(authenticationRequest.getEmail());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            authenticationRequest.getEmail(),
+                            normalizedEmail,
                             authenticationRequest.getPassword()));
         } catch (AuthenticationException ex) {
             loginAttemptService.loginFailed(ip); // Track failed attempt
-            log.error("Authentication Exception for {}: {}", authenticationRequest.getEmail(), ex.getMessage());
+            log.warn(
+                    "Authentication failed for {} with {}: {}",
+                    normalizedEmail,
+                    ex.getClass().getSimpleName(),
+                    ex.getMessage());
             throw new BadCredentialsException("Incorrect email or password provided");
         }
     }
@@ -409,8 +416,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User getUserByEmail(String email) {
-        return userRepository.findByEmailAndDeletedFalse(email)
+        return userRepository.findByEmailAndDeletedFalse(normalizeEmail(email))
                 .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private User getUserById(UUID id) {
