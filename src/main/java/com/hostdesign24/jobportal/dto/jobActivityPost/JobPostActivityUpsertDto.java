@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import com.hostdesign24.jobportal.model.Address;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.SalaryCurrency;
@@ -18,11 +19,9 @@ import lombok.Setter;
 public class JobPostActivityUpsertDto {
     private UUID id;
 
-    private JobLocationDto location;
+    private Address location;
 
-    private JobCompanyDto company;
-
-    List<UUID> filesToRemove;
+    private UUID companyId;
 
     private boolean isActive = true;
 
@@ -46,6 +45,4 @@ public class JobPostActivityUpsertDto {
     private Integer createdDaysAgo;
 
     private String benefits;
-
-    private Integer views;
 }

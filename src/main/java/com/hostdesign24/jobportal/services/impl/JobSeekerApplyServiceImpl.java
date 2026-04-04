@@ -6,7 +6,7 @@ import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.mapper.JobApplicationMapper;
 import com.hostdesign24.jobportal.model.*;
-import com.hostdesign24.jobportal.repository.JobPostActivityRepository;
+import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerProfileRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobApplicationSpecification;
@@ -29,7 +29,7 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
     private final JobSeekerApplyRepository jobSeekerApplyRepository;
     private final UsersService usersService;
     private final JobSeekerProfileService jobSeekerProfileService;
-    private final JobPostActivityRepository jobPostActivityRepository;
+    private final JobRepository jobRepository;
     private final JobApplicationSpecification jobApplicationSpecification;
     private final JobApplicationMapper jobApplicationMapper;
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
@@ -74,7 +74,7 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
             throw new EntityNotFoundException("Job seeker profile not found for user id: " + user.getId());
         }
 
-        JobPost job = jobPostActivityRepository.findById(jobPostActivityId).orElseThrow(
+        Job job = jobRepository.findById(jobPostActivityId).orElseThrow(
                 () -> new EntityNotFoundException("Job not found with id: " + jobPostActivityId)
         );
 

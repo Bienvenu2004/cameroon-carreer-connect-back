@@ -5,10 +5,10 @@ import com.hostdesign24.jobportal.dto.JobSeekerSaveFilter;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.JobSeekerSaveMapper;
-import com.hostdesign24.jobportal.model.JobPost;
+import com.hostdesign24.jobportal.model.Job;
+import com.hostdesign24.jobportal.model.JobSave;
 import com.hostdesign24.jobportal.model.JobSeekerProfile;
-import com.hostdesign24.jobportal.model.JobSeekerSave;
-import com.hostdesign24.jobportal.repository.JobPostActivityRepository;
+import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerSaveRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobSeekerSaveSpecification;
 import com.hostdesign24.jobportal.services.JobSeekerProfileService;
@@ -27,14 +27,14 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
 
     private final JobSeekerSaveRepository jobSeekerSaveRepository;
     private final JobSeekerProfileService jobSeekerProfileService;
-    private final JobPostActivityRepository jobPostActivityRepository;
+    private final JobRepository jobRepository;
     private final JobSeekerSaveSpecification jobSeekerSaveSpecification;
     private final JobSeekerSaveMapper jobSeekerSaveMapper;
 
     @Override
     public PageResponseDto<JobSeekerSaveDto> getSavedJobsResponse(JobSeekerSaveFilter filter) {
-        Specification<JobSeekerSave> spec = jobSeekerSaveSpecification.build(filter);
-        Page<JobSeekerSave> page = jobSeekerSaveRepository.findAll(spec, filter.toPageable());
+        Specification<JobSave> spec = jobSeekerSaveSpecification.build(filter);
+        Page<JobSave> page = jobSeekerSaveRepository.findAll(spec, filter.toPageable());
         List<JobSeekerSaveDto> savedJobs = page.getContent().stream().map(
                 jobSeekerSaveMapper::toDto
         ).toList();
@@ -54,7 +54,7 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
     public void addNew(UUID jobId) {
         JobSeekerProfile seekerProfile = jobSeekerProfileService.getJobSeekerProfileEntity();
 
-        JobPost job = jobPostActivityRepository.findById(jobId).orElseThrow(
+        Job job = jobRepository.findById(jobId).orElseThrow(
                 () -> new ResourceNotFoundException("job not found with id : " + jobId)
         );
 
@@ -62,7 +62,7 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
            throw new IllegalArgumentException("seeker cannot be null");
         }
 
-        JobSeekerSave save = new JobSeekerSave();
+        JobSave save = new JobSave();
         save.setJob(job);
         save.setProfile(seekerProfile);
         jobSeekerSaveRepository.save(save);

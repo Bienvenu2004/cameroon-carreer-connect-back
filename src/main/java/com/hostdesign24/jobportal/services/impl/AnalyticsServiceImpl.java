@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.hostdesign24.jobportal.model.Job;
 import org.springframework.stereotype.Service;
 
 import com.hostdesign24.jobportal.dto.analytics.DashboardDto;
 import com.hostdesign24.jobportal.dto.analytics.JobStatsDto;
-import com.hostdesign24.jobportal.model.JobPost;
-import com.hostdesign24.jobportal.repository.JobPostActivityRepository;
+import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.services.AnalyticsService;
 
@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AnalyticsServiceImpl implements AnalyticsService {
 
-    private final JobPostActivityRepository jobPostActivityRepository;
+    private final JobRepository jobRepository;
     private final JobSeekerApplyRepository jobSeekerApplyRepository;
 
     @Override
@@ -40,7 +40,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // Let's simplify and return stats for ALL jobs for now as requested by user "Dashboard showing number of applications, views per job, and demographics."
         // Refinement: If this is for a specific recruiter, we should filter. I'll implement for ALL jobs for the demo dashboard.
 
-        List<JobPost> allJobs = jobPostActivityRepository.findAll();
+        List<Job> allJobs = jobRepository.findAll();
 
         long totalJobs = allJobs.size();
         long totalViews = 0;
@@ -48,7 +48,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<JobStatsDto> jobStatsList = new ArrayList<>();
 
-        for (JobPost job : allJobs) {
+        for (Job job : allJobs) {
             long appsCount = jobSeekerApplyRepository.countByJobId(job.getId());
             totalApplications += appsCount;
             Integer views = job.getViews();

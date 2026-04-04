@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "recruiter_profile")
+@Table(name = "recruiter_profiles")
 @Getter
 @Setter
 @NoArgsConstructor

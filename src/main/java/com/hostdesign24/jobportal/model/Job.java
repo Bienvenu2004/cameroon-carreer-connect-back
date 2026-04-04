@@ -9,22 +9,22 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
+@Table(name = "jobs")
+@Entity(name = "Job")
 @Getter
 @Setter
-public class JobPost extends BaseEntity {
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "location_id")
-    private JobLocation location;
+public class Job extends BaseEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "company_id")
-    private JobCompany company;
+    private Company company;
 
     private boolean isActive = true;
 
     private boolean isSaved = false;
+
+    @Embedded
+    private Address location;
 
     private Integer views = 0;
 

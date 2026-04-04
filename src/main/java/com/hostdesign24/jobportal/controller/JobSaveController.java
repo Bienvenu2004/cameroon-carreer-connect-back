@@ -14,7 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/hjp/saved-jobs")
 @RequiredArgsConstructor
-public class JobSeekerSaveController {
+public class JobSaveController {
 
     private final UsersService usersService;
     private final JobSeekerSaveService jobSeekerSaveService;

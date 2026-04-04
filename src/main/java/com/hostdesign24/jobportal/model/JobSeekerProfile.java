@@ -6,7 +6,7 @@ import lombok.*;
 
 import java.util.List;
 @Entity
-@Table(name = "job_seeker_profile")
+@Table(name = "job_seeker_profiles")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,9 +17,11 @@ public class JobSeekerProfile extends BaseEntity {
     private User user;
     private String firstName;
     private String lastName;
-    private String city;
-    private String state;
-    private String country;
+    private String phoneNumber;
+
+    @Embedded
+    private Address address;
+
     private String workAuthorization;
     private String employmentType;
 

@@ -2,14 +2,13 @@ package com.hostdesign24.jobportal.repository.specifications;
 
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
-import com.hostdesign24.jobportal.model.JobPost;
+import com.hostdesign24.jobportal.model.Job;
 import com.hostdesign24.jobportal.model.JobApplication;
-import com.hostdesign24.jobportal.model.JobSeekerSave;
+import com.hostdesign24.jobportal.model.JobSave;
 import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -20,7 +19,7 @@ import java.util.UUID;
 
 @Component
 public class JobActivitySpecification {
-    public Specification<JobPost> build(JobActivityFilterDto filter) {
+    public Specification<Job> build(JobActivityFilterDto filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -108,10 +107,10 @@ public class JobActivitySpecification {
         };
     }
 
-    private static void includeSavedJobs(JobActivityFilterDto filter, Root<JobPost> root, CriteriaQuery<?> query, CriteriaBuilder cb, User currentUser, List<Predicate> predicates) {
+    private static void includeSavedJobs(JobActivityFilterDto filter, Root<Job> root, CriteriaQuery<?> query, CriteriaBuilder cb, User currentUser, List<Predicate> predicates) {
         if (filter.getIsSaved() != null) {
             Subquery<UUID> savedSubquery = query.subquery(UUID.class);
-            Root<JobSeekerSave> savedRoot = savedSubquery.from(JobSeekerSave.class);
+            Root<JobSave> savedRoot = savedSubquery.from(JobSave.class);
             savedSubquery.select(savedRoot.get("id"));
             savedSubquery.where(
                     cb.equal(savedRoot.get("job").get("id"), root.get("id")),
