@@ -2,15 +2,10 @@ package com.hostdesign24.jobportal.dto.analytics;
 
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@Getter
+@Setter
 public class JobStatsDto {
     private UUID jobId;
     private String jobTitle;

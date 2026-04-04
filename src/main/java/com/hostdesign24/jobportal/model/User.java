@@ -13,7 +13,6 @@ import java.util.Date;
 @Table(name = "users")
 @Getter
 @Setter
-@ToString(exclude = {"password"})
 public class User extends BaseEntity {
     @Column(unique = true)
     private String email;

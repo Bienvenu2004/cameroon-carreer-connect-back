@@ -14,9 +14,6 @@ import lombok.ToString;
 @Table(name = "job_company")
 @Getter
 @Setter
-@NoArgsConstructor
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
 public class JobCompany extends BaseEntity {
 
     private String name;

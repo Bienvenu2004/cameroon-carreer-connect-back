@@ -55,12 +55,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             long viewsCount = (views == null) ? 0 : views;
             totalViews += viewsCount;
 
-            jobStatsList.add(JobStatsDto.builder()
-                    .jobId(job.getId())
-                    .jobTitle(job.getTitle())
-                    .views((int) viewsCount)
-                    .applicationsCount(appsCount)
-                    .build());
+            JobStatsDto jobStats = new JobStatsDto();
+            jobStats.setJobId(job.getId());
+            jobStats.setJobTitle(job.getTitle());
+            jobStats.setViews((int) viewsCount);
+            jobStats.setApplicationsCount(appsCount);
+
+            jobStatsList.add(jobStats);
         }
 
         // Demographics - Mocking for now as we need complex joins to get Applicant City/Country from JobApplication -> JobSeekerProfile

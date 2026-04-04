@@ -10,12 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, exclude = {"jobLocation", "jobCompany"})
+@Getter
+@Setter
 public class JobPost extends BaseEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -26,13 +22,10 @@ public class JobPost extends BaseEntity {
     @JoinColumn(name = "company_id")
     private JobCompany company;
 
-    @Builder.Default
     private boolean isActive = true;
 
-    @Builder.Default
     private boolean isSaved = false;
 
-    @Builder.Default
     private Integer views = 0;
 
     @Column(columnDefinition = "TEXT")
@@ -44,12 +37,10 @@ public class JobPost extends BaseEntity {
     private BigDecimal salary;
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
     private SalaryCurrency salaryCurrency = SalaryCurrency.XAF;
 
     @Enumerated(EnumType.STRING)
     private JobSite site;
-    @Builder.Default
     private LocalDate postedDate = LocalDate.now();
     private String title;
 
