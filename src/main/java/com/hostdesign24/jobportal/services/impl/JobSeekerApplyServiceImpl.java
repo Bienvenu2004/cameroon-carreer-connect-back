@@ -6,6 +6,7 @@ import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.mapper.JobApplicationMapper;
 import com.hostdesign24.jobportal.model.*;
+import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerProfileRepository;
@@ -36,8 +37,16 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
 
     @Override
     public PageResponseDto<JobApplicationDto> getJobApplications(JobApplicationFilterDto filter) {
-        Specification<JobApplication> spec = jobApplicationSpecification.build(filter);
+        // Job seekers automatically see only their own applications
+        User user = usersService.getCurrentUser();
+        if (user != null && user.getRole() == UserRole.JOB_SEEKER) {
+            JobSeekerProfile profile = jobSeekerProfileRepository.findByUserId(user.getId());
+            if (profile != null) {
+                filter.setProfileId(profile.getId());
+            }
+        }
 
+        Specification<JobApplication> spec = jobApplicationSpecification.build(filter);
         Page<JobApplication> page = jobSeekerApplyRepository.findAll(spec, filter.toPageable());
         List<JobApplicationDto> applications = page.getContent().stream()
                 .map(jobApplicationMapper::toDto)
@@ -81,6 +90,7 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         JobApplication apply = new JobApplication();
         apply.setProfile(seekerProfile);
         apply.setJob(job);
+        apply.setCoverLetter(dto.getCoverLetter());
         jobSeekerApplyRepository.save(apply);
     }
 }
