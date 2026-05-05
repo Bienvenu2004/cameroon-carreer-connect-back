@@ -5,7 +5,9 @@ import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.mapper.JobApplicationMapper;
+import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.model.*;
+import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
@@ -92,5 +94,13 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         apply.setJob(job);
         apply.setCoverLetter(dto.getCoverLetter());
         jobSeekerApplyRepository.save(apply);
+    }
+
+    @Override
+    public void updateStatus(UUID applicationId, ApplicationStatus status) {
+        JobApplication application = jobSeekerApplyRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + applicationId));
+        application.setStatus(status);
+        jobSeekerApplyRepository.save(application);
     }
 }
