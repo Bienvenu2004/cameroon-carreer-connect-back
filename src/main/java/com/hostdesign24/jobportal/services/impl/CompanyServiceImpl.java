@@ -11,6 +11,7 @@ import com.hostdesign24.jobportal.mapper.FileMapper;
 import com.hostdesign24.jobportal.model.Company;
 import com.hostdesign24.jobportal.model.File;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
+import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.specifications.CompanySpecification;
 import com.hostdesign24.jobportal.services.CompanyService;
 import com.hostdesign24.jobportal.services.FileService;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class CompanyServiceImpl implements CompanyService {
 
     private final JobCompanyRepository companyRepository;
+    private final JobRepository jobRepository;
     private final CompanyMapper companyMapper;
     private final CompanySpecification companySpecification;
     private final FileService fileService;
@@ -48,9 +50,9 @@ public class CompanyServiceImpl implements CompanyService {
         if (dto.getLogo() != null) {
             File logo = fileService.uploadFile(dto.getLogo(), company.getId(), "COMPANY_LOGO", "Company");
             company.setLogo(logo);
+            companyRepository.save(company);
         }
-        companyRepository.save(company);
-        return companyMapper.toResponse(company);
+        return getCompanyResponseDto(company);
     }
 
     @Override
@@ -64,6 +66,7 @@ public class CompanyServiceImpl implements CompanyService {
     private @NonNull CompanyResponseDto getCompanyResponseDto(Company company) {
         CompanyResponseDto response = companyMapper.toResponse(company);
         response.setLogo(fileMapper.toDto(company.getLogo(), publicUrl));
+        response.setActiveJobs(jobRepository.countByCompanyIdAndIsActiveTrueAndDeletedFalse(company.getId()));
         return response;
     }
 

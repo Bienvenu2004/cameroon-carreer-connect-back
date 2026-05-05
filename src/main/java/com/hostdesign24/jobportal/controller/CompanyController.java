@@ -9,6 +9,7 @@ import com.hostdesign24.jobportal.dto.company.CompanyResponseDto;
 import com.hostdesign24.jobportal.services.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -20,8 +21,8 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    @PostMapping("/")
-    public ApiResponse<CompanyResponseDto> create(@Valid @RequestBody CompanyEntryDto dto) {
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<CompanyResponseDto> create(@Valid @ModelAttribute CompanyEntryDto dto) {
         CompanyResponseDto createdCompany = companyService.create(dto);
         return ApiResponse.success(createdCompany, "Company created successfully");
     }
@@ -38,8 +39,8 @@ public class CompanyController {
         return ApiResponse.success(companies, "Companies retrieved successfully");
     }
 
-    @PatchMapping("/{id}")
-    public ApiResponse<CompanyResponseDto> patch(@PathVariable UUID id, @Valid @RequestBody CompanyPatchDto dto) {
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<CompanyResponseDto> patch(@PathVariable UUID id, @Valid @ModelAttribute CompanyPatchDto dto) {
         CompanyResponseDto updatedCompany = companyService.patch(id, dto);
         return ApiResponse.success(updatedCompany, "Company updated successfully");
     }

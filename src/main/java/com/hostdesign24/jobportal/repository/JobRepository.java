@@ -26,6 +26,8 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
 
     List<Job> findByCompanyId(UUID companyId);
 
+    int countByCompanyIdAndIsActiveTrueAndDeletedFalse(UUID companyId);
+
     @Query("SELECT COALESCE(SUM(j.views), 0) FROM Job j")
     Long getTotalViews();
 }

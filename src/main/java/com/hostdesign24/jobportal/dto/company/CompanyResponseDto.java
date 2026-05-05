@@ -21,6 +21,6 @@ public class CompanyResponseDto {
 
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    private int activeJobs = 0;
 }
 
