@@ -16,6 +16,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface CompanyMapper {
 
     @Mapping(target = "logo", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "rejectionReason", ignore = true)
+    @Mapping(target = "verifiedAt", ignore = true)
     Company toEntity(CompanyEntryDto dto);
 
     CompanyResponseDto toResponse(Company company);
@@ -27,6 +30,9 @@ public interface CompanyMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "logo", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "rejectionReason", ignore = true)
+    @Mapping(target = "verifiedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
@@ -34,4 +40,3 @@ public interface CompanyMapper {
     @Mapping(target = "deleted", ignore = true)
     void updateFromPatchDto(CompanyPatchDto dto, @MappingTarget Company company);
 }
-

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication:*)",
+      "Bash(ls D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication\\\\cameroon-career-connect-frontend:*)",
+      "Bash(cd D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication\\\\cameroon-career-connect-frontend:*)"
+    ]
+  }
+}

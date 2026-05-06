@@ -17,68 +17,83 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Builds JPA Specifications for filtering {@link Job} entities.
+ *
+ * Field paths must match the Job entity exactly:
+ *   - title (not jobTitle), description (not descriptionOfJob)
+ *   - type (not jobType), site (not jobSite)
+ *   - location (not jobLocation), company (not jobCompany)
+ */
 @Component
 public class JobActivitySpecification {
+
     public Specification<Job> build(JobActivityFilterDto filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             Optional<User> currentOptUser = Utils.getCurrentUser();
 
-            if (currentOptUser.isPresent()){
+            if (currentOptUser.isPresent()) {
                 User currentUser = currentOptUser.get();
 
-                if (currentUser.getRole() == UserRole.RECRUITER){
+                if (currentUser.getRole() == UserRole.RECRUITER) {
+                    // Recruiters only see jobs they themselves created.
                     predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
-                } else {
+                } else if (currentUser.getRole() == UserRole.JOB_SEEKER) {
                     includeSavedJobs(filter, root, query, cb, currentUser, predicates);
-                    Subquery<UUID> sub = query.subquery(UUID.class);
-                    Root<JobApplication> subRoot = sub.from(JobApplication.class);
-                    sub.select(subRoot.get("job").get("id"));  // Select job ID from JobSeekerApply
-                    sub.where(
-                            cb.equal(subRoot.get("job").get("id"), root.get("id")),  // Compare job IDs
-                            cb.equal(subRoot.get("profile").get("user").get("id"), currentUser.getId())
-                    );
-                    predicates.add(cb.exists(sub));
-
                 }
+                // SYSTEM_ADMIN sees everything (no ownership predicate).
             }
+
             if (filter.getJobTitle() != null && !filter.getJobTitle().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("jobTitle").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("title").as(String.class)),
                         "%" + filter.getJobTitle().toLowerCase() + "%"));
             }
 
             if (filter.getCompanyName() != null && !filter.getCompanyName().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("jobCompany").get("name").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("company").get("name").as(String.class)),
                         "%" + filter.getCompanyName().toLowerCase() + "%"));
             }
 
             if (filter.getCompanyCity() != null && !filter.getCompanyCity().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("jobLocation").get("city").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("location").get("city").as(String.class)),
                         "%" + filter.getCompanyCity().toLowerCase() + "%"));
             }
 
             if (filter.getCompanyState() != null && !filter.getCompanyState().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("jobLocation").get("state").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("location").get("stateRegion").as(String.class)),
                         "%" + filter.getCompanyState().toLowerCase() + "%"));
             }
 
             if (filter.getCompanyCountry() != null && !filter.getCompanyCountry().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("jobLocation").get("country").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("location").get("country").as(String.class)),
                         "%" + filter.getCompanyCountry().toLowerCase() + "%"));
             }
 
+            if (filter.getRegion() != null) {
+                predicates.add(cb.equal(root.get("location").get("region"), filter.getRegion()));
+            }
+
+            if (filter.getIndustry() != null) {
+                predicates.add(cb.equal(root.get("company").get("industry"), filter.getIndustry()));
+            }
+
             if (filter.getDescriptionOfJob() != null && !filter.getDescriptionOfJob().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("descriptionOfJob").as(String.class)),
+                predicates.add(cb.like(cb.lower(root.get("description").as(String.class)),
                         "%" + filter.getDescriptionOfJob().toLowerCase() + "%"));
             }
 
             if (filter.getJobType() != null) {
-                predicates.add(cb.equal(root.get("jobType"), filter.getJobType()));
+                predicates.add(cb.equal(root.get("type"), filter.getJobType()));
             }
 
-            if (filter.getSalary() != null) {
-                predicates.add(cb.equal(root.get("salary"), filter.getSalary()));
+            if (filter.getSalaryMin() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("salary"), filter.getSalaryMin()));
+            }
+
+            if (filter.getSalaryMax() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("salary"), filter.getSalaryMax()));
             }
 
             if (filter.getSalaryCurrency() != null) {
@@ -86,14 +101,13 @@ public class JobActivitySpecification {
             }
 
             if (filter.getJobSite() != null) {
-                predicates.add(cb.equal(root.get("jobSite"), filter.getJobSite()));
+                predicates.add(cb.equal(root.get("site"), filter.getJobSite()));
             }
 
             if (filter.getPostedDate() != null) {
                 predicates.add(cb.equal(root.get("postedDate"), filter.getPostedDate()));
             }
 
-            // FIXED: Changed from filter.isActive() to check if the filter explicitly sets active status
             if (filter.getIsActive() != null) {
                 predicates.add(cb.equal(root.get("isActive"), filter.getIsActive()));
             }
@@ -103,11 +117,19 @@ public class JobActivitySpecification {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("postedDate"), targetDate));
             }
 
+            // Hide soft-deleted rows by default.
+            predicates.add(cb.equal(root.get("deleted"), false));
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
-    private static void includeSavedJobs(JobActivityFilterDto filter, Root<Job> root, CriteriaQuery<?> query, CriteriaBuilder cb, User currentUser, List<Predicate> predicates) {
+    private static void includeSavedJobs(JobActivityFilterDto filter,
+                                         Root<Job> root,
+                                         CriteriaQuery<?> query,
+                                         CriteriaBuilder cb,
+                                         User currentUser,
+                                         List<Predicate> predicates) {
         if (filter.getIsSaved() != null) {
             Subquery<UUID> savedSubquery = query.subquery(UUID.class);
             Root<JobSave> savedRoot = savedSubquery.from(JobSave.class);

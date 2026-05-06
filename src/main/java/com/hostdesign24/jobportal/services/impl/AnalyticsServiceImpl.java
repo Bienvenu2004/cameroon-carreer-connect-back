@@ -1,22 +1,36 @@
 package com.hostdesign24.jobportal.services.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import com.hostdesign24.jobportal.model.Job;
-import org.springframework.stereotype.Service;
-
+import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.analytics.DashboardDto;
 import com.hostdesign24.jobportal.dto.analytics.JobStatsDto;
+import com.hostdesign24.jobportal.model.Address;
+import com.hostdesign24.jobportal.model.Job;
+import com.hostdesign24.jobportal.model.JobApplication;
+import com.hostdesign24.jobportal.model.User;
+import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
+import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.services.AnalyticsService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.UUID;
+
+/**
+ * Aggregates dashboard analytics scoped to the caller's role:
+ *   - SYSTEM_ADMIN: platform-wide stats
+ *   - RECRUITER: only stats for jobs they themselves created (createdBy = current user id)
+ *   - JOB_SEEKER: stats over their own applications (basic)
+ */
 @Service
 @RequiredArgsConstructor
 public class AnalyticsServiceImpl implements AnalyticsService {
@@ -25,59 +39,106 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final JobSeekerApplyRepository jobSeekerApplyRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardDto getDashboardStats(UUID userId) {
-        // Fetch user to check role, but for now assuming Recruiter views their own jobs
-        // If Admin, might want to see all.
-        // For now, let's implement for a Recruiter seeing their company's jobs or all jobs if we don't link user directly to company conveniently yet.
-        // Looking at RecruiterProfile, it maps to User. JobPost has Company.
-        // We need to find which company the user belongs to.
-        // Limitation: Current RecruiterProfile doesn't seem to link directly to a 'Company' entity that is shared across recruiters,
-        // or JobPost 'JobCompany' is embedded/linked per job.
-        // Let's assume we fetch ALL jobs for now (Admin view) OR we need to filter by the recruiter's company.
-        // Since JobCompany is stored per JobPost (M:1 relationship but cascade ALL), it seems companies are checking RecruiterJobsDto logic.
+        Optional<User> currentUser = Utils.getCurrentUser();
+        UserRole role = currentUser.map(User::getRole).orElse(null);
+        UUID actorId = currentUser.map(User::getId).orElse(userId);
 
-        // In JobPostActivityService.getRecruiterJobs, it uses a filter.
-        // Let's simplify and return stats for ALL jobs for now as requested by user "Dashboard showing number of applications, views per job, and demographics."
-        // Refinement: If this is for a specific recruiter, we should filter. I'll implement for ALL jobs for the demo dashboard.
+        List<Job> jobs = jobRepository.findAll().stream()
+                .filter(j -> !j.isDeleted())
+                .toList();
 
-        List<Job> allJobs = jobRepository.findAll();
+        if (role == UserRole.RECRUITER && actorId != null) {
+            jobs = jobs.stream()
+                    .filter(j -> actorId.equals(j.getCreatedBy()))
+                    .toList();
+        }
 
-        long totalJobs = allJobs.size();
+        long totalJobs = jobs.size();
+        long totalActiveJobs = jobs.stream().filter(Job::isActive).count();
         long totalViews = 0;
         long totalApplications = 0;
 
-        List<JobStatsDto> jobStatsList = new ArrayList<>();
+        java.util.List<JobStatsDto> jobStatsList = new java.util.ArrayList<>();
 
-        for (Job job : allJobs) {
+        for (Job job : jobs) {
             long appsCount = jobSeekerApplyRepository.countByJobId(job.getId());
             totalApplications += appsCount;
             Integer views = job.getViews();
             long viewsCount = (views == null) ? 0 : views;
             totalViews += viewsCount;
 
-            JobStatsDto jobStats = new JobStatsDto();
-            jobStats.setJobId(job.getId());
-            jobStats.setJobTitle(job.getTitle());
-            jobStats.setViews((int) viewsCount);
-            jobStats.setApplicationsCount(appsCount);
-
-            jobStatsList.add(jobStats);
+            JobStatsDto js = new JobStatsDto();
+            js.setJobId(job.getId());
+            js.setJobTitle(job.getTitle());
+            js.setViews((int) viewsCount);
+            js.setApplicationsCount(appsCount);
+            jobStatsList.add(js);
         }
 
-        // Demographics - Mocking for now as we need complex joins to get Applicant City/Country from JobApplication -> JobSeekerProfile
-        // Implementation: Iterate applications and aggregate.
+        // Application-level aggregates (status, demographics, time-series)
+        java.util.Set<UUID> jobIdSet = new java.util.HashSet<>();
+        jobs.forEach(j -> jobIdSet.add(j.getId()));
+
+        Map<String, Long> appsByStatus = new HashMap<>();
+        for (ApplicationStatus s : ApplicationStatus.values()) appsByStatus.put(s.name(), 0L);
+
         Map<String, Long> demographics = new HashMap<>();
-        // Note: Real implementation would be expensive without a custom query.
-        // Leaving demographics empty or mocked to avoid performance hit on large datasets for now,
-        // or we can fetch applications if dataset is small.
-        // Let's defer deep demographics aggregation to a future optimization or custom repository method.
+        Map<String, Long> appsByMonth = new TreeMap<>();
+        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("yyyy-MM");
+        LocalDate cutoff6m = LocalDate.now().minusMonths(6);
+
+        if (role == UserRole.JOB_SEEKER && actorId != null) {
+            // Seeker view: their own applications.
+            jobSeekerApplyRepository.findAll().stream()
+                    .filter(a -> a.getProfile() != null
+                            && a.getProfile().getUser() != null
+                            && actorId.equals(a.getProfile().getUser().getId()))
+                    .forEach(a -> aggregateApp(a, appsByStatus, demographics, appsByMonth, monthFmt, cutoff6m));
+        } else {
+            // Admin / recruiter view: applications on the visible jobs.
+            jobSeekerApplyRepository.findAll().stream()
+                    .filter(a -> a.getJob() != null && jobIdSet.contains(a.getJob().getId()))
+                    .forEach(a -> aggregateApp(a, appsByStatus, demographics, appsByMonth, monthFmt, cutoff6m));
+        }
 
         return DashboardDto.builder()
                 .totalJobs(totalJobs)
+                .totalActiveJobs(totalActiveJobs)
                 .totalViews(totalViews)
                 .totalApplications(totalApplications)
                 .jobsStats(jobStatsList)
+                .applicationsByStatus(appsByStatus)
                 .demographics(demographics)
+                .applicationsByMonth(appsByMonth)
                 .build();
+    }
+
+    private void aggregateApp(JobApplication a,
+                              Map<String, Long> appsByStatus,
+                              Map<String, Long> demographics,
+                              Map<String, Long> appsByMonth,
+                              DateTimeFormatter monthFmt,
+                              LocalDate cutoff6m) {
+        ApplicationStatus st = a.getStatus() == null ? ApplicationStatus.APPLIED : a.getStatus();
+        appsByStatus.merge(st.name(), 1L, Long::sum);
+
+        if (a.getProfile() != null) {
+            Address addr = a.getProfile().getAddress();
+            if (addr != null) {
+                String city = addr.getCity();
+                String country = addr.getCountry();
+                if (city != null || country != null) {
+                    String key = (city != null ? city : "Unknown")
+                            + ", " + (country != null ? country : "Unknown");
+                    demographics.merge(key, 1L, Long::sum);
+                }
+            }
+        }
+
+        if (a.getApplicationDate() != null && !a.getApplicationDate().isBefore(cutoff6m)) {
+            appsByMonth.merge(a.getApplicationDate().format(monthFmt), 1L, Long::sum);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.dto.company;
 
+import com.hostdesign24.jobportal.model.enums.Region;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,9 @@ public class CompanyAddressDto {
 
     private String stateRegion;
 
+    /** Cameroonian administrative region (one of 10). */
+    private Region region;
+
     private String zip;
 
     private String country;
@@ -25,4 +29,3 @@ public class CompanyAddressDto {
 
     private String phone;
 }
-

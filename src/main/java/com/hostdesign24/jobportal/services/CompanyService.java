@@ -19,5 +19,13 @@ public interface CompanyService {
     CompanyResponseDto patch(UUID id, CompanyPatchDto dto);
 
     void delete(UUID id);
-}
 
+    /** Approve a PENDING company. Sets status = APPROVED, verifiedAt = now. */
+    CompanyResponseDto approve(UUID id);
+
+    /** Reject a PENDING company. Records reason, sets status = REJECTED. */
+    CompanyResponseDto reject(UUID id, String reason);
+
+    /** Suspend an APPROVED company. Records reason, sets status = SUSPENDED. */
+    CompanyResponseDto suspend(UUID id, String reason);
+}

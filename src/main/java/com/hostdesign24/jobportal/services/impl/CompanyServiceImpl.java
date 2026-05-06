@@ -5,11 +5,13 @@ import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
 import com.hostdesign24.jobportal.dto.company.CompanyFilterDto;
 import com.hostdesign24.jobportal.dto.company.CompanyPatchDto;
 import com.hostdesign24.jobportal.dto.company.CompanyResponseDto;
+import com.hostdesign24.jobportal.exception.InvalidInputException;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.CompanyMapper;
 import com.hostdesign24.jobportal.mapper.FileMapper;
 import com.hostdesign24.jobportal.model.Company;
 import com.hostdesign24.jobportal.model.File;
+import com.hostdesign24.jobportal.model.enums.CompanyStatus;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.specifications.CompanySpecification;
@@ -23,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +47,9 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional
     public CompanyResponseDto create(CompanyEntryDto dto) {
         Company company = companyMapper.toEntity(dto);
+        // New companies always start as PENDING and require admin approval before recruiters
+        // can post jobs under them.
+        company.setStatus(CompanyStatus.PENDING);
 
         company = companyRepository.save(company);
 
@@ -59,7 +65,6 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional(readOnly = true)
     public CompanyResponseDto getById(UUID id) {
         Company company = findCompanyOrThrow(id);
-
         return getCompanyResponseDto(company);
     }
 
@@ -115,9 +120,47 @@ public class CompanyServiceImpl implements CompanyService {
         companyRepository.delete(company);
     }
 
+    @Override
+    @Transactional
+    public CompanyResponseDto approve(UUID id) {
+        Company company = findCompanyOrThrow(id);
+        if (company.getStatus() == CompanyStatus.APPROVED) {
+            return getCompanyResponseDto(company);
+        }
+        company.setStatus(CompanyStatus.APPROVED);
+        company.setRejectionReason(null);
+        company.setVerifiedAt(LocalDateTime.now());
+        return getCompanyResponseDto(companyRepository.save(company));
+    }
+
+    @Override
+    @Transactional
+    public CompanyResponseDto reject(UUID id, String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new InvalidInputException("A reason is required to reject a company");
+        }
+        Company company = findCompanyOrThrow(id);
+        company.setStatus(CompanyStatus.REJECTED);
+        company.setRejectionReason(reason);
+        company.setVerifiedAt(LocalDateTime.now());
+        return getCompanyResponseDto(companyRepository.save(company));
+    }
+
+    @Override
+    @Transactional
+    public CompanyResponseDto suspend(UUID id, String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new InvalidInputException("A reason is required to suspend a company");
+        }
+        Company company = findCompanyOrThrow(id);
+        company.setStatus(CompanyStatus.SUSPENDED);
+        company.setRejectionReason(reason);
+        company.setVerifiedAt(LocalDateTime.now());
+        return getCompanyResponseDto(companyRepository.save(company));
+    }
+
     private Company findCompanyOrThrow(UUID id) {
         return companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
     }
 }
-
