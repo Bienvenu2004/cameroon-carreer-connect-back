@@ -25,9 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -89,13 +91,20 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         return jobSeekerProfileRepository.save(jobSeekerProfile);
     }
 
+    /**
+     * IMPORTANT: this method MUST return a mutable List.
+     *
+     * The returned list is assigned to {@code jobSeekerProfile.setSkills(...)},
+     * and Hibernate's merge cascade later calls {@code clear()} on that same
+     * collection to re-synchronize the persistent state. {@link List#of()}
+     * and {@code Stream#toList()} return unmodifiable lists — using them
+     * here triggers {@link UnsupportedOperationException} inside
+     * {@code CollectionType.replaceElements} on save. Always return a fresh
+     * {@link ArrayList}.
+     */
     private List<Skill> createSkillsFromDto(JobSeekerProfileSaveDto dto, JobSeekerProfile jobSeekerProfile) {
-        if (dto == null) {
-            return List.of();
-        }
-
-        if (dto.getSkills() == null || dto.getSkills().isEmpty()) {
-            return List.of();
+        if (dto == null || dto.getSkills() == null || dto.getSkills().isEmpty()) {
+            return new ArrayList<>();
         }
 
         return dto.getSkills().stream()
@@ -111,7 +120,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
                     return skillRepository.save(skill);
                 })
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override

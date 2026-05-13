@@ -29,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Year;
 import java.util.Locale;
@@ -102,7 +103,14 @@ public class UsersServiceImpl implements UsersService {
         return user;
     }
 
+    /**
+     * Same rationale as {@link #getCurrentUserDto()} — Jackson will serialize
+     * the returned profile entity in the controller, accessing LAZY
+     * associations (skills, resume, profile photo) along the way. We need
+     * an open Hibernate session for that.
+     */
     @Override
+    @Transactional(readOnly = true)
     public Object getCurrentUserProfile() {
 
         // Delegate principal resolution to getCurrentUser() — it knows how
@@ -130,13 +138,17 @@ public class UsersServiceImpl implements UsersService {
         }
 
         // JwtFilters installs the raw User entity as the principal on every
-        // JWT-authenticated request. authentication.getName() in that case
-        // falls back to User.toString() (Lombok-generated) which is NOT the
-        // email — so findByEmail(authentication.getName()) would 404 and
-        // throw "Could not found user". Check for the User principal first.
+        // JWT-authenticated request. That instance was loaded in the filter
+        // (with no transaction) and is therefore DETACHED — accessing its
+        // LAZY associations (jobSeekerProfile, recruiterProfile) downstream
+        // throws LazyInitializationException. We pull just the ID and
+        // re-load through the repository so the returned entity is attached
+        // to the current request's session.
         Object principal = authentication.getPrincipal();
         if (principal instanceof User) {
-            return (User) principal;
+            UUID userId = ((User) principal).getId();
+            return userRepository.findById(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException("Could not find user"));
         }
 
         // Fallback: during the login flow Spring Security uses a UserDetails
@@ -146,9 +158,21 @@ public class UsersServiceImpl implements UsersService {
                 .orElseThrow(() -> new UsernameNotFoundException("Could not find user"));
     }
 
+    /**
+     * Loads the current user AND maps it to a UserDto inside a single
+     * read-only transaction. The mapping recurses into
+     * jobSeekerProfile → skills (a separate LAZY @OneToMany), so we MUST
+     * keep the Hibernate session open across the load + map step or
+     * `LazyInitializationException` will fire when MapStruct calls
+     * `.size()` on the PersistentBag.
+     */
     @Override
+    @Transactional(readOnly = true)
     public UserDto getCurrentUserDto() {
         User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
         return userMapper.toUserDto(currentUser);
     }
 
