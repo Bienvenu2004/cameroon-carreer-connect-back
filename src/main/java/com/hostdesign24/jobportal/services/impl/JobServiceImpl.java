@@ -175,8 +175,8 @@ public class JobServiceImpl implements JobService {
         JobPostResponseDto response = jobResponseMapper.toResponse(job);
         if (job.getCompany() != null
                 && job.getCompany().getLogo() != null
-                && response.getJobCompany() != null) {
-            response.getJobCompany().setLogo(fileMapper.toDto(job.getCompany().getLogo(), publicUrl));
+                && response.getCompany() != null) {
+            response.getCompany().setLogo(fileMapper.toDto(job.getCompany().getLogo(), publicUrl));
         }
         return response;
     }

@@ -13,13 +13,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Wire-level field names match the frontend JobDto contract
+ * (id / title / location / company, not jobPostId / jobTitle / ...).
+ * If you need the legacy names back on the wire, add @JsonProperty.
+ */
 @Getter
 @Setter
 public class JobPostResponseDto {
 
-    private UUID jobPostId;
+    private UUID id;
 
-    private String jobTitle;
+    private String title;
 
     private String description;
 
@@ -45,9 +50,9 @@ public class JobPostResponseDto {
 
     private LocalDateTime updatedAt;
 
-    private JobLocationDto jobLocation;
+    private JobLocationDto location;
 
-    private JobCompanyResponseDto jobCompany;
+    private JobCompanyResponseDto company;
 
     private Long totalCandidates;
 }

@@ -105,36 +105,45 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public Object getCurrentUserProfile() {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            assert authentication != null;
-            String username = authentication.getName();
-            User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
-            UUID userId = user.getId();
-
-            if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("RECRUITER"))) {
-                return recruiterProfileRepository.findById(userId).orElse(new RecruiterProfile(user));
-            } else {
-                return jobSeekerProfileRepository.findById(userId).orElse(new JobSeekerProfile(user));
-            }
+        // Delegate principal resolution to getCurrentUser() — it knows how
+        // to pull the User entity from the JWT-installed principal without
+        // the email-lookup pitfall.
+        User user = getCurrentUser();
+        if (user == null) {
+            return null;
         }
+        UUID userId = user.getId();
 
-        return null;
+        if (user.getRole() == UserRole.RECRUITER) {
+            return recruiterProfileRepository.findById(userId).orElse(new RecruiterProfile(user));
+        } else {
+            return jobSeekerProfileRepository.findById(userId).orElse(new JobSeekerProfile(user));
+        }
     }
 
     @Override
     public User getCurrentUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            assert authentication != null;
-            String username = authentication.getName();
-            return userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return null;
         }
 
-        return null;
+        // JwtFilters installs the raw User entity as the principal on every
+        // JWT-authenticated request. authentication.getName() in that case
+        // falls back to User.toString() (Lombok-generated) which is NOT the
+        // email — so findByEmail(authentication.getName()) would 404 and
+        // throw "Could not found user". Check for the User principal first.
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User) {
+            return (User) principal;
+        }
+
+        // Fallback: during the login flow Spring Security uses a UserDetails
+        // principal whose name IS the email — keep looking up by email then.
+        String username = authentication.getName();
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Could not find user"));
     }
 
     @Override
