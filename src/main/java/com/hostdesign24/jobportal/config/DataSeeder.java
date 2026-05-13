@@ -95,62 +95,10 @@ public class DataSeeder implements CommandLineRunner {
         /* ---------------- ADMIN ---------------- */
         createUser("admin@camjobs.cm", hash, UserRole.SYSTEM_ADMIN, true);
 
-        /* ---------------- COMPANIES ---------------- */
-        Company mtnCm = saveCompany("MTN Cameroon",
-                "MTN Cameroon is a leading telecommunications provider serving over 10 million subscribers across the country.",
-                "https://www.mtn.cm", Industry.TELECOMMUNICATIONS, CompanySize.ENTERPRISE,
-                CompanyStatus.APPROVED, addr("Bonanjo", "Douala", Region.LITTORAL));
-
-        Company afriland = saveCompany("Afriland First Bank",
-                "Pan-African bank headquartered in Yaoundé, providing retail, corporate and digital banking.",
-                "https://www.afrilandfirstbank.com", Industry.BANKING_FINANCE, CompanySize.LARGE,
-                CompanyStatus.APPROVED, addr("Centre Ville", "Yaoundé", Region.CENTRE));
-
-        Company chococam = saveCompany("Chococam SA",
-                "Largest confectionery and food manufacturer in Central Africa, makers of Tartina and Mambo.",
-                "https://www.chococam.com", Industry.MANUFACTURING, CompanySize.LARGE,
-                CompanyStatus.APPROVED, addr("Bassa", "Douala", Region.LITTORAL));
-
-        Company orange = saveCompany("Orange Cameroun",
-                "Telecom operator part of the Orange Group, offering mobile, fixed, broadband and Orange Money services.",
-                "https://www.orange.cm", Industry.TELECOMMUNICATIONS, CompanySize.ENTERPRISE,
-                CompanyStatus.APPROVED, addr("Akwa", "Douala", Region.LITTORAL));
-
-        Company camrail = saveCompany("Camrail",
-                "National railway concessionaire — freight, passenger services and logistics across Cameroon.",
-                "https://www.camrail.net", Industry.LOGISTICS_TRANSPORT, CompanySize.LARGE,
-                CompanyStatus.APPROVED, addr("Bessengue", "Douala", Region.LITTORAL));
-
-        Company sofavinc = saveCompany("SoFaVinc Agribusiness",
-                "Cooperative supporting cocoa, coffee and palm-oil farmers across the West and South-West regions.",
-                "https://www.sofavinc.cm", Industry.AGRICULTURE, CompanySize.MEDIUM,
-                CompanyStatus.APPROVED, addr("Marché A", "Bafoussam", Region.OUEST));
-
-        Company camHealth = saveCompany("Cameroon Baptist Convention Health Services",
-                "Faith-based healthcare network operating hospitals and clinics throughout Cameroon.",
-                "https://www.cbchealthservices.org", Industry.HEALTHCARE, CompanySize.LARGE,
-                CompanyStatus.APPROVED, addr("Hospital Hill", "Bamenda", Region.NORD_OUEST));
-
-        Company eduFirst = saveCompany("EduFirst Cameroon",
-                "EdTech startup building bilingual learning platforms for primary and secondary schools.",
-                "https://www.edufirst.cm", Industry.EDUCATION, CompanySize.SMALL,
-                CompanyStatus.APPROVED, addr("Bastos", "Yaoundé", Region.CENTRE));
-
-        // Pending verification
-        Company greenSahel = saveCompany("Green Sahel NGO",
-                "NGO promoting climate-resilient agriculture in the Far North region.",
-                "https://www.greensahel.org", Industry.NGO_NONPROFIT, CompanySize.SMALL,
-                CompanyStatus.PENDING, addr("Domayo", "Maroua", Region.EXTREME_NORD));
-
-        // Rejected
-        Company suspicious = saveCompany("QuickRich Holdings",
-                "Investment firm with insufficient documentation provided.",
-                "https://www.quickrich.cm", Industry.OTHER, CompanySize.MICRO,
-                CompanyStatus.REJECTED, addr("Mfoundi", "Yaoundé", Region.CENTRE));
-        suspicious.setRejectionReason("Could not verify business registration documents.");
-        companyRepository.save(suspicious);
-
-        /* ---------------- RECRUITERS ---------------- */
+        /* ---------------- RECRUITERS ----------------
+         * Created BEFORE companies so we can assign each recruiter as the
+         * createdBy owner of the company they should "see" in /companies/me.
+         */
         User recDouala = createUser("recruiter.douala@camjobs.cm", hash, UserRole.RECRUITER, true);
         recruiterProfile(recDouala, "Marie", "Kouam", "MTN Cameroon",
                 "Bonanjo", "Littoral", "Cameroon");
@@ -162,6 +110,75 @@ public class DataSeeder implements CommandLineRunner {
         User recBamenda = createUser("recruiter.bamenda@camjobs.cm", hash, UserRole.RECRUITER, true);
         recruiterProfile(recBamenda, "Patience", "Ngwa", "QuickRich Holdings",
                 "Commercial Avenue", "Nord-Ouest", "Cameroon");
+
+        /* ---------------- COMPANIES ----------------
+         * Each recruiter owns ONE company (createdBy = recruiter UUID).
+         * The remaining companies have no specific owner — they're shown
+         * in admin views and on public pages but no recruiter "owns" them.
+         */
+        Company mtnCm = saveCompany("MTN Cameroon",
+                "MTN Cameroon is a leading telecommunications provider serving over 10 million subscribers across the country.",
+                "https://www.mtn.cm", Industry.TELECOMMUNICATIONS, CompanySize.ENTERPRISE,
+                CompanyStatus.APPROVED, addr("Bonanjo", "Douala", Region.LITTORAL),
+                recDouala.getId());
+
+        Company afriland = saveCompany("Afriland First Bank",
+                "Pan-African bank headquartered in Yaoundé, providing retail, corporate and digital banking.",
+                "https://www.afrilandfirstbank.com", Industry.BANKING_FINANCE, CompanySize.LARGE,
+                CompanyStatus.APPROVED, addr("Centre Ville", "Yaoundé", Region.CENTRE),
+                null);
+
+        Company chococam = saveCompany("Chococam SA",
+                "Largest confectionery and food manufacturer in Central Africa, makers of Tartina and Mambo.",
+                "https://www.chococam.com", Industry.MANUFACTURING, CompanySize.LARGE,
+                CompanyStatus.APPROVED, addr("Bassa", "Douala", Region.LITTORAL),
+                null);
+
+        Company orange = saveCompany("Orange Cameroun",
+                "Telecom operator part of the Orange Group, offering mobile, fixed, broadband and Orange Money services.",
+                "https://www.orange.cm", Industry.TELECOMMUNICATIONS, CompanySize.ENTERPRISE,
+                CompanyStatus.APPROVED, addr("Akwa", "Douala", Region.LITTORAL),
+                null);
+
+        Company camrail = saveCompany("Camrail",
+                "National railway concessionaire — freight, passenger services and logistics across Cameroon.",
+                "https://www.camrail.net", Industry.LOGISTICS_TRANSPORT, CompanySize.LARGE,
+                CompanyStatus.APPROVED, addr("Bessengue", "Douala", Region.LITTORAL),
+                null);
+
+        Company sofavinc = saveCompany("SoFaVinc Agribusiness",
+                "Cooperative supporting cocoa, coffee and palm-oil farmers across the West and South-West regions.",
+                "https://www.sofavinc.cm", Industry.AGRICULTURE, CompanySize.MEDIUM,
+                CompanyStatus.APPROVED, addr("Marché A", "Bafoussam", Region.OUEST),
+                null);
+
+        Company camHealth = saveCompany("Cameroon Baptist Convention Health Services",
+                "Faith-based healthcare network operating hospitals and clinics throughout Cameroon.",
+                "https://www.cbchealthservices.org", Industry.HEALTHCARE, CompanySize.LARGE,
+                CompanyStatus.APPROVED, addr("Hospital Hill", "Bamenda", Region.NORD_OUEST),
+                null);
+
+        Company eduFirst = saveCompany("EduFirst Cameroon",
+                "EdTech startup building bilingual learning platforms for primary and secondary schools.",
+                "https://www.edufirst.cm", Industry.EDUCATION, CompanySize.SMALL,
+                CompanyStatus.APPROVED, addr("Bastos", "Yaoundé", Region.CENTRE),
+                null);
+
+        // Pending verification — owned by recYaounde
+        Company greenSahel = saveCompany("Green Sahel NGO",
+                "NGO promoting climate-resilient agriculture in the Far North region.",
+                "https://www.greensahel.org", Industry.NGO_NONPROFIT, CompanySize.SMALL,
+                CompanyStatus.PENDING, addr("Domayo", "Maroua", Region.EXTREME_NORD),
+                recYaounde.getId());
+
+        // Rejected — owned by recBamenda
+        Company suspicious = saveCompany("QuickRich Holdings",
+                "Investment firm with insufficient documentation provided.",
+                "https://www.quickrich.cm", Industry.OTHER, CompanySize.MICRO,
+                CompanyStatus.REJECTED, addr("Mfoundi", "Yaoundé", Region.CENTRE),
+                recBamenda.getId());
+        suspicious.setRejectionReason("Could not verify business registration documents.");
+        companyRepository.save(suspicious);
 
         /* ---------------- JOB SEEKERS ---------------- */
         User alice = createUser("seeker.alice@camjobs.cm", hash, UserRole.JOB_SEEKER, true);
@@ -356,7 +373,8 @@ public class DataSeeder implements CommandLineRunner {
 
     private Company saveCompany(String name, String description, String website,
                                 Industry industry, CompanySize size,
-                                CompanyStatus status, Address address) {
+                                CompanyStatus status, Address address,
+                                UUID createdBy) {
         Company c = new Company();
         c.setName(name);
         c.setDescription(description);
@@ -368,6 +386,11 @@ public class DataSeeder implements CommandLineRunner {
             c.setVerifiedAt(LocalDateTime.now().minusDays(20));
         }
         c.setAddress(address);
+        // Set ownership BEFORE save. The Spring Data auditor will leave this
+        // value alone because no authenticated user is in scope during seeding.
+        if (createdBy != null) {
+            c.setCreatedBy(createdBy);
+        }
         return companyRepository.save(c);
     }
 

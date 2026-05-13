@@ -28,6 +28,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,15 @@ public class AuthServiceImpl implements AuthService {
 
     private static final Integer MAX_RESET_ATTEMPTS = 20;
     private static final String USER_NOT_FOUND = "User not found";
+
+    /**
+     * Whether session cookies should carry the Secure flag.
+     * MUST be true in production (HTTPS only). Defaults to false so dev
+     * over plain http://localhost works out of the box; flip this to true
+     * via the env var APP_COOKIES_SECURE=true when deploying.
+     */
+    @Value("${app.cookies.secure:false}")
+    private boolean cookieSecure;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -340,14 +350,17 @@ public class AuthServiceImpl implements AuthService {
                                  String refreshToken) {
         Cookie accessTokenCookie = new Cookie("access_token", accessToken);
         accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge((int) (jwtConfig.getAccessTokenExpiration() / 1000));
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/api/v1/auth");
+        refreshTokenCookie.setSecure(cookieSecure);
+        // Path was "/api/v1/auth" — wrong, the controller is at /api/hjp/auth
+        // and we also need this cookie on /api/hjp/auth/logout. Use "/" so the
+        // browser sends it on every refresh / logout call.
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge((int) (jwtConfig.getRefreshTokenExpiration() / 1000));
 
         response.addCookie(accessTokenCookie);
@@ -357,14 +370,14 @@ public class AuthServiceImpl implements AuthService {
     private void invalidateCookies(HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("access_token", null);
         accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(0);
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", null);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/api/v1/auth");
+        refreshTokenCookie.setSecure(cookieSecure);
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(0);
 
         response.addCookie(accessTokenCookie);

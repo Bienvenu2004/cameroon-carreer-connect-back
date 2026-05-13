@@ -27,6 +27,12 @@ public class CompanyController {
         return ApiResponse.success(createdCompany, "Company created successfully");
     }
 
+    /** Returns the list of companies owned by the current authenticated recruiter. */
+    @GetMapping("/me")
+    public ApiResponse<java.util.List<CompanyResponseDto>> listMyCompanies() {
+        return ApiResponse.success(companyService.listMyCompanies(), "Companies retrieved successfully");
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<CompanyResponseDto> getById(@PathVariable UUID id) {
         CompanyResponseDto company = companyService.getById(id);

@@ -1,16 +1,19 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
 import com.hostdesign24.jobportal.dto.company.CompanyFilterDto;
 import com.hostdesign24.jobportal.dto.company.CompanyPatchDto;
 import com.hostdesign24.jobportal.dto.company.CompanyResponseDto;
+import com.hostdesign24.jobportal.exception.ActionDeniedException;
 import com.hostdesign24.jobportal.exception.InvalidInputException;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.CompanyMapper;
 import com.hostdesign24.jobportal.mapper.FileMapper;
 import com.hostdesign24.jobportal.model.Company;
 import com.hostdesign24.jobportal.model.File;
+import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.model.enums.CompanyStatus;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
@@ -93,6 +96,18 @@ public class CompanyServiceImpl implements CompanyService {
                 companyPage.getTotalPages(),
                 companyPage.isLast()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyResponseDto> listMyCompanies() {
+        User user = Utils.getCurrentUser()
+                .orElseThrow(() -> new ActionDeniedException("Authentication required"));
+        return companyRepository
+                .findAllByCreatedByAndDeletedFalseOrderByCreatedAtDesc(user.getId())
+                .stream()
+                .map(this::getCompanyResponseDto)
+                .toList();
     }
 
     @Override

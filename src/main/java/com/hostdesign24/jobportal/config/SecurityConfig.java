@@ -89,7 +89,13 @@ public class SecurityConfig {
                                         .requestMatchers("/logo/**").permitAll()
                                         .requestMatchers("/storage/**").permitAll()
                                         .requestMatchers("/api/v1/contacts/request-demo").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/job-posts/").permitAll()
+                                        // Public job browsing — home page, job listings, job detail
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/all").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/search").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*").permitAll()
+                                        // Public company browsing — company list and detail
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .addFilterBefore(jwtFilters, UsernamePasswordAuthenticationFilter.class)

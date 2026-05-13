@@ -16,6 +16,12 @@ public interface CompanyService {
 
     PageResponseDto<CompanyResponseDto> getAll(CompanyFilterDto filter);
 
+    /**
+     * Return all companies owned by the current authenticated recruiter,
+     * newest first. Ownership = Company.createdBy matches the current user.
+     */
+    java.util.List<CompanyResponseDto> listMyCompanies();
+
     CompanyResponseDto patch(UUID id, CompanyPatchDto dto);
 
     void delete(UUID id);

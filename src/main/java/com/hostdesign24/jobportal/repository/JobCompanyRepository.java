@@ -9,4 +9,10 @@ import java.util.UUID;
 
 @Repository
 public interface JobCompanyRepository extends JpaRepository<Company, UUID>, JpaSpecificationExecutor<Company> {
+
+    /** Latest non-deleted company created by the given user, or empty. */
+    java.util.Optional<Company> findFirstByCreatedByAndDeletedFalseOrderByCreatedAtDesc(UUID createdBy);
+
+    /** All non-deleted companies created by the given user, newest first. */
+    java.util.List<Company> findAllByCreatedByAndDeletedFalseOrderByCreatedAtDesc(UUID createdBy);
 }
