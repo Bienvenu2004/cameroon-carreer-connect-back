@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,12 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
     @Value("${app.storage.base-url}")
     private String publicUrl;
 
+    /**
+     * Read-only transaction so the mapper can traverse LAZY associations
+     * (skills, resume, profilePhoto) inside an open Hibernate session.
+     */
     @Override
+    @Transactional(readOnly = true)
     public JobSeekerProfileResponseDto getProfileResponse(UUID id) {
         JobSeekerProfile profile = getJobSeekerProfile(id);
 
@@ -74,8 +80,8 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         jobSeekerProfile = jobSeekerProfileRepository.save(jobSeekerProfile);
         String relatedEntity = Utils.getClassSimpleName(jobSeekerProfile);
 
-        if (dto.getResumeFile() != null && !dto.getResumeFile().isEmpty()) {
-            File resume = fileService.uploadFile(dto.getResumeFile(), jobSeekerProfile.getId(), "JOB_SEEKER_RESUME", relatedEntity);
+        if (dto.getResume() != null && !dto.getResume().isEmpty()) {
+            File resume = fileService.uploadFile(dto.getResume(), jobSeekerProfile.getId(), "JOB_SEEKER_RESUME", relatedEntity);
             jobSeekerProfile.setResume(resume);
         }
         
@@ -124,6 +130,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JobSeekerProfileResponseDto getCurrentSeekerProfileResponse() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {

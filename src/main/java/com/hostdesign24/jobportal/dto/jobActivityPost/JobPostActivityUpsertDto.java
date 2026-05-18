@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.model.Address;
+import com.hostdesign24.jobportal.model.enums.JobLanguage;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.SalaryCurrency;
@@ -28,6 +29,9 @@ public class JobPostActivityUpsertDto {
     private SalaryCurrency salaryCurrency = SalaryCurrency.XAF;
 
     private JobSite site;
+
+    /** Required working language for the role (FRENCH / ENGLISH / BILINGUAL). */
+    private JobLanguage requiredLanguage;
 
     private String title;
 

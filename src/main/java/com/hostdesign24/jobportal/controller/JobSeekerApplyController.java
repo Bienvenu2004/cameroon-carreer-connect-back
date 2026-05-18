@@ -21,6 +21,12 @@ public class JobSeekerApplyController {
     private final JobSeekerApplyService jobSeekerApplyService;
 
 
+    /**
+     * Applying to a job is an action only available to JOB_SEEKERs. Recruiters
+     * and admins are not candidates and have no JobSeekerProfile to anchor
+     * the application to. The method-level guard returns 403 to anyone else.
+     */
+    @PreAuthorize("hasRole('JOB_SEEKER')")
     @PostMapping("/apply")
     public ApiResponse<Object> applyToJob(@RequestBody JobSeekerApplyDto applyDto) {
         jobSeekerApplyService.addNew(applyDto);

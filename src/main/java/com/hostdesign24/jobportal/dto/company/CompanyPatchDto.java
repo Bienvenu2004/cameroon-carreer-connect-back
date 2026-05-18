@@ -15,6 +15,12 @@ public class CompanyPatchDto {
 
     private String description;
 
+    /** Longer "About / Culture" copy, optional. */
+    private String about;
+
+    /** Optional promotional video URL (YouTube, Vimeo, etc.). */
+    private String promoVideoUrl;
+
     private String website;
 
     private Industry industry;

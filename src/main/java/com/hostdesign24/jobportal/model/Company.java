@@ -21,6 +21,20 @@ public class Company extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    /**
+     * Longer-form "About / Culture" copy for the company page. Optional;
+     * complements the short {@code description} which is also shown on
+     * cards / search results.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String about;
+
+    /**
+     * Optional promotional video URL (YouTube, Vimeo, etc.). Rendered as
+     * a link / embed on the company detail page.
+     */
+    private String promoVideoUrl;
+
     private String website;
 
     @Enumerated(EnumType.STRING)

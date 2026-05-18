@@ -2,6 +2,7 @@ package com.hostdesign24.jobportal.dto.jobActivityPost;
 
 import com.hostdesign24.jobportal.dto.common.FilterDto;
 import com.hostdesign24.jobportal.model.enums.Industry;
+import com.hostdesign24.jobportal.model.enums.JobLanguage;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.Region;
@@ -47,6 +48,9 @@ public class JobActivityFilterDto extends FilterDto {
     private SalaryCurrency salaryCurrency;
 
     private JobSite jobSite;
+
+    /** Filter on required working language (FRENCH / ENGLISH / BILINGUAL). */
+    private JobLanguage requiredLanguage;
 
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private Date postedDate;

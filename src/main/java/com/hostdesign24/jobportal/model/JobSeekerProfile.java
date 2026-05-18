@@ -25,6 +25,24 @@ public class JobSeekerProfile extends BaseEntity {
     private String workAuthorization;
     private String employmentType;
 
+    /**
+     * Comma-separated list of spoken languages, e.g. "French,English,Spanish".
+     * Stored as a plain TEXT column to avoid an extra collection table; the
+     * frontend manages adding/removing entries in a tag-input pattern.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String spokenLanguages;
+
+    /* ---- Portfolio / social links (optional) ---- */
+    private String githubUrl;
+    private String linkedinUrl;
+    /** Personal website / blog / portfolio. */
+    private String websiteUrl;
+    /** Behance, Dribbble, Itch.io, etc. */
+    private String portfolioUrl;
+    private String twitterUrl;
+    private String facebookUrl;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     private File resume;

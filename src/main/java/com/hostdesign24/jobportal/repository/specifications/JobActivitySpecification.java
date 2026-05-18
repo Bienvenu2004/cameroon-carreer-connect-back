@@ -104,6 +104,10 @@ public class JobActivitySpecification {
                 predicates.add(cb.equal(root.get("site"), filter.getJobSite()));
             }
 
+            if (filter.getRequiredLanguage() != null) {
+                predicates.add(cb.equal(root.get("requiredLanguage"), filter.getRequiredLanguage()));
+            }
+
             if (filter.getPostedDate() != null) {
                 predicates.add(cb.equal(root.get("postedDate"), filter.getPostedDate()));
             }

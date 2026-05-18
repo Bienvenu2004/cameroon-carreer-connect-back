@@ -2,6 +2,7 @@ package com.hostdesign24.jobportal.controller;
 
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.analytics.DashboardDto;
+import com.hostdesign24.jobportal.dto.analytics.RegionalStatsDto;
 import com.hostdesign24.jobportal.dto.common.ApiResponse;
 import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.services.AnalyticsService;
@@ -30,5 +31,19 @@ public class AnalyticsController {
         User user = Utils.getCurrentUser().orElse(null);
         DashboardDto dashboard = analyticsService.getDashboardStats(user == null ? null : user.getId());
         return ApiResponse.success(dashboard, "Dashboard statistics retrieved successfully");
+    }
+
+    /**
+     * Regional trending dashboard — admin-only. Returns counts of jobs and
+     * applications per Cameroon region, the platform-wide language
+     * distribution, and the top skills / hiring companies per region.
+     */
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @GetMapping("/regional")
+    public ApiResponse<RegionalStatsDto> getRegional() {
+        return ApiResponse.success(
+                analyticsService.getRegionalStats(),
+                "Regional statistics retrieved successfully"
+        );
     }
 }

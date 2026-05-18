@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.model;
 
+import com.hostdesign24.jobportal.model.enums.JobLanguage;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.SalaryCurrency;
@@ -41,6 +42,15 @@ public class Job extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private JobSite site;
+
+    /**
+     * Working language(s) required for this role. Drives the language
+     * badge on job cards and powers the language-based filter on the
+     * jobs listing page. Set by the recruiter at posting time.
+     */
+    @Enumerated(EnumType.STRING)
+    private JobLanguage requiredLanguage;
+
     private LocalDate postedDate = LocalDate.now();
     private String title;
 

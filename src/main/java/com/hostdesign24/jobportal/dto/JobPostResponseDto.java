@@ -2,6 +2,7 @@ package com.hostdesign24.jobportal.dto;
 
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyResponseDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
+import com.hostdesign24.jobportal.model.enums.JobLanguage;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
 import com.hostdesign24.jobportal.model.enums.SalaryCurrency;
@@ -35,6 +36,9 @@ public class JobPostResponseDto {
     private SalaryCurrency salaryCurrency;
 
     private JobSite site;
+
+    /** Working language required for the role. */
+    private JobLanguage requiredLanguage;
 
     private String benefits;
 

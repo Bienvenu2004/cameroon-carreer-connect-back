@@ -7,13 +7,21 @@ import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.services.JobSeekerSaveService;
 import com.hostdesign24.jobportal.services.UsersService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * Saved-jobs are a job-seeker-only feature. Class-level guard so both
+ * "save a job" (POST) and "list my saved jobs" (GET) reject recruiters
+ * and admins with a 403 at the security layer rather than failing
+ * deeper in the service.
+ */
 @RestController
 @RequestMapping("/api/hjp/saved-jobs")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('JOB_SEEKER')")
 public class JobSaveController {
 
     private final UsersService usersService;

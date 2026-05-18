@@ -4,6 +4,7 @@ import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.model.JobApplication;
 import com.hostdesign24.jobportal.model.User;
+import com.hostdesign24.jobportal.model.enums.UserRole;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,15 @@ public class JobApplicationSpecification {
 
             Optional<User> currentOptUser = Utils.getCurrentUser();
 
-            currentOptUser.ifPresent(currentUser -> predicates.add(cb.equal(root.get("createdBy"), currentUser.getId())));
+            currentOptUser.ifPresent(currentUser -> {
+                if (currentUser.getRole() == UserRole.JOB_SEEKER){
+                    predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
+                }
+
+                if (currentUser.getRole() == UserRole.RECRUITER){
+                    predicates.add(cb.equal(root.get("job").get("createdBy"), currentUser.getId()));
+                }
+            });
 
             if (filter.getProfileId() != null) {
                 predicates.add(cb.equal(root.get("profile").get("id"), filter.getProfileId()));

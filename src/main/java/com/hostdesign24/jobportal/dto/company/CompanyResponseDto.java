@@ -20,6 +20,12 @@ public class CompanyResponseDto {
 
     private String description;
 
+    /** Long-form "About / Culture" copy for the company detail page. */
+    private String about;
+
+    /** Optional promotional video URL (YouTube, Vimeo, etc.). */
+    private String promoVideoUrl;
+
     private String website;
 
     private Industry industry;
