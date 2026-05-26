@@ -29,6 +29,9 @@ public class CompanyPatchDto {
 
     private MultipartFile logo;
 
+    /** Wide hero banner. When provided, replaces the previous banner. */
+    private MultipartFile banner;
+
     @Valid
     private CompanyAddressDto address;
 }

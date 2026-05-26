@@ -50,16 +50,37 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
         ) ;
     }
 
+    /**
+     * Toggle the saved state of a job for the current seeker.
+     *
+     *   - If the seeker has no existing save row for this job → create one.
+     *   - If they already have one (or more, from the historical bug where
+     *     this method always created a new row) → delete them all.
+     *
+     * Wrapped in a transaction so a partial outcome doesn't leave the
+     * row-set in an inconsistent state.
+     */
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void addNew(UUID jobId) {
         JobSeekerProfile seekerProfile = jobSeekerProfileService.getJobSeekerProfileEntity();
+        if (seekerProfile == null) {
+            throw new IllegalArgumentException("seeker cannot be null");
+        }
 
         Job job = jobRepository.findById(jobId).orElseThrow(
                 () -> new ResourceNotFoundException("job not found with id : " + jobId)
         );
 
-        if (seekerProfile == null) {
-           throw new IllegalArgumentException("seeker cannot be null");
+        List<JobSave> existing = jobSeekerSaveRepository
+                .findByJobIdAndProfileIdAndDeletedFalse(jobId, seekerProfile.getId());
+
+        if (!existing.isEmpty()) {
+            // Already saved — toggle off. deleteAll handles the rare
+            // duplicate case left over from the previous buggy version
+            // in one statement so the user gets a clean state.
+            jobSeekerSaveRepository.deleteAll(existing);
+            return;
         }
 
         JobSave save = new JobSave();

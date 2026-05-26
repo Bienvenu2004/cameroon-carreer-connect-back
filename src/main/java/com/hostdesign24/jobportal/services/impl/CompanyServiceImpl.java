@@ -56,9 +56,18 @@ public class CompanyServiceImpl implements CompanyService {
 
         company = companyRepository.save(company);
 
+        boolean filesUploaded = false;
         if (dto.getLogo() != null) {
             File logo = fileService.uploadFile(dto.getLogo(), company.getId(), "COMPANY_LOGO", "Company");
             company.setLogo(logo);
+            filesUploaded = true;
+        }
+        if (dto.getBanner() != null) {
+            File banner = fileService.uploadFile(dto.getBanner(), company.getId(), "COMPANY_BANNER", "Company");
+            company.setBanner(banner);
+            filesUploaded = true;
+        }
+        if (filesUploaded) {
             companyRepository.save(company);
         }
         return getCompanyResponseDto(company);
@@ -74,6 +83,7 @@ public class CompanyServiceImpl implements CompanyService {
     private @NonNull CompanyResponseDto getCompanyResponseDto(Company company) {
         CompanyResponseDto response = companyMapper.toResponse(company);
         response.setLogo(fileMapper.toDto(company.getLogo(), publicUrl));
+        response.setBanner(fileMapper.toDto(company.getBanner(), publicUrl));
         response.setActiveJobs(jobRepository.countByCompanyIdAndIsActiveTrueAndDeletedFalse(company.getId()));
         return response;
     }
@@ -122,6 +132,17 @@ public class CompanyServiceImpl implements CompanyService {
             }
             File logo = fileService.uploadFile(dto.getLogo(), company.getId(), "COMPANY_LOGO", "Company");
             company.setLogo(logo);
+        }
+
+        if (dto.getBanner() != null) {
+            // Same replace-then-upload pattern as the logo: delete the old
+            // file from disk + DB before uploading the new one so we don't
+            // orphan storage rows when the recruiter swaps banners.
+            if (company.getBanner() != null) {
+                fileService.deleteFile(company.getBanner().getId());
+            }
+            File banner = fileService.uploadFile(dto.getBanner(), company.getId(), "COMPANY_BANNER", "Company");
+            company.setBanner(banner);
         }
 
         Company savedCompany = companyRepository.save(company);

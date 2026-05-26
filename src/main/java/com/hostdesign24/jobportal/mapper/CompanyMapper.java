@@ -16,6 +16,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface CompanyMapper {
 
     @Mapping(target = "logo", ignore = true)
+    @Mapping(target = "banner", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
     @Mapping(target = "verifiedAt", ignore = true)
@@ -30,6 +31,7 @@ public interface CompanyMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "logo", ignore = true)
+    @Mapping(target = "banner", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
     @Mapping(target = "verifiedAt", ignore = true)

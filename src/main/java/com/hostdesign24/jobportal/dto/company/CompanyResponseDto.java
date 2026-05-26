@@ -34,6 +34,9 @@ public class CompanyResponseDto {
 
     private FileDto logo;
 
+    /** Wide hero banner — null when the company hasn't uploaded one. */
+    private FileDto banner;
+
     private CompanyAddressDto address;
 
     private CompanyStatus status;

@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -48,6 +49,19 @@ public class SkillController {
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         skillService.delete(id);
         return ApiResponse.success(null, "Skill deleted successfully");
+    }
+
+    /**
+     * Lightweight autocomplete endpoint used by the seeker profile editor.
+     * Returns distinct skill names that match the {@code q} substring,
+     * case-insensitively, capped at {@code limit} results. An empty
+     * {@code q} returns an empty list (we don't want to dump the table).
+     */
+    @GetMapping("/suggest")
+    public ApiResponse<List<String>> suggest(
+            @RequestParam(name = "q", required = false, defaultValue = "") String q,
+            @RequestParam(name = "limit", defaultValue = "8") int limit) {
+        return ApiResponse.success(skillService.suggestNames(q, limit), "Skill suggestions");
     }
 }
 

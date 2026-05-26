@@ -31,6 +31,9 @@ public class CompanyEntryDto {
 
     private MultipartFile logo;
 
+    /** Wide hero banner shown on the company detail page. Optional. */
+    private MultipartFile banner;
+
     @Valid
     private CompanyAddressDto address;
 }

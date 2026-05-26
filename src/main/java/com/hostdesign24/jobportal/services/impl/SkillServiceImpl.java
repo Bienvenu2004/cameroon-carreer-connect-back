@@ -14,6 +14,7 @@ import com.hostdesign24.jobportal.repository.specifications.SkillSpecification;
 import com.hostdesign24.jobportal.services.SkillService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +80,16 @@ public class SkillServiceImpl implements SkillService {
     public void delete(UUID id) {
         Skill skill = findSkillOrThrow(id);
         skillRepository.delete(skill);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> suggestNames(String query, int limit) {
+        // Cap the limit so a malicious / typo'd query can't pull thousands of rows.
+        int capped = Math.max(1, Math.min(limit, 30));
+        String safe = query == null ? "" : query.trim();
+        if (safe.isEmpty()) return List.of();
+        return skillRepository.findDistinctNamesByQuery(safe, PageRequest.of(0, capped));
     }
 
     private Skill findSkillOrThrow(UUID id) {

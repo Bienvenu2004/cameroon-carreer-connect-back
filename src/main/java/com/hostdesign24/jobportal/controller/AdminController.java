@@ -26,8 +26,6 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    /* ---------------- USERS ---------------- */
-
     @GetMapping("/users")
     public ApiResponse<PageResponseDto<AdminUserDto>> listUsers(@ModelAttribute AdminUserFilterDto filter) {
         return ApiResponse.success(adminService.listUsers(filter), "Users retrieved");
@@ -53,8 +51,6 @@ public class AdminController {
         adminService.softDeleteUser(id);
         return ApiResponse.success("User soft-deleted");
     }
-
-    /* ---------------- COMPANIES ---------------- */
 
     @GetMapping("/companies")
     public ApiResponse<PageResponseDto<CompanyResponseDto>> listCompanies(@ModelAttribute CompanyFilterDto filter) {

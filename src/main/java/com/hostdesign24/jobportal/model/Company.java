@@ -21,18 +21,9 @@ public class Company extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    /**
-     * Longer-form "About / Culture" copy for the company page. Optional;
-     * complements the short {@code description} which is also shown on
-     * cards / search results.
-     */
     @Column(columnDefinition = "TEXT")
     private String about;
 
-    /**
-     * Optional promotional video URL (YouTube, Vimeo, etc.). Rendered as
-     * a link / embed on the company detail page.
-     */
     private String promoVideoUrl;
 
     private String website;
@@ -47,29 +38,19 @@ public class Company extends BaseEntity {
     @JoinColumn(name = "company_logo")
     private File logo;
 
+    @ManyToOne
+    @JoinColumn(name = "company_banner")
+    private File banner;
+
     @Embedded
     private Address address;
 
-    /**
-     * Verification lifecycle. New companies start as PENDING and must be APPROVED
-     * by a SYSTEM_ADMIN before recruiters can post jobs under them.
-     *
-     * The columnDefinition pushes a SQL DEFAULT so that schema migrations
-     * adding this column to a table with pre-existing rows succeed without
-     * a manual backfill.
-     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CompanyStatus status = CompanyStatus.PENDING;
 
-    /**
-     * Optional rejection reason set by the admin when status = REJECTED.
-     */
     @Column(columnDefinition = "TEXT")
     private String rejectionReason;
 
-    /**
-     * Timestamp of the last verification decision (approved or rejected).
-     */
     private LocalDateTime verifiedAt;
 }
