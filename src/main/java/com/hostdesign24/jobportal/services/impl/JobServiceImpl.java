@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.dto.jobActivityPost.*;
+import com.hostdesign24.jobportal.exception.ActionDeniedException;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.FileMapper;
 import com.hostdesign24.jobportal.mapper.JobMapper;
 import com.hostdesign24.jobportal.mapper.JobResponseMapper;
 import com.hostdesign24.jobportal.model.Company;
 import com.hostdesign24.jobportal.model.Job;
+import com.hostdesign24.jobportal.model.enums.CompanyStatus;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobActivitySpecification;
@@ -49,11 +51,7 @@ public class JobServiceImpl implements JobService {
     @Transactional
     public Job addNew(JobPostActivityUpsertDto dto) {
         Job job = jobMapper.toEntity(dto);
-
-        Company company = jobCompanyRepository.findById(dto.getCompanyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + dto.getCompanyId()));
-
-        job.setCompany(company);
+        job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
         return jobRepository.save(job);
     }
 
@@ -100,10 +98,32 @@ public class JobServiceImpl implements JobService {
         }
 
         if (dto.getCompanyId() != null) {
-            Company company = jobCompanyRepository.findById(dto.getCompanyId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + dto.getCompanyId()));
-            job.setCompany(company);
+            job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
         }
+    }
+
+    /**
+     * Look up a company by id and assert it's in APPROVED state. Used by
+     * both {@link #addNew} and {@link #updateFromDto} so jobs can only ever
+     * be created or re-assigned under a verified company.
+     *
+     *   - {@link ResourceNotFoundException} (HTTP 404) when the id doesn't exist
+     *   - {@link ActionDeniedException}     (HTTP 403) when the company is
+     *     PENDING / REJECTED / SUSPENDED — i.e. not allowed to host listings
+     *
+     * The frontend filters the company picker to APPROVED only, so users
+     * shouldn't normally hit this guard; it's defense-in-depth for a stale
+     * client / direct API call.
+     */
+    private Company resolveApprovedCompany(UUID companyId) {
+        Company company = jobCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + companyId));
+        if (company.getStatus() != CompanyStatus.APPROVED) {
+            throw new ActionDeniedException(
+                    "Only approved companies can post jobs. Current status: " + company.getStatus()
+            );
+        }
+        return company;
     }
 
     @Override

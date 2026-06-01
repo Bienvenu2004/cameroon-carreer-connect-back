@@ -83,4 +83,27 @@ app:
   client-url: ${CLIENT_URL}
   logo-url: ${LOGO_URL}
 
+  # ---------------------------------------------------------------------
+  # AI configuration
+  #
+  # Powers the seeker-side recommendations + (later) the conversational
+  # assistant. We talk to Google Gemini via the Generative Language REST
+  # API using Java 21's built-in HttpClient — no extra dependency.
+  #
+  # If `api-key` is blank the AI features short-circuit gracefully and
+  # the recommendations endpoint returns an empty list. That keeps local
+  # dev usable without a key.
+  # ---------------------------------------------------------------------
+  ai:
+    gemini:
+      base-url: https://generativelanguage.googleapis.com
+      api-key: ${GEMINI_API_KEY:}
+      model: gemini-flash-latest
+      temperature: 0.3
+      max-tokens: 4096
+      timeout-seconds: 60
+    recommendations:
+      candidate-pool-size: 50      # max jobs we send to the model per request
+      return-size: 5               # max jobs the model returns to the user
+
 
