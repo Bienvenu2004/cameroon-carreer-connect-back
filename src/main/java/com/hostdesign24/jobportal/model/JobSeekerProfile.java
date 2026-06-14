@@ -54,6 +54,21 @@ public class JobSeekerProfile extends BaseEntity {
     @OneToMany(targetEntity = Skill.class, cascade = CascadeType.ALL, mappedBy = "jobSeekerProfile")
     private List<Skill> skills;
 
+    /**
+     * Structured CV — one row per past or current role.
+     * Feeds the AI matcher's {@code yearsOfExperience} signal (the
+     * computed total of all ranges) and powers the recruiter-facing
+     * profile view. {@code orphanRemoval = true} guarantees deletes
+     * propagate when a seeker removes a row through the bulk PATCH.
+     */
+    @OneToMany(
+            mappedBy = "profile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<WorkExperience> experiences;
+
     public JobSeekerProfile(User user) {
         this.user = user;
     }

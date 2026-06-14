@@ -42,4 +42,15 @@ public class JobSeekerProfileResponseDto {
     private FileDto profilePhoto;
     private FileDto resume;
     private List<SkillDto> skills;
+
+    /** Newest-start-first list of past or current roles. */
+    private List<WorkExperienceDto> experiences;
+
+    /**
+     * Derived total of all experience-row date ranges in whole years.
+     * Computed server-side (sum of {@code endDate || today − startDate})
+     * so the UI doesn't have to and the AI matcher gets the same value.
+     * Null when the seeker has no experience rows.
+     */
+    private Integer totalYearsOfExperience;
 }

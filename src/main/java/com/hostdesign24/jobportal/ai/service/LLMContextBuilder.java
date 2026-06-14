@@ -3,10 +3,13 @@ package com.hostdesign24.jobportal.ai.service;
 import com.hostdesign24.jobportal.ai.dto.AnonymizedProfileContext;
 import com.hostdesign24.jobportal.model.JobSeekerProfile;
 import com.hostdesign24.jobportal.model.Skill;
+import com.hostdesign24.jobportal.model.WorkExperience;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
@@ -71,14 +74,51 @@ public class LLMContextBuilder {
     }
 
     /**
-     * Years of experience is a key matching signal but we don't yet have
-     * a {@code WorkExperience} entity. Returning null here is honest —
-     * the prompt template will mention "experience unknown" rather than
-     * fabricate a number. Wire this up when WorkExperience lands.
+     * Sum of (endDate − startDate) across every WorkExperience row, in
+     * whole years. Ongoing roles (isCurrent=true, endDate=null) count
+     * up to today.
+     *
+     * Notes:
+     *   - Overlapping ranges are NOT de-duplicated. A seeker who
+     *     freelanced while employed full-time genuinely accumulated
+     *     experience on both fronts; both should count. If this ever
+     *     produces "30 years experience" outliers for early-career
+     *     candidates with parallel roles, switch to interval-merge.
+     *   - Invalid rows (start > end, missing start) are skipped, not
+     *     thrown — the service-layer save already validates. Defensive.
+     *   - Returns null when there are zero rows so the LLM prompt shows
+     *     "experience unknown" rather than "0 years of experience"
+     *     (which signals "fresh grad" — different downstream interpretation).
      */
     private Integer deriveYearsOfExperience(JobSeekerProfile profile) {
-        return null;
+        List<WorkExperience> xps = profile.getExperiences();
+        if (xps == null || xps.isEmpty()) return null;
+
+        LocalDate today = LocalDate.now();
+        long totalDays = 0;
+        boolean anyValid = false;
+
+        for (WorkExperience xp : xps) {
+            if (xp == null || xp.isDeleted()) continue;
+            LocalDate start = xp.getStartDate();
+            if (start == null) continue;
+
+            LocalDate end = xp.isCurrent() || xp.getEndDate() == null
+                    ? today
+                    : xp.getEndDate();
+            if (end.isBefore(start)) continue; // malformed row — ignore
+
+            totalDays += ChronoUnit.DAYS.between(start, end);
+            anyValid = true;
+        }
+
+        if (!anyValid) return null;
+        // Floor-divide by 365 so "1 year and 6 months" surfaces as 1
+        // rather than rounding up to 2 — matches how seekers describe
+        // themselves and avoids over-promising seniority.
+        return (int) (totalDays / 365);
     }
+
 
     /**
      * "What kind of role does this person want?" — a free-text hint the

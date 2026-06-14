@@ -59,4 +59,13 @@ public class JobSeekerProfileSaveDto {
      * The full list replaces any previous skills on save.
      */
     private List<SkillSaveDto> skills;
+
+    /**
+     * Work-experience rows. Each entry binds from indexed form-data:
+     *   experiences[0].title, experiences[0].companyName,
+     *   experiences[0].startDate, experiences[0].endDate,
+     *   experiences[0].isCurrent, experiences[0].description, ...
+     * Sending an empty list clears all experiences.
+     */
+    private List<WorkExperienceSaveDto> experiences;
 }
