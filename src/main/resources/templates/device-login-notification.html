@@ -3,102 +3,83 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New Device Login Notification</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f4f8fb;
-            color: #222;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #fff;
-            max-width: 650px;
-            margin: 40px auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            overflow: hidden;
-            border-top: 8px solid #1976d2;
-        }
-        .header {
-            background: #1976d2;
-            color: #fff;
-            padding: 24px 32px 16px 32px;
-            text-align: center;
-        }
-        .header img {
-            max-width: 120px;
-            margin-bottom: 12px;
-        }
-        .content {
-            padding: 32px;
-        }
-        .info-table {
-            width: 100%;
-            margin: 24px 0;
-            background: #e3eaf6;
-            border-radius: 6px;
-            padding: 16px;
-            font-size: 15px;
-            color: #1976d2;
-        }
-        .info-table td {
-            padding: 8px 0;
-        }
-        .button {
-            display: inline-block;
-            background: #1976d2;
-            color: #fff !important;
-            padding: 12px 28px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 24px;
-        }
-        .footer {
-            background: #e3eaf6;
-            color: #1976d2;
-            text-align: center;
-            padding: 16px 32px;
-            font-size: 13px;
-        }
-    </style>
+    <title>New Device Login Detected</title>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <img th:src="${logo}" alt="Platform Logo"/>
-        <h1>New Device Login Detected</h1>
-    </div>
-    <div class="content">
-        <p>Hello,</p>
-        <p>We noticed a new login to your account with the following details:</p>
-        <table class="info-table">
-            <tr>
-                <td><b>Device Name:</b></td>
-                <td th:text="${deviceName}">Unknown Device</td>
-            </tr>
-            <tr>
-                <td><b>IP Address:</b></td>
-                <td th:text="${ipAddress}">0.0.0.0</td>
-            </tr>
-            <tr>
-                <td><b>Location:</b></td>
-                <td th:text="${location}">Unknown</td>
-            </tr>
-            <tr>
-                <td><b>Login Time:</b></td>
-                <td th:text="${loginTime}">Feb 25, 2026 14:00</td>
-            </tr>
-        </table>
-        <p>If this was you, no further action is needed. If you do not recognize this activity, please review your account security immediately.</p>
-        <a class="button" th:href="${securityUrl}">Review Security Settings</a>
-    </div>
-    <div class="footer">
-        &copy; <span th:text="${year}">2026</span> Digital Job Search Platform. All rights reserved.
-    </div>
-</div>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <img th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:12px;" />
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">New Login Detected</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">Security notification for your account</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <!-- Alert Banner -->
+                        <div style="background-color:#fef2f2;border-left:4px solid #C0392B;padding:14px 16px;border-radius:4px;margin-bottom:24px;">
+                            <p style="margin:0;font-size:14px;color:#991b1b;font-weight:600;">
+                                &#9888; We detected a sign-in to your account from a new device.
+                            </p>
+                        </div>
+
+                        <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Hello, someone signed in to your <strong>JobConnect Cameroun</strong> account. If this was you, no action is needed. If not, please secure your account immediately.
+                        </p>
+
+                        <!-- Device Details -->
+                        <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin:24px 0;">
+                            <div style="font-size:12px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Login Details</div>
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;width:120px;">Device</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${deviceName}">Unknown Device</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">IP Address</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${ipAddress}">0.0.0.0</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">Location</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${location}">Unknown</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;">Time</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;text-align:right;" th:text="${loginTime}">Jun 22, 2026 14:00</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- CTA -->
+                        <div style="text-align:center;margin:32px 0 8px 0;">
+                            <a th:href="${securityUrl}" style="display:inline-block;background-color:#C0392B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">
+                                Review Security Settings
+                            </a>
+                        </div>
+                        <p style="margin:16px 0 0 0;font-size:13px;color:#64748b;text-align:center;">
+                            If this was you, you can ignore this email.
+                        </p>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated security notification. Please do not reply to this email.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
-

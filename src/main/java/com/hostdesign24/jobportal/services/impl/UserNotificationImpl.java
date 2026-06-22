@@ -42,6 +42,20 @@ public class UserNotificationImpl implements UserNotificationService {
                 factoryService.userNewConnection(userId, deviceName, deviceIp));
     }
 
+    @Override
+    public void newJobApplicationNotification(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId) {
+        Assert.notNull(recruiterId, "Recruiter ID cannot be null");
+        sendNotification(recruiterId, "NewApplication", () ->
+                factoryService.newJobApplication(recruiterId, candidateName, jobTitle, applicationId));
+    }
+
+    @Override
+    public void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId) {
+        Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
+        sendNotification(jobSeekerId, "ApplicationStatusChanged", () ->
+                factoryService.applicationStatusChanged(jobSeekerId, jobTitle, newStatus, applicationId));
+    }
+
     /**
      * Template method for sending notifications with consistent error handling and logging.
      * Modifié pour accepter `userId` (sécurise les logs et évite double validation).

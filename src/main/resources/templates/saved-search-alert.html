@@ -1,58 +1,70 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>New jobs match your search</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Jobs Match Your Search</title>
 </head>
-<body style="margin:0;padding:0;font-family:Inter,Arial,sans-serif;background:#f6f7fb;color:#0f172a;">
-<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f6f7fb;padding:32px 0;">
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
     <tr>
         <td align="center">
-            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.08);">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
                 <tr>
-                    <td style="background:linear-gradient(135deg,#0d6e5b,#16a085);padding:24px 32px;color:#ffffff;">
-                        <div style="font-size:14px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;">CamJobs · Saved-search alert</div>
-                        <div style="font-size:22px;font-weight:700;margin-top:6px;">
-                            <span th:text="${count}">0</span> new job<span th:if="${count != 1}">s</span> match
-                            "<span th:text="${label}">your search</span>"
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">JobConnect Cameroun &middot; Job Alert</div>
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">
+                            <span th:text="${count}">3</span> new job<span th:if="${count != 1}">s</span> match
+                            &ldquo;<span th:text="${label}">your search</span>&rdquo;
                         </div>
                     </td>
                 </tr>
+                <!-- Body -->
                 <tr>
-                    <td style="padding:24px 32px;">
-                        <p style="margin:0 0 16px 0;font-size:15px;line-height:1.55;">
-                            Here are the latest matches from across Cameroon. Click a title to see the full posting.
+                    <td style="padding:32px;">
+                        <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Here are the latest opportunities matching your saved search across Cameroon:
                         </p>
 
+                        <!-- Job Listings -->
                         <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
                             <tr th:each="job, iter : ${jobs}">
-                                <td style="padding:12px 0;border-top:1px solid #e2e8f0;">
+                                <td style="padding:16px 0;border-top:1px solid #e2e8f0;">
                                     <a th:href="${clientUrl + '/jobs/' + job.id}"
-                                       style="font-size:16px;font-weight:600;color:#0d6e5b;text-decoration:none;"
-                                       th:text="${job.title}">Job title</a>
-                                    <div style="font-size:13px;color:#475569;margin-top:4px;">
-                                        <span th:text="${job.company}">Company</span>
-                                        · <span th:text="${job.city}">City</span>
+                                       style="font-size:16px;font-weight:600;color:#0D6E5B;text-decoration:none;line-height:1.4;"
+                                       th:text="${job.title}">Job Title</a>
+                                    <div style="font-size:13px;color:#64748b;margin-top:6px;">
+                                        <span th:text="${job.company}" style="font-weight:500;color:#334155;">Company</span>
+                                        <span style="margin:0 6px;color:#cbd5e1;">&middot;</span>
+                                        <span th:text="${job.city}">City</span>
                                         <span th:if="${job.region != ''}">
-                                            · <span th:text="${job.region}">Region</span>
+                                            <span style="margin:0 6px;color:#cbd5e1;">&middot;</span>
+                                            <span th:text="${job.region}">Region</span>
                                         </span>
                                     </div>
                                 </td>
                             </tr>
                         </table>
 
-                        <div style="margin-top:24px;text-align:center;">
+                        <!-- CTA Button -->
+                        <div style="text-align:center;margin:32px 0 8px 0;">
                             <a th:href="${clientUrl + '/jobs'}"
-                               style="display:inline-block;background:#0d6e5b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
-                                Browse all matching jobs
+                               style="display:inline-block;background-color:#0D6E5B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">
+                                Browse All Matching Jobs
                             </a>
                         </div>
                     </td>
                 </tr>
+                <!-- Footer -->
                 <tr>
-                    <td style="padding:16px 32px;background:#f8fafc;color:#64748b;font-size:12px;text-align:center;">
-                        You are receiving this because you saved a job search on CamJobs.
-                        Manage your alerts in your dashboard.
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            You're receiving this because you saved a job search on JobConnect Cameroun.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            Manage your alerts from your dashboard settings.
+                        </p>
                     </td>
                 </tr>
             </table>

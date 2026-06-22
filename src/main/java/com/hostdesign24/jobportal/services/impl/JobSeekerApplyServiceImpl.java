@@ -13,9 +13,12 @@ import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerProfileRepository;
+import com.hostdesign24.jobportal.repository.UserRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobApplicationSpecification;
 import com.hostdesign24.jobportal.services.JobSeekerApplyService;
 import com.hostdesign24.jobportal.services.JobSeekerProfileService;
+import com.hostdesign24.jobportal.services.NotificationAsyncService;
+import com.hostdesign24.jobportal.services.UserNotificationService;
 import com.hostdesign24.jobportal.services.UsersService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +41,9 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
     private final JobApplicationSpecification jobApplicationSpecification;
     private final JobApplicationMapper jobApplicationMapper;
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
+    private final UserNotificationService userNotificationService;
+    private final NotificationAsyncService notificationAsyncService;
+    private final UserRepository userRepository;
 
     @Override
     public PageResponseDto<JobApplicationDto> getJobApplications(JobApplicationFilterDto filter) {
@@ -105,6 +111,30 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         apply.setJob(job);
         apply.setCoverLetter(dto.getCoverLetter());
         jobSeekerApplyRepository.save(apply);
+
+        // Notify recruiter: WebSocket + Email
+        UUID recruiterId = job.getCreatedBy();
+        if (recruiterId != null) {
+            String candidateName = buildCandidateName(seekerProfile);
+            String jobTitle = job.getTitle();
+
+            userNotificationService.newJobApplicationNotification(recruiterId, candidateName, jobTitle, apply.getId());
+
+            userRepository.findByIdAndDeletedFalse(recruiterId).ifPresent(recruiter ->
+                    notificationAsyncService.notifyNewApplication(
+                            recruiter.getEmail(), candidateName, jobTitle, user.getEmail()
+                    )
+            );
+        }
+    }
+
+    private String buildCandidateName(JobSeekerProfile profile) {
+        String first = profile.getFirstName();
+        String last = profile.getLastName();
+        if (first != null && last != null) return first + " " + last;
+        if (first != null) return first;
+        if (last != null) return last;
+        return "A candidate";
     }
 
     /**
@@ -135,6 +165,36 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
             if (job != null && job.isActive()) {
                 job.setActive(false);
                 jobRepository.save(job);
+            }
+        }
+
+        // Notify job seeker of status change (WebSocket for all, + email for HIRED/REJECTED)
+        notifyJobSeekerOfStatusChange(application, status);
+    }
+
+    private void notifyJobSeekerOfStatusChange(JobApplication application, ApplicationStatus status) {
+        JobSeekerProfile profile = application.getProfile();
+        if (profile == null || profile.getUser() == null) return;
+
+        UUID jobSeekerId = profile.getUser().getId();
+        Job job = application.getJob();
+        String jobTitle = job != null ? job.getTitle() : "Unknown position";
+        String companyName = job != null && job.getCompany() != null ? job.getCompany().getName() : "the company";
+
+        // WebSocket notification for all status changes
+        userNotificationService.applicationStatusChangedNotification(
+                jobSeekerId, jobTitle, status.name(), application.getId()
+        );
+
+        // Email only for terminal states (HIRED / REJECTED)
+        if (status == ApplicationStatus.HIRED || status == ApplicationStatus.REJECTED) {
+            String seekerName = buildCandidateName(profile);
+            String seekerEmail = profile.getUser().getEmail();
+
+            if (status == ApplicationStatus.HIRED) {
+                notificationAsyncService.notifyApplicationHired(seekerEmail, seekerName, jobTitle, companyName);
+            } else {
+                notificationAsyncService.notifyApplicationRejected(seekerEmail, seekerName, jobTitle, companyName);
             }
         }
     }

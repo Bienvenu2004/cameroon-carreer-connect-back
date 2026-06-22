@@ -12,4 +12,8 @@ public interface NotificationFactoryService {
     NotificationRequestDto createPasswordResetNotification(UUID userId);
 
     NotificationRequestDto userNewConnection(UUID userId, String device, String ip);
+
+    NotificationRequestDto newJobApplication(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId);
+
+    NotificationRequestDto applicationStatusChanged(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId);
 }

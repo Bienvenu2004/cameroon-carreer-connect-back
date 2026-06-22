@@ -1,153 +1,91 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        /* Base Styles */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8fafc;
-            color: #334155;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-        }
-        /* Header */
-        .header {
-            background-color: #1e40af; /* Your Deep Professional Blue */
-            padding: 30px;
-            text-align: center;
-        }
-        .logo {
-            max-height: 40px;
-            margin-bottom: 10px;
-        }
-        .header h1 {
-            color: #ffffff;
-            margin: 0;
-            font-size: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        /* Content */
-        .content {
-            padding: 40px 30px;
-        }
-        .alert-banner {
-            background-color: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 4px;
-        }
-        .code-container {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #f1f5f9;
-            border-radius: 8px;
-        }
-        .verification-code {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1e40af;
-            letter-spacing: 8px;
-        }
-        /* Device Table */
-        .details-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        .details-table td {
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .label {
-            color: #64748b;
-            font-weight: 600;
-            width: 40%;
-        }
-        .value {
-            color: #1e293b;
-            text-align: right;
-        }
-        /* Footer */
-        .footer {
-            background-color: #f8fafc;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #94a3b8;
-        }
-        .btn-report {
-            display: inline-block;
-            margin-top: 20px;
-            color: #ef4444;
-            text-decoration: none;
-            font-weight: 600;
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Device Verification</title>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <img th:if="${logo}" th:src="${logo}" alt="JobsNde Logo" class="logo">
-        <h1>Jobs<span style="color: #3b82f6;">Nde</span></h1>
-    </div>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <img th:if="${logo}" th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:12px;" />
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Authorize New Device</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">Confirm it's really you</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <!-- Security Alert -->
+                        <div style="background-color:#fffbeb;border-left:4px solid #D4AF37;padding:14px 16px;border-radius:4px;margin-bottom:24px;">
+                            <p style="margin:0;font-size:14px;color:#92400e;">
+                                <strong>Security Alert:</strong> A login attempt was made from a new device.
+                            </p>
+                        </div>
 
-    <div class="content">
-        <div class="alert-banner">
-            <strong style="color: #1e40af;">Security Alert:</strong>
-            <p style="margin: 5px 0; font-size: 14px;">We noticed a login attempt to your account from a new device.</p>
-        </div>
+                        <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Hi <strong th:text="${email}">user@example.com</strong>,
+                        </p>
+                        <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            To authorize this device on your <strong>JobConnect Cameroun</strong> account, enter the verification code below. This code expires in <strong th:text="${expiryMinutes}">10</strong> minutes.
+                        </p>
 
-        <p>Hi <span th:text="${email}">user@example.com</span>,</p>
-        <p>Please use the following verification code to authorize this device. This code will expire in <span th:text="${expiryMinutes}">10</span> minutes.</p>
+                        <!-- Verification Code -->
+                        <div style="background-color:#f0fdf8;border:2px solid #0D6E5B;border-radius:10px;padding:24px;text-align:center;margin:28px 0;">
+                            <div style="font-size:13px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Verification Code</div>
+                            <div style="font-size:36px;font-weight:800;color:#0D6E5B;letter-spacing:8px;font-family:'Courier New',monospace;" th:text="${verificationCode}">000000</div>
+                        </div>
 
-        <div class="code-container">
-            <div class="verification-code" th:text="${verificationCode}">000000</div>
-        </div>
+                        <!-- Device Details -->
+                        <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin:24px 0;">
+                            <div style="font-size:12px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Device Details</div>
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;width:120px;">Device</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${deviceName}">Unknown Device</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">Location</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${location}">Unknown Location</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">IP Address</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${ipAddress}">0.0.0.0</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;">Time</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;text-align:right;" th:text="${loginTime}">Jun 22, 2026</td>
+                                </tr>
+                            </table>
+                        </div>
 
-        <h3 style="font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Login Details</h3>
-        <table class="details-table">
-            <tr>
-                <td class="label">Device</td>
-                <td class="value" th:text="${deviceName}">Unknown Device</td>
-            </tr>
-            <tr>
-                <td class="label">Location</td>
-                <td class="value" th:text="${location}">Unknown Location</td>
-            </tr>
-            <tr>
-                <td class="label">IP Address</td>
-                <td class="value" th:text="${ipAddress}">0.0.0.0</td>
-            </tr>
-            <tr>
-                <td class="label">Time</td>
-                <td class="value" th:text="${loginTime}">Mar 21, 2026</td>
-            </tr>
-        </table>
-
-        <div style="text-align: center;">
-            <a th:href="${securityUrl}" class="btn-report">Wasn't you? Report suspicious activity</a>
-        </div>
-    </div>
-
-    <div class="footer">
-        <p>&copy; <span th:text="${year}">2026</span> JobsNde. All rights reserved.</p>
-        <p>This is an automated security notification. Please do not reply to this email.</p>
-    </div>
-</div>
+                        <!-- Report Link -->
+                        <div style="text-align:center;margin:24px 0 0 0;">
+                            <a th:href="${securityUrl}" style="color:#C0392B;font-size:14px;font-weight:600;text-decoration:none;">
+                                &#9888; Wasn't you? Secure your account
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated security notification. Please do not reply to this email.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

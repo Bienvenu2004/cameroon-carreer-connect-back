@@ -3,7 +3,12 @@
     "allow": [
       "Bash(cd D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication:*)",
       "Bash(ls D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication\\\\cameroon-career-connect-frontend:*)",
-      "Bash(cd D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication\\\\cameroon-career-connect-frontend:*)"
+      "Bash(cd D:\\\\School\\\\Master2Courses\\\\Project\\\\DigitalPlatformFullProject\\\\DigitalPlatformForJobSearchAndRecruitmentInCameroonApplication\\\\cameroon-career-connect-frontend:*)",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(xargs grep -l \"zustand\\\\|store\")",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(./mvnw compile *)"
     ]
   }
 }

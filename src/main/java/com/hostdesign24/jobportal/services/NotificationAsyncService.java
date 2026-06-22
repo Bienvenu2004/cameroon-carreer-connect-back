@@ -6,4 +6,13 @@ public interface NotificationAsyncService {
 
     @Async
     void notifyDeviceLogin(String email, String deviceName, String ipAddress);
+
+    @Async
+    void notifyNewApplication(String recruiterEmail, String candidateName, String jobTitle, String candidateEmail);
+
+    @Async
+    void notifyApplicationHired(String seekerEmail, String seekerName, String jobTitle, String companyName);
+
+    @Async
+    void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle, String companyName);
 }

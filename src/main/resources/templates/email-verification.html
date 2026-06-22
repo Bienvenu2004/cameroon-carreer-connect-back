@@ -3,74 +3,60 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email Verification</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f4f8fb;
-            color: #222;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #fff;
-            max-width: 650px;
-            margin: 40px auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            overflow: hidden;
-            border-top: 8px solid #1976d2;
-        }
-        .header {
-            background: #1976d2;
-            color: #fff;
-            padding: 24px 32px 16px 32px;
-            text-align: center;
-        }
-        .header img {
-            max-width: 120px;
-            margin-bottom: 12px;
-        }
-        .content {
-            padding: 32px;
-        }
-        .code-box {
-            background: #e3eaf6;
-            color: #1976d2;
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 6px;
-            padding: 18px 0;
-            border-radius: 6px;
-            text-align: center;
-            margin: 24px 0;
-        }
-        .footer {
-            background: #e3eaf6;
-            color: #1976d2;
-            text-align: center;
-            padding: 16px 32px;
-            font-size: 13px;
-        }
-    </style>
+    <title>Verify Your Email</title>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <img th:src="${logo}" alt="Platform Logo"/>
-        <h1>Email Verification</h1>
-    </div>
-    <div class="content">
-        <p>Hello,</p>
-        <p>Thank you for registering with our job search platform. To complete your registration, please verify your email address using the code below:</p>
-        <div class="code-box" th:text="${verificationCode}">123456</div>
-        <p>This code will expire in <b th:text="${expiryMinutes}">10</b> minutes.</p>
-        <p>If you did not request this, please ignore this email.</p>
-    </div>
-    <div class="footer">
-        &copy; <span th:text="${year}">2026</span> Digital Job Search Platform. All rights reserved.
-    </div>
-</div>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <img th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:12px;" />
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Verify Your Email</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">One step closer to your next opportunity</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Hello,
+                        </p>
+                        <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Thank you for joining <strong>JobConnect Cameroun</strong>. To complete your registration and start exploring opportunities, please use the verification code below:
+                        </p>
+                        <!-- Code Box -->
+                        <div style="background-color:#f0fdf8;border:2px solid #0D6E5B;border-radius:10px;padding:24px;text-align:center;margin:28px 0;">
+                            <div style="font-size:13px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Verification Code</div>
+                            <div style="font-size:36px;font-weight:800;color:#0D6E5B;letter-spacing:8px;font-family:'Courier New',monospace;" th:text="${verificationCode}">123456</div>
+                        </div>
+                        <!-- Expiry Notice -->
+                        <div style="background-color:#fffbeb;border-left:4px solid #D4AF37;padding:12px 16px;border-radius:4px;margin:24px 0;">
+                            <p style="margin:0;font-size:13px;color:#92400e;">
+                                This code expires in <strong th:text="${expiryMinutes}">10</strong> minutes. If it expires, you can request a new one.
+                            </p>
+                        </div>
+                        <p style="margin:24px 0 0 0;font-size:14px;color:#64748b;line-height:1.5;">
+                            If you didn't create an account on JobConnect Cameroun, you can safely ignore this email.
+                        </p>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated message. Please do not reply to this email.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
-
