@@ -32,8 +32,6 @@ spring:
         jdbc:
           batch_size: 20
           order_inserts: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
