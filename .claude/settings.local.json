@@ -8,7 +8,8 @@
       "Bash(xargs grep -l \"zustand\\\\|store\")",
       "Bash(npx tsc *)",
       "Bash(npx vite *)",
-      "Bash(./mvnw compile *)"
+      "Bash(./mvnw compile *)",
+      "Bash(./mvnw package *)"
     ]
   }
 }

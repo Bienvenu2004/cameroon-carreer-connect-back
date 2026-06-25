@@ -15,7 +15,6 @@ import com.hostdesign24.jobportal.repository.UserRepository;
 import com.hostdesign24.jobportal.services.FileService;
 import com.hostdesign24.jobportal.services.RecruiterProfileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +30,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     private final FileService fileService;
     private final FileMapper fileMapper;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     @Override
     public RecruiterProfileResponseDto getOne(UUID id) {
@@ -77,7 +75,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     private RecruiterProfileResponseDto getRecruiterProfileResponse(RecruiterProfile recruiterProfile) {
         if (recruiterProfile  != null) {
             RecruiterProfileResponseDto response = recruiterProfileMapper.toResponse(recruiterProfile);
-            FileDto fileDto = fileMapper.toDto(recruiterProfile.getProfilePhoto(), publicUrl);
+            FileDto fileDto = fileMapper.toDto(recruiterProfile.getProfilePhoto());
             response.setProfilePhoto(fileDto);
 
             return response;

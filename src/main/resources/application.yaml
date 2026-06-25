@@ -74,12 +74,12 @@ logging:
         web: INFO
 
 app:
-  storage:
-    base-dir: ${STORAGE_BASE_DIR}
-    base-url: ${PUBLIC_URL}
-    logo-dir: ${LOGO_DIRECTORY}
   client-url: ${CLIENT_URL}
-  logo-url: ${LOGO_URL}
+  logo-url: ${LOGO_URL:}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
 
   # ---------------------------------------------------------------------
   # AI configuration

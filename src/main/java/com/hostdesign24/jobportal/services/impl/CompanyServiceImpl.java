@@ -22,7 +22,6 @@ import com.hostdesign24.jobportal.services.CompanyService;
 import com.hostdesign24.jobportal.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -43,8 +42,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final FileService fileService;
     private final FileMapper fileMapper;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     @Override
     @Transactional
@@ -82,8 +80,8 @@ public class CompanyServiceImpl implements CompanyService {
 
     private @NonNull CompanyResponseDto getCompanyResponseDto(Company company) {
         CompanyResponseDto response = companyMapper.toResponse(company);
-        response.setLogo(fileMapper.toDto(company.getLogo(), publicUrl));
-        response.setBanner(fileMapper.toDto(company.getBanner(), publicUrl));
+        response.setLogo(fileMapper.toDto(company.getLogo()));
+        response.setBanner(fileMapper.toDto(company.getBanner()));
         response.setActiveJobs(jobRepository.countByCompanyIdAndIsActiveTrueAndDeletedFalse(company.getId()));
         return response;
     }

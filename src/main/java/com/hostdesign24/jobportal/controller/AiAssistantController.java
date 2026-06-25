@@ -15,7 +15,6 @@ import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.repository.RecommendationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,8 +54,7 @@ public class AiAssistantController {
     private final FileMapper fileMapper;
     private final AiProperties aiProperties;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     /**
      * Returns the top-N AI-ranked active jobs for the current seeker.
@@ -104,7 +102,7 @@ public class AiAssistantController {
                     && r.job().getCompany().getLogo() != null
                     && jobDto.getCompany() != null) {
                 jobDto.getCompany().setLogo(
-                        fileMapper.toDto(r.job().getCompany().getLogo(), publicUrl)
+                        fileMapper.toDto(r.job().getCompany().getLogo())
                 );
             }
 

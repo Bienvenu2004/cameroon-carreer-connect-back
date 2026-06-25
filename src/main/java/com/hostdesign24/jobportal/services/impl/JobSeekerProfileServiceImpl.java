@@ -21,7 +21,6 @@ import com.hostdesign24.jobportal.services.JobSeekerProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,8 +51,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
     private final FileMapper fileMapper;
     private final WorkExperienceMapper workExperienceMapper;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     /**
      * Read-only transaction so the mapper can traverse LAZY associations
@@ -236,8 +234,8 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
             return null;
         }
         JobSeekerProfileResponseDto dto = jobSeekerProfileMapper.toDto(seekerProfile);
-        dto.setResume(fileMapper.toDto(seekerProfile.getResume(), publicUrl));
-        dto.setProfilePhoto(fileMapper.toDto(seekerProfile.getProfilePhoto(), publicUrl));
+        dto.setResume(fileMapper.toDto(seekerProfile.getResume()));
+        dto.setProfilePhoto(fileMapper.toDto(seekerProfile.getProfilePhoto()));
 
         // Derived total — sum of every range, with ongoing roles running
         // up to today. Null when there are no experiences (lets the UI
