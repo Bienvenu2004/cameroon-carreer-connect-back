@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class FileDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private UUID id;

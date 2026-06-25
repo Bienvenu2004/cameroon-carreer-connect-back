@@ -1,8 +1,10 @@
 package com.hostdesign24.jobportal.exception;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ErrorResponse {
     private String message;
     private int status;

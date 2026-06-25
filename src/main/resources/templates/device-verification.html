@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Device Verification</title>
+</head>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <img th:if="${logo}" th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:12px;" />
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Authorize New Device</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">Confirm it's really you</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <!-- Security Alert -->
+                        <div style="background-color:#fffbeb;border-left:4px solid #D4AF37;padding:14px 16px;border-radius:4px;margin-bottom:24px;">
+                            <p style="margin:0;font-size:14px;color:#92400e;">
+                                <strong>Security Alert:</strong> A login attempt was made from a new device.
+                            </p>
+                        </div>
+
+                        <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            Hi <strong th:text="${email}">user@example.com</strong>,
+                        </p>
+                        <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            To authorize this device on your <strong>JobConnect Cameroun</strong> account, enter the verification code below. This code expires in <strong th:text="${expiryMinutes}">10</strong> minutes.
+                        </p>
+
+                        <!-- Verification Code -->
+                        <div style="background-color:#f0fdf8;border:2px solid #0D6E5B;border-radius:10px;padding:24px;text-align:center;margin:28px 0;">
+                            <div style="font-size:13px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Verification Code</div>
+                            <div style="font-size:36px;font-weight:800;color:#0D6E5B;letter-spacing:8px;font-family:'Courier New',monospace;" th:text="${verificationCode}">000000</div>
+                        </div>
+
+                        <!-- Device Details -->
+                        <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin:24px 0;">
+                            <div style="font-size:12px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Device Details</div>
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;width:120px;">Device</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${deviceName}">Unknown Device</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">Location</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${location}">Unknown Location</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">IP Address</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;text-align:right;" th:text="${ipAddress}">0.0.0.0</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;font-size:14px;color:#64748b;">Time</td>
+                                    <td style="padding:10px 0;font-size:14px;color:#1e293b;font-weight:500;text-align:right;" th:text="${loginTime}">Jun 22, 2026</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Report Link -->
+                        <div style="text-align:center;margin:24px 0 0 0;">
+                            <a th:href="${securityUrl}" style="color:#C0392B;font-size:14px;font-weight:600;text-decoration:none;">
+                                &#9888; Wasn't you? Secure your account
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated security notification. Please do not reply to this email.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,10 +1,8 @@
 package com.hostdesign24.jobportal.repository.specifications;
 
 import com.hostdesign24.jobportal.common.utils.Utils;
-import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.dto.JobSeekerSaveFilter;
-import com.hostdesign24.jobportal.model.JobApplication;
-import com.hostdesign24.jobportal.model.JobSeekerSave;
+import com.hostdesign24.jobportal.model.JobSave;
 import com.hostdesign24.jobportal.model.User;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,7 +14,7 @@ import java.util.List;
 
 @Component
 public class JobSeekerSaveSpecification {
-    public Specification<JobSeekerSave> build(JobSeekerSaveFilter filter) {
+    public Specification<JobSave> build(JobSeekerSaveFilter filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 

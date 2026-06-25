@@ -1,14 +1,17 @@
 package com.hostdesign24.jobportal.dto.file;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
 public class FileStatsDto {
     private Map<String, Stat> stats;
 
-    @Data
+    @Getter
+    @Setter
     public static class Stat {
         private int total;
         private String totalSize;

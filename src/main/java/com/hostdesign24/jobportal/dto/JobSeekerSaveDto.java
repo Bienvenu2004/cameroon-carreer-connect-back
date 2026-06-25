@@ -1,10 +1,12 @@
 package com.hostdesign24.jobportal.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 public class JobSeekerSaveDto {
     private UUID jobId;
     private String jobTitle;

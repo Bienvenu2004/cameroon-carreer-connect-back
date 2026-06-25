@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Update</title>
+</head>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:32px;text-align:center;">
+                        <img th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:12px;" />
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Application Update</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">An update regarding your application</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#1e293b;">
+                            Hi <strong th:text="${name}">Candidate</strong>,
+                        </p>
+                        <p style="margin:0 0 24px 0;font-size:15px;line-height:1.7;color:#334155;">
+                            Thank you for your interest in the position below. After careful consideration, the employer has decided to move forward with other candidates at this time.
+                        </p>
+
+                        <!-- Position Card -->
+                        <div style="background-color:#f8fafc;border-left:4px solid #94a3b8;border-radius:8px;padding:20px 24px;margin:24px 0;">
+                            <div style="font-size:18px;font-weight:700;color:#334155;" th:text="${jobTitle}">Software Engineer</div>
+                            <div style="font-size:14px;color:#64748b;margin-top:6px;">
+                                at <strong style="color:#334155;" th:text="${companyName}">Company Name</strong>
+                            </div>
+                        </div>
+
+                        <p style="margin:24px 0;font-size:15px;line-height:1.7;color:#334155;">
+                            This doesn't reflect on your abilities. The job market in Cameroon is competitive, and we encourage you to keep applying to other opportunities that match your skills.
+                        </p>
+
+                        <!-- Encouragement Box -->
+                        <div style="background-color:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:20px 24px;margin:24px 0;">
+                            <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px;">Keep going!</div>
+                            <p style="margin:0;font-size:14px;line-height:1.6;color:#78350f;">
+                                New positions are posted on JobConnect Cameroun every day. Set up job alerts for roles that match your profile and be among the first to apply.
+                            </p>
+                        </div>
+
+                        <!-- CTA -->
+                        <div style="text-align:center;margin:32px 0 8px 0;">
+                            <a th:href="${dashboardUrl}" style="display:inline-block;background-color:#0D6E5B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">
+                                Browse More Jobs
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated notification from JobConnect Cameroun.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -39,7 +39,7 @@ public class JobSeekerProfileController {
 
 
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    @PostMapping(consumes = "multipart/form-data")
+    @PatchMapping(consumes = "multipart/form-data")
     public ApiResponse<Object> saveProfile(
             @ModelAttribute JobSeekerProfileSaveDto profile) {
 
