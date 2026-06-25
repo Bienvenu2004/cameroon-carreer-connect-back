@@ -4,8 +4,8 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Run stage
-FROM openjdk:21
+# Run stage - Using eclipse-temurin instead of openjdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
