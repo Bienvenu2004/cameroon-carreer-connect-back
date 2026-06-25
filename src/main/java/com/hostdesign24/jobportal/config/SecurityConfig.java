@@ -86,7 +86,6 @@ public class SecurityConfig {
                                         .requestMatchers("/h2-console/**")
                                         .permitAll()
                                         .requestMatchers("/error").permitAll()
-                                        .requestMatchers("/logo/**").permitAll()
                                         .requestMatchers("/storage/**").permitAll()
                                         .requestMatchers("/api/v1/contacts/request-demo").permitAll()
                                         // Public job browsing — home page, job listings, job detail
