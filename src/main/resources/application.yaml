@@ -1,10 +1,10 @@
 spring:
   application:
-    name: retms-backend
+    name: jobs-connect
     version: 0.0.1-SNAPSHOT
   datasource:
     url: ${DB_URL}
-    username: postgres
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   flyway:
@@ -62,7 +62,7 @@ springdoc:
     path: /swagger-ui.html
 
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
   tomcat:
     max-swallow-size: -1
     max-http-form-post-size: 10MB
