@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Congratulations - You're Hired!</title>
+</head>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:40px 32px;text-align:center;">
+                        <img th:src="${logo}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:16px;" />
+                        <div style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">Congratulations!</div>
+                        <div style="font-size:15px;color:rgba(255,255,255,0.85);margin-top:8px;">You've been selected for the position</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#1e293b;">
+                            Hi <strong th:text="${name}">Candidate</strong>,
+                        </p>
+                        <p style="margin:0 0 24px 0;font-size:15px;line-height:1.7;color:#334155;">
+                            Great news! We're delighted to inform you that you have been <strong style="color:#0D6E5B;">hired</strong> for the position of:
+                        </p>
+
+                        <!-- Position Card -->
+                        <div style="background-color:#f0fdf8;border-left:4px solid #0D6E5B;border-radius:8px;padding:20px 24px;margin:24px 0;">
+                            <div style="font-size:20px;font-weight:700;color:#0D6E5B;" th:text="${jobTitle}">Software Engineer</div>
+                            <div style="font-size:14px;color:#64748b;margin-top:6px;">
+                                at <strong style="color:#334155;" th:text="${companyName}">Company Name</strong>
+                            </div>
+                        </div>
+
+                        <p style="margin:24px 0;font-size:15px;line-height:1.7;color:#334155;">
+                            The employer will be reaching out to you shortly with next steps regarding onboarding and start date details.
+                        </p>
+
+                        <!-- Gold Accent Divider -->
+                        <div style="border-top:2px solid #D4AF37;margin:28px 0;"></div>
+
+                        <p style="margin:0 0 8px 0;font-size:14px;font-weight:600;color:#1e293b;">What happens next?</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td style="padding:6px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">1.</span> Wait for the employer to contact you directly
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">2.</span> Prepare any requested documents
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">3.</span> Keep your profile updated on JobConnect Cameroun
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- CTA -->
+                        <div style="text-align:center;margin:32px 0 8px 0;">
+                            <a th:href="${dashboardUrl}" style="display:inline-block;background-color:#0D6E5B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">
+                                View Your Applications
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            This is an automated notification from JobConnect Cameroun.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

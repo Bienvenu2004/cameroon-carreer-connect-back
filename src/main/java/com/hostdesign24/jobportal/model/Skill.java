@@ -1,10 +1,8 @@
 package com.hostdesign24.jobportal.model;
 
+import com.hostdesign24.jobportal.model.enums.ExperienceLevel;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -16,8 +14,11 @@ import lombok.ToString;
 public class Skill extends BaseEntity {
 
     private String name;
-    private String experienceLevel;
-    private String yearsOfExperience;
+
+    @Enumerated(EnumType.STRING)
+    private ExperienceLevel experienceLevel;
+
+    private int yearsOfExperience = 0;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "job_seeker_profile")

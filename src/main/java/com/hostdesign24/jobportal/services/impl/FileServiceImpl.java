@@ -67,7 +67,6 @@ public class FileServiceImpl implements FileService {
 
         fileRepository.delete(file);
 
-
         if (file.getPublicId() != null) {
             Path path = Paths.get(storageBaseDir).resolve(file.getPublicId()).toAbsolutePath().normalize();
             try {

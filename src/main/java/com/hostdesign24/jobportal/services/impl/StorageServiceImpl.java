@@ -189,6 +189,9 @@ public class StorageServiceImpl implements StorageService {
             return ResponseEntity.notFound().build();
         }
 
+        System.out.println("resource: " + resource);
+        System.out.println("filePath: " + filePath);
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(
                         Files.probeContentType(filePath)))

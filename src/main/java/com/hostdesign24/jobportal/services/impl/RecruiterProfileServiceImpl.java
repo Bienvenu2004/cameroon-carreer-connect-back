@@ -2,7 +2,7 @@ package com.hostdesign24.jobportal.services.impl;
 
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.RecruiterProfileResponseDto;
-import com.hostdesign24.jobportal.dto.RecruiterProfileSaveDto;
+import com.hostdesign24.jobportal.dto.RecruiterProfileUpsertDto;
 import com.hostdesign24.jobportal.dto.file.FileDto;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.FileMapper;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,7 +44,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     }
 
     @Override
-    public RecruiterProfile addNew(RecruiterProfileSaveDto dto) {
+    public RecruiterProfile addNew(RecruiterProfileUpsertDto dto) {
         User currentUser = Utils.getCurrentUser().orElseThrow(
                 () -> new UsernameNotFoundException("you most be authenticated to update your profile")
         );
@@ -56,8 +55,10 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
         // upload
         String relatedEntity = Utils.getClassSimpleName(profile);
 
-        File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), profile.getId(), "RECRUITER_PROFILE", relatedEntity);
-        profile.setProfilePhoto(profilePicture);
+        if (dto.getProfilePhoto() != null && !dto.getProfilePhoto().isEmpty()) {
+            File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), profile.getId(), "RECRUITER_PROFILE", relatedEntity);
+            profile.setProfilePhoto(profilePicture);
+        }
 
         return recruiterProfileRepository.save(profile);
     }

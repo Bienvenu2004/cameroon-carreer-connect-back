@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to JobConnect Cameroun</title>
+</head>
+<body style="margin:0;padding:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background-color:#f8fafc;color:#0f172a;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f8fafc;padding:40px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#0D6E5B;padding:40px 32px;text-align:center;">
+                        <img th:src="${logoUrl}" alt="JobConnect Cameroun" style="max-height:40px;margin-bottom:16px;" />
+                        <div style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Welcome aboard!</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:6px;">Your next job starts here.</div>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 32px;">
+                        <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#1e293b;">
+                            Hi <strong th:text="${name}">User</strong>,
+                        </p>
+                        <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#334155;">
+                            We're thrilled to have you join <strong>JobConnect Cameroun</strong> as a <span style="color:#0D6E5B;font-weight:600;" th:text="${role}">Job Seeker</span>. You now have access to opportunities across all regions of Cameroon.
+                        </p>
+                        <!-- Account Info Card -->
+                        <div style="background-color:#f0fdf8;border-radius:10px;padding:20px;margin:24px 0;">
+                            <div style="font-size:12px;font-weight:600;color:#0D6E5B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Your Account</div>
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="padding:6px 0;font-size:14px;color:#64748b;width:100px;">Email</td>
+                                    <td style="padding:6px 0;font-size:14px;color:#1e293b;font-weight:500;" th:text="${email}">user@email.com</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;font-size:14px;color:#64748b;">Role</td>
+                                    <td style="padding:6px 0;font-size:14px;color:#1e293b;font-weight:500;" th:text="${role}">Job Seeker</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <!-- What's Next -->
+                        <p style="margin:24px 0 12px 0;font-size:14px;font-weight:600;color:#1e293b;">Here's what you can do next:</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td style="padding:8px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">&#10003;</span> Complete your profile to stand out
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">&#10003;</span> Explore jobs across Cameroon
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 0;font-size:14px;color:#334155;">
+                                    <span style="color:#D4AF37;font-weight:700;margin-right:8px;">&#10003;</span> Set up job alerts to never miss an opportunity
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- CTA Button -->
+                        <div style="text-align:center;margin:32px 0 8px 0;">
+                            <a th:href="${loginUrl}" style="display:inline-block;background-color:#0D6E5B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">
+                                Go to Your Dashboard
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 4px 0;font-size:12px;color:#64748b;">
+                            &copy; <span th:text="${year}">2026</span> JobConnect Cameroun. All rights reserved.
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#94a3b8;">
+                            You received this email because you created an account on JobConnect Cameroun.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

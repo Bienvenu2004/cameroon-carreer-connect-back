@@ -3,17 +3,13 @@ package com.hostdesign24.jobportal.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
-@Table(name = "recruiter_profile")
+@Table(name = "recruiter_profiles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "user")
-@EqualsAndHashCode(callSuper = true)
 public class RecruiterProfile extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -27,7 +23,7 @@ public class RecruiterProfile extends BaseEntity {
     private String country;
     private String company;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "profile_photo_id", unique = true)
     private File profilePhoto;
 

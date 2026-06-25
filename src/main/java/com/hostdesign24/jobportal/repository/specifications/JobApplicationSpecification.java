@@ -2,17 +2,16 @@ package com.hostdesign24.jobportal.repository.specifications;
 
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
-import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
 import com.hostdesign24.jobportal.model.JobApplication;
 import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class JobApplicationSpecification {
@@ -20,11 +19,17 @@ public class JobApplicationSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            User currentUser = Utils.getCurrentUser().orElseThrow(
-                    () -> new UsernameNotFoundException("User not authenticated")
-            );
+            Optional<User> currentOptUser = Utils.getCurrentUser();
 
-            predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
+            currentOptUser.ifPresent(currentUser -> {
+                if (currentUser.getRole() == UserRole.JOB_SEEKER){
+                    predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
+                }
+
+                if (currentUser.getRole() == UserRole.RECRUITER){
+                    predicates.add(cb.equal(root.get("job").get("createdBy"), currentUser.getId()));
+                }
+            });
 
             if (filter.getProfileId() != null) {
                 predicates.add(cb.equal(root.get("profile").get("id"), filter.getProfileId()));
@@ -33,7 +38,6 @@ public class JobApplicationSpecification {
             if (filter.getJobId() != null) {
                 predicates.add(cb.equal(root.get("job").get("id"), filter.getJobId()));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

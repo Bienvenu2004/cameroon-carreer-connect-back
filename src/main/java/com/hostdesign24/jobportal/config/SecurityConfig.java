@@ -68,7 +68,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http.sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -89,6 +89,15 @@ public class SecurityConfig {
                                         .requestMatchers("/logo/**").permitAll()
                                         .requestMatchers("/storage/**").permitAll()
                                         .requestMatchers("/api/v1/contacts/request-demo").permitAll()
+                                        // Public job browsing — home page, job listings, job detail
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/all").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/search").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*").permitAll()
+                                        // Public company browsing — company list and detail
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()
+                                        // AI semantic job search (§5.2) — public, anonymous-friendly
+                                        .requestMatchers(HttpMethod.POST, "/api/hjp/ai/search").permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .addFilterBefore(jwtFilters, UsernamePasswordAuthenticationFilter.class)
