@@ -22,6 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -97,8 +99,6 @@ public class AuthServiceImpl implements AuthService {
         String deviceName = userDeviceService.extractDeviceName(userAgent);
 
         try {
-            //checkDeviceStatus(user, deviceId, deviceName, ip);
-
             log.info("User {} authenticated successfully from verified device: {} (IP: {})",
                     user.getEmail(), deviceName, ip);
 
@@ -345,43 +345,48 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.clearContext();
     }
 
-
     private void setTokenCookies(HttpServletResponse response, String accessToken,
                                  String refreshToken) {
-        Cookie accessTokenCookie = new Cookie("access_token", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(cookieSecure);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge((int) (jwtConfig.getAccessTokenExpiration() / 1000));
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure);
-        // Path was "/api/v1/auth" — wrong, the controller is at /api/hjp/auth
-        // and we also need this cookie on /api/hjp/auth/logout. Use "/" so the
-        // browser sends it on every refresh / logout call.
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge((int) (jwtConfig.getRefreshTokenExpiration() / 1000));
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(cookieSecure) // must be true if sameSite is None
+                .path("/")
+                .maxAge(jwtConfig.getAccessTokenExpiration() / 1000)
+                .sameSite(cookieSecure ? "None" : "Lax") // None requires Secure=true
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(jwtConfig.getRefreshTokenExpiration() / 1000)
+                .sameSite(cookieSecure ? "None" : "Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
     private void invalidateCookies(HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("access_token", null);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(cookieSecure);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(0)
+                .sameSite(cookieSecure ? "None" : "Lax")
+                .build();
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(0)
+                .sameSite(cookieSecure ? "None" : "Lax")
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
     @Transactional
