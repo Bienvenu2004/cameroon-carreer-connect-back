@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,9 @@ public class WorkExperienceDto {
     private LocalDate startDate;
     /** Null when {@link #isCurrent} is true. */
     private LocalDate endDate;
+    // Jackson would otherwise serialize this boolean getter as "current";
+    // the frontend WorkExperience contract expects "isCurrent".
+    @JsonProperty("isCurrent")
     private boolean isCurrent;
     private String description;
 }

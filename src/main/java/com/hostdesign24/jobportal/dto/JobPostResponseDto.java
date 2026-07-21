@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyResponseDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
 import com.hostdesign24.jobportal.model.enums.JobLanguage;
@@ -44,8 +45,13 @@ public class JobPostResponseDto {
 
     private Integer views;
 
+    // Jackson strips the "is" prefix from boolean getters, which would put
+    // these on the wire as "active"/"saved". The frontend JobDto contract
+    // expects "isActive"/"isSaved", so pin the JSON names explicitly.
+    @JsonProperty("isActive")
     private boolean isActive;
 
+    @JsonProperty("isSaved")
     private boolean isSaved;
 
     private LocalDate postedDate;

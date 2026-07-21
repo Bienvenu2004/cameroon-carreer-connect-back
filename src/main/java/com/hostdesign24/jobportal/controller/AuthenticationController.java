@@ -111,6 +111,24 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success(data, "Authentication successful."));
     }
 
+    @PostMapping("/google")
+    @Operation(
+            summary = "Authenticate with Google",
+            description = "Sign in (or, on first use, sign up) with a Google ID token. " +
+                    "The optional role is only applied when a new account is created."
+    )
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> googleAuth(
+            @RequestBody @Valid GoogleAuthRequest request,
+            @RequestHeader(value = CLIENT_TYPE_HEADER, required = false, defaultValue = "mobile") String clientType,
+            HttpServletRequest httpRequest,
+            HttpServletResponse response) {
+
+        AuthenticationResponse data = authService.authenticateWithGoogle(
+                request, response, clientType, httpRequest);
+
+        return ResponseEntity.ok(ApiResponse.success(data, "Authentication successful."));
+    }
+
     @PostMapping("/refresh-token")
     @Operation(
             summary = "Refresh authentication token",

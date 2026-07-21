@@ -7,9 +7,6 @@ import lombok.*;
 @Table(name = "recruiter_profiles")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class RecruiterProfile extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
