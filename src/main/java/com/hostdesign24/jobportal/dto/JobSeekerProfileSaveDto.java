@@ -53,6 +53,10 @@ public class JobSeekerProfileSaveDto {
     private MultipartFile resume;
     private MultipartFile profilePhoto;
 
+    /** Short-form video introduction (mp4/webm/…). Uploaded to Cloudinary as a
+     *  streamable {@code video} resource. */
+    private MultipartFile videoResume;
+
     /**
      * Skills the candidate wants to advertise. Each entry binds from
      * skills[0].name, skills[1].name, ... in the multipart form data.

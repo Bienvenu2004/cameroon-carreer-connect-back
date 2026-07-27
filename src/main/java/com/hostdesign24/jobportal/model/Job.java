@@ -24,6 +24,11 @@ public class Job extends BaseEntity {
 
     private boolean isSaved = false;
 
+    // True when this job was auto-deactivated because a candidate was HIRED.
+    // Lets us reopen the job to the public if the recruiter later moves that
+    // application away from HIRED — without reopening jobs closed manually.
+    private boolean closedByHire = false;
+
     @Embedded
     private Address location;
 

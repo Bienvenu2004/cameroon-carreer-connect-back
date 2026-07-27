@@ -2,6 +2,8 @@ package com.hostdesign24.jobportal.services;
 
 import org.springframework.scheduling.annotation.Async;
 
+import java.time.LocalDateTime;
+
 public interface NotificationAsyncService {
 
     @Async
@@ -9,6 +11,11 @@ public interface NotificationAsyncService {
 
     @Async
     void notifyNewApplication(String recruiterEmail, String candidateName, String jobTitle, String candidateEmail);
+
+    @Async
+    void notifyApplicationInterview(String seekerEmail, String seekerName, String jobTitle, String companyName,
+                                    String interviewPlace, LocalDateTime interviewDateTime,
+                                    String interviewPhone, String interviewNote);
 
     @Async
     void notifyApplicationHired(String seekerEmail, String seekerName, String jobTitle, String companyName);

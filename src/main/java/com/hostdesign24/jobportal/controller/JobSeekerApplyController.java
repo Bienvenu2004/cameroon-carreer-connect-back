@@ -3,10 +3,11 @@ package com.hostdesign24.jobportal.controller;
 import com.hostdesign24.jobportal.dto.JobApplicationDto;
 import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
+import com.hostdesign24.jobportal.dto.UpdateApplicationStatusDto;
 import com.hostdesign24.jobportal.dto.common.ApiResponse;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
-import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
 import com.hostdesign24.jobportal.services.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -46,8 +47,8 @@ public class JobSeekerApplyController {
     @PatchMapping("/applications/{id}/status")
     public ApiResponse<Void> updateApplicationStatus(
             @PathVariable UUID id,
-            @RequestParam ApplicationStatus status) {
-        jobSeekerApplyService.updateStatus(id, status);
+            @Valid @RequestBody UpdateApplicationStatusDto request) {
+        jobSeekerApplyService.updateStatus(id, request);
         return ApiResponse.success(null, "Application status updated successfully");
     }
 }

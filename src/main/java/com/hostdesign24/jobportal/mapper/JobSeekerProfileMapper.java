@@ -10,6 +10,7 @@ public interface JobSeekerProfileMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "resume", ignore = true)
+    @Mapping(target = "videoResume", ignore = true)
     @Mapping(target = "profilePhoto", ignore = true)
     @Mapping(target = "experiences", ignore = true)
     JobSeekerProfile toEntity(JobSeekerProfileSaveDto dto);
@@ -24,6 +25,7 @@ public interface JobSeekerProfileMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "resume", ignore = true)
+    @Mapping(target = "videoResume", ignore = true)
     @Mapping(target = "profilePhoto", ignore = true)
     @Mapping(target = "experiences", ignore = true)
     void updateFromDto(JobSeekerProfileSaveDto dto, @MappingTarget JobSeekerProfile entity);

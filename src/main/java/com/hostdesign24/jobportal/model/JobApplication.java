@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -30,4 +31,16 @@ public class JobApplication extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status = ApplicationStatus.APPLIED;
+
+    // Interview details captured by the recruiter when moving the application
+    // to INTERVIEW. Persisted so they can be shown back in the UI and included
+    // in the invitation email sent to the candidate.
+    private String interviewPlace;
+
+    private LocalDateTime interviewDateTime;
+
+    private String interviewPhone;
+
+    @Column(columnDefinition = "TEXT")
+    private String interviewNote;
 }

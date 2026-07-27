@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface UserNotificationService {
     void createAccountNotification(User user);
     void passwordResetNotification(User user);
-    void newConnectionDeviceNotification(User user, String deviceName, String deviceIp);
+    void newConnectionDeviceNotification(User user, String deviceName);
     void newJobApplicationNotification(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId);
     void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId);
 }

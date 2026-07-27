@@ -1,12 +1,7 @@
 spring:
   application:
-    name: jobs-connect
+    name: jobportal
     version: 0.0.1-SNAPSHOT
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
   flyway:
     url: ${DB_URL}
     user: ${DB_USERNAME}
@@ -14,6 +9,11 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     out-of-order: true
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jwt:
     accessTokenExpiration: 900000
     refreshTokenExpiration: 604800000
@@ -82,6 +82,21 @@ app:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
+
+  # ---------------------------------------------------------------------
+  # OAuth2 / social sign-in
+  #
+  # Google Sign-In uses the ID-token flow: the SPA obtains a Google
+  # credential (a signed JWT) and posts it to /api/hjp/auth/google. The
+  # backend verifies it against Google using this client-id as the
+  # expected audience. Use the SAME OAuth 2.0 Web client-id on the
+  # frontend (VITE_GOOGLE_CLIENT_ID). If blank, the endpoint returns a
+  # clear 503 and the Google buttons stay non-functional — the rest of
+  # the app is unaffected.
+  # ---------------------------------------------------------------------
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
 
   # ---------------------------------------------------------------------
   # AI configuration

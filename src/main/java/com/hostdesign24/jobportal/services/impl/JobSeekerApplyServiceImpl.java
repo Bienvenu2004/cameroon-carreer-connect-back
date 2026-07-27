@@ -3,6 +3,7 @@ package com.hostdesign24.jobportal.services.impl;
 import com.hostdesign24.jobportal.dto.JobApplicationDto;
 import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
+import com.hostdesign24.jobportal.dto.UpdateApplicationStatusDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.mapper.JobApplicationMapper;
 import com.hostdesign24.jobportal.exception.ActionDeniedException;
@@ -140,35 +141,70 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
     /**
      * Update the status of an application.
      *
-     * Side effect: when a candidate is marked HIRED, the position is
-     * considered filled — we close the job automatically so:
-     *   1. No further candidates can apply
-     *   2. It falls off the public listing (which filters isActive=true)
-     *   3. The recruiter doesn't have to remember a separate "close" step
+     * Status-driven side effects:
+     *   - INTERVIEW: the recruiter-supplied place/date-time/phone/note are
+     *     persisted on the application and emailed to the candidate as an
+     *     interview invitation.
+     *   - HIRED: the position is considered filled, so the job is closed
+     *     automatically (no more applications, drops off the public listing)
+     *     and flagged with {@code closedByHire}. The candidate gets a "hired"
+     *     email.
+     *   - Leaving HIRED (e.g. a mistaken hire is walked back): if the job was
+     *     auto-closed by that hire ({@code closedByHire}), it is reopened to
+     *     the public. Jobs the recruiter closed manually are left closed.
+     *   - REJECTED: the candidate gets a rejection email.
      *
      * Other applications on the same job are left untouched — the recruiter
      * decides how to communicate with the remaining candidates.
      *
-     * Wrapped in @Transactional so the application status update and the
-     * job-close happen as a single atomic operation.
+     * Wrapped in @Transactional so the application update and the job
+     * open/close happen as a single atomic operation.
      */
     @Override
     @Transactional
-    public void updateStatus(UUID applicationId, ApplicationStatus status) {
+    public void updateStatus(UUID applicationId, UpdateApplicationStatusDto request) {
         JobApplication application = jobSeekerApplyRepository.findById(applicationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + applicationId));
+
+        ApplicationStatus previousStatus = application.getStatus();
+        ApplicationStatus status = request.getStatus();
+
         application.setStatus(status);
-        jobSeekerApplyRepository.save(application);
+
+        if (status == ApplicationStatus.INTERVIEW) {
+            // Persist the interview details so they can be shown back in the UI
+            // and included in the invitation email.
+            application.setInterviewPlace(request.getInterviewPlace());
+            application.setInterviewDateTime(request.getInterviewDateTime());
+            application.setInterviewPhone(request.getInterviewPhone());
+            application.setInterviewNote(request.getInterviewNote());
+        }
+
+        Job job = application.getJob();
 
         if (status == ApplicationStatus.HIRED) {
-            Job job = application.getJob();
+            // Fill the position: close the job and remember we did so, so the
+            // action can be reversed if the hire is later walked back.
             if (job != null && job.isActive()) {
                 job.setActive(false);
+                job.setClosedByHire(true);
+                jobRepository.save(job);
+            }
+        } else if (previousStatus == ApplicationStatus.HIRED) {
+            // Moving away from HIRED — reopen the job to the public, but only
+            // if it was this hire that closed it. Never reopen a job the
+            // recruiter closed manually.
+            if (job != null && job.isClosedByHire()) {
+                job.setActive(true);
+                job.setClosedByHire(false);
                 jobRepository.save(job);
             }
         }
 
-        // Notify job seeker of status change (WebSocket for all, + email for HIRED/REJECTED)
+        jobSeekerApplyRepository.save(application);
+
+        // Notify job seeker of status change (WebSocket for all,
+        // + email for INTERVIEW / HIRED / REJECTED)
         notifyJobSeekerOfStatusChange(application, status);
     }
 
@@ -186,16 +222,21 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
                 jobSeekerId, jobTitle, status.name(), application.getId()
         );
 
-        // Email only for terminal states (HIRED / REJECTED)
-        if (status == ApplicationStatus.HIRED || status == ApplicationStatus.REJECTED) {
-            String seekerName = buildCandidateName(profile);
-            String seekerEmail = profile.getUser().getEmail();
+        // Email for the states the candidate cares about most
+        String seekerName = buildCandidateName(profile);
+        String seekerEmail = profile.getUser().getEmail();
 
-            if (status == ApplicationStatus.HIRED) {
-                notificationAsyncService.notifyApplicationHired(seekerEmail, seekerName, jobTitle, companyName);
-            } else {
-                notificationAsyncService.notifyApplicationRejected(seekerEmail, seekerName, jobTitle, companyName);
-            }
+        switch (status) {
+            case INTERVIEW -> notificationAsyncService.notifyApplicationInterview(
+                    seekerEmail, seekerName, jobTitle, companyName,
+                    application.getInterviewPlace(),
+                    application.getInterviewDateTime(),
+                    application.getInterviewPhone(),
+                    application.getInterviewNote()
+            );
+            case HIRED -> notificationAsyncService.notifyApplicationHired(seekerEmail, seekerName, jobTitle, companyName);
+            case REJECTED -> notificationAsyncService.notifyApplicationRejected(seekerEmail, seekerName, jobTitle, companyName);
+            default -> { /* APPLIED / REVIEWED: WebSocket only */ }
         }
     }
 }

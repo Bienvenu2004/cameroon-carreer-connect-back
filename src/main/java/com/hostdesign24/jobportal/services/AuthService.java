@@ -2,6 +2,7 @@ package com.hostdesign24.jobportal.services;
 
 import com.hostdesign24.jobportal.dto.AuthenticationRequest;
 import com.hostdesign24.jobportal.dto.AuthenticationResponse;
+import com.hostdesign24.jobportal.dto.GoogleAuthRequest;
 import com.hostdesign24.jobportal.dto.PasswordUpdateDto;
 import com.hostdesign24.jobportal.dto.ResetPasswordRequest;
 import com.hostdesign24.jobportal.dto.userDevice.VerifyDeviceDto;
@@ -22,6 +23,24 @@ public interface AuthService {
    */
   AuthenticationResponse authenticateUser(
       AuthenticationRequest authenticationRequest,
+      HttpServletResponse response,
+      String clientTypeHeader,
+      HttpServletRequest httpRequest);
+
+  /**
+   * Authenticates (or, on first sign-in, registers) a user from a verified
+   * Google ID token. Issues the same session tokens/cookies as a password
+   * login. The role on the request is only honoured when a new account is
+   * created.
+   *
+   * @param request          the Google credential + optional desired role
+   * @param response         the HTTP servlet response (for session cookies)
+   * @param clientTypeHeader "web" → HttpOnly cookies; otherwise tokens in body
+   * @param httpRequest      the HTTP request (for device / IP metadata)
+   * @return the authentication result
+   */
+  AuthenticationResponse authenticateWithGoogle(
+      GoogleAuthRequest request,
       HttpServletResponse response,
       String clientTypeHeader,
       HttpServletRequest httpRequest);

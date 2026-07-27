@@ -13,6 +13,8 @@ import com.hostdesign24.jobportal.model.enums.DeviceStatus;
 import com.hostdesign24.jobportal.model.enums.VerificationType;
 import com.hostdesign24.jobportal.repository.EmailVerificationRepository;
 import com.hostdesign24.jobportal.repository.UserRepository;
+import com.hostdesign24.jobportal.security.GoogleTokenVerifier;
+import com.hostdesign24.jobportal.security.GoogleUserInfo;
 import com.hostdesign24.jobportal.security.JwtConfig;
 import com.hostdesign24.jobportal.security.JwtService;
 import com.hostdesign24.jobportal.services.*;
@@ -77,6 +79,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserDeviceService userDeviceService;
     private final NotificationAsyncService notificationAsyncService;
     private final UserNotificationService userNotificationService;
+    private final GoogleTokenVerifier googleTokenVerifier;
+    private final UsersService usersService;
 
     @Override
     public AuthenticationResponse authenticateUser(
@@ -104,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
 
             userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
 
-            userNotificationService.newConnectionDeviceNotification(userId, deviceName, deviceId);
+            userNotificationService.newConnectionDeviceNotification(userId, deviceName);
             notificationAsyncService.notifyDeviceLogin(user.getEmail(), deviceName, ip);
 
             updateUserLogin(user);
@@ -123,6 +127,45 @@ public class AuthServiceImpl implements AuthService {
             }
             throw e;
         }
+    }
+
+    @Override
+    public AuthenticationResponse authenticateWithGoogle(
+            GoogleAuthRequest request,
+            HttpServletResponse response,
+            String clientTypeHeader,
+            HttpServletRequest httpRequest) {
+
+        // 1. Verify the credential against Google (signature, audience, expiry,
+        //    email_verified). Throws on anything untrustworthy.
+        GoogleUserInfo googleUser = googleTokenVerifier.verify(request.getCredential());
+
+        // 2. Resolve or provision the local account. Role only matters for a
+        //    brand-new account (sign-up); existing users keep their role.
+        User user = usersService.findOrCreateGoogleUser(googleUser, request.getRole());
+
+        // 3. Record login activity (best-effort — never blocks the login).
+        final String ip = Utils.getClientIp();
+        String userAgent = httpRequest.getHeader("User-Agent");
+        String deviceName = userAgent;
+        try {
+            String deviceId = userDeviceService.generateDeviceId(userAgent, ip);
+            deviceName = userDeviceService.extractDeviceName(userAgent);
+            userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
+        } catch (Exception e) {
+            log.warn("Failed to record Google login activity for {}: {}", user.getEmail(), e.getMessage());
+        }
+
+        // 4. Issue the same session tokens/cookies as a password login.
+        updateUserLogin(user);
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        UserDto userDto = mapper.toUserDto(user);
+        userDto.setRole(user.getRole());
+
+        log.info("User {} authenticated via Google (device {}, IP {})", user.getEmail(), deviceName, ip);
+        return getResponse(response, clientTypeHeader, accessToken, refreshToken, userDto);
     }
 
     private AuthenticationResponse getResponse(HttpServletResponse response, String clientTypeHeader, String accessToken, String refreshToken, UserDto userDto) {

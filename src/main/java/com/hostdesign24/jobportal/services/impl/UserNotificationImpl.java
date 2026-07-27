@@ -36,10 +36,10 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
-    public void newConnectionDeviceNotification(User user, String deviceName, String deviceIp) {
+    public void newConnectionDeviceNotification(User user, String deviceName) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "AlertConnection", () ->
-                factoryService.userNewConnection(userId, deviceName, deviceIp));
+                factoryService.userNewConnection(userId, deviceName));
     }
 
     @Override

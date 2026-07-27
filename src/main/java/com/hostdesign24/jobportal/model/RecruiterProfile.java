@@ -8,8 +8,6 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class RecruiterProfile extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
