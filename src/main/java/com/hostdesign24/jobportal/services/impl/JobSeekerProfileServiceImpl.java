@@ -90,7 +90,12 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
             File resume = fileService.uploadFile(dto.getResume(), jobSeekerProfile.getId(), "JOB_SEEKER_RESUME", relatedEntity);
             jobSeekerProfile.setResume(resume);
         }
-        
+
+        if (dto.getVideoResume() != null && !dto.getVideoResume().isEmpty()) {
+            File videoResume = fileService.uploadFile(dto.getVideoResume(), jobSeekerProfile.getId(), "JOB_SEEKER_VIDEO", relatedEntity);
+            jobSeekerProfile.setVideoResume(videoResume);
+        }
+
         if (dto.getProfilePhoto() != null && !dto.getProfilePhoto().isEmpty()) {
             File profilePicture = fileService.uploadFile(dto.getProfilePhoto(), jobSeekerProfile.getId(), "JOB_SEEKER_PROFILE", relatedEntity);
             jobSeekerProfile.setProfilePhoto(profilePicture);
@@ -235,6 +240,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         }
         JobSeekerProfileResponseDto dto = jobSeekerProfileMapper.toDto(seekerProfile);
         dto.setResume(fileMapper.toDto(seekerProfile.getResume()));
+        dto.setVideoResume(fileMapper.toDto(seekerProfile.getVideoResume()));
         dto.setProfilePhoto(fileMapper.toDto(seekerProfile.getProfilePhoto()));
 
         // Derived total — sum of every range, with ongoing roles running

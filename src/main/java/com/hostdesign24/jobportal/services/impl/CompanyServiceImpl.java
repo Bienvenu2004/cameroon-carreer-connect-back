@@ -161,6 +161,19 @@ public class CompanyServiceImpl implements CompanyService {
         if (company.getStatus() == CompanyStatus.APPROVED) {
             return getCompanyResponseDto(company);
         }
+        // Business rule: at most one APPROVED company per name. Enforced here
+        // (the single choke point where a company becomes APPROVED) rather than
+        // at creation, so duplicate PENDING submissions can coexist but only
+        // one can ever be accepted. Case-insensitive; ignores the company's own
+        // row and any soft-deleted companies.
+        String name = company.getName() == null ? "" : company.getName().trim();
+        boolean nameTaken = companyRepository.existsByNameIgnoreCaseAndStatusAndDeletedFalseAndIdNot(
+                name, CompanyStatus.APPROVED, company.getId());
+        if (nameTaken) {
+            throw new InvalidInputException(
+                    "Another approved company already exists with the name \"" + name
+                            + "\". Two approved companies cannot share the same name.");
+        }
         company.setStatus(CompanyStatus.APPROVED);
         company.setRejectionReason(null);
         company.setVerifiedAt(LocalDateTime.now());

@@ -47,6 +47,16 @@ public class JobSeekerProfile extends BaseEntity {
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     private File resume;
 
+    /**
+     * Short-form video introduction ("video résumé"). Uploaded to Cloudinary
+     * as a {@code video} resource, so its delivery URL is directly streamable
+     * (HTTP range requests / CDN) by an HTML {@code <video>} element — no
+     * backend proxy needed. Playback only; the UI offers no download.
+     */
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
+    @JoinColumn(name = "video_resume_id", referencedColumnName = "id")
+    private File videoResume;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
     @JoinColumn(name = "profile_photo_id", referencedColumnName = "id")
     private File profilePhoto;

@@ -34,8 +34,8 @@ public class NotificationFactoryServiceImpl implements NotificationFactoryServic
     }
 
     @Override
-    public NotificationRequestDto userNewConnection(UUID userId, String device, String ip) {
-        String message = String.format("New sign-in: %s , %s", device, ip);
+    public NotificationRequestDto userNewConnection(UUID userId, String device) {
+        String message = String.format("New sign-in from %s", device);
 
         return NotificationRequestDto.builder()
                 .recipientId(userId)

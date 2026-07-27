@@ -41,6 +41,8 @@ public class JobSeekerProfileResponseDto {
 
     private FileDto profilePhoto;
     private FileDto resume;
+    /** Streamable video-introduction file (Cloudinary video URL), or null. */
+    private FileDto videoResume;
     private List<SkillDto> skills;
 
     /** Newest-start-first list of past or current roles. */

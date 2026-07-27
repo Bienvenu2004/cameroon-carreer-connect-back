@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
 
             userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
 
-            userNotificationService.newConnectionDeviceNotification(userId, deviceName, deviceId);
+            userNotificationService.newConnectionDeviceNotification(userId, deviceName);
             notificationAsyncService.notifyDeviceLogin(user.getEmail(), deviceName, ip);
 
             updateUserLogin(user);

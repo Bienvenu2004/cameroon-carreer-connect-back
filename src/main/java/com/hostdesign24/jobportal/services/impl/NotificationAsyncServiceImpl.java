@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Year;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -82,6 +83,45 @@ public class NotificationAsyncServiceImpl implements NotificationAsyncService {
             log.info("New application notification sent to recruiter {} for job: {}", recruiterEmail, jobTitle);
         } catch (Exception e) {
             log.error("Failed to send new application email to {}", recruiterEmail, e);
+        }
+    }
+
+    @Async
+    @Override
+    public void notifyApplicationInterview(String seekerEmail, String seekerName, String jobTitle, String companyName,
+                                           String interviewPlace, LocalDateTime interviewDateTime,
+                                           String interviewPhone, String interviewNote) {
+        try {
+            String logo = storageService.getLogoUrl();
+
+            String formattedDateTime = interviewDateTime != null
+                    ? interviewDateTime.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy 'at' HH:mm"))
+                    : "To be confirmed";
+
+            // Map.of rejects null values and the interview fields are optional,
+            // so build the model defensively with a HashMap.
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("companyName", companyName);
+            templateModel.put("interviewPlace", interviewPlace != null && !interviewPlace.isBlank() ? interviewPlace : "To be confirmed");
+            templateModel.put("interviewDateTime", formattedDateTime);
+            templateModel.put("interviewPhone", interviewPhone != null && !interviewPhone.isBlank() ? interviewPhone : null);
+            templateModel.put("interviewNote", interviewNote != null && !interviewNote.isBlank() ? interviewNote : null);
+            templateModel.put("dashboardUrl", "https://yourapp.com/dashboard/applications");
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", logo);
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    "Interview invitation for " + jobTitle,
+                    "application-interview",
+                    templateModel
+            );
+
+            log.info("Interview invitation sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send interview invitation to {}", seekerEmail, e);
         }
     }
 
