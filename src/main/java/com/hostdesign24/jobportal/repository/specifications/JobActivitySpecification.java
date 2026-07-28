@@ -51,6 +51,24 @@ public class JobActivitySpecification {
                         "%" + filter.getJobTitle().toLowerCase() + "%"));
             }
 
+            // OR-matched keyword tokens: a job qualifies when ANY token
+            // appears in its title OR description. Powers the AI keyword
+            // fallback so conversational queries still find relevant jobs.
+            if (filter.getKeywordAny() != null && !filter.getKeywordAny().isEmpty()) {
+                Expression<String> titleLower = cb.lower(root.get("title").as(String.class));
+                Expression<String> descLower = cb.lower(root.get("description").as(String.class));
+                List<Predicate> anyOf = new ArrayList<>();
+                for (String token : filter.getKeywordAny()) {
+                    if (token == null || token.isBlank()) continue;
+                    String pattern = "%" + token.toLowerCase() + "%";
+                    anyOf.add(cb.like(titleLower, pattern));
+                    anyOf.add(cb.like(descLower, pattern));
+                }
+                if (!anyOf.isEmpty()) {
+                    predicates.add(cb.or(anyOf.toArray(new Predicate[0])));
+                }
+            }
+
             if (filter.getCompanyName() != null && !filter.getCompanyName().isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("company").get("name").as(String.class)),
                         "%" + filter.getCompanyName().toLowerCase() + "%"));

@@ -13,7 +13,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Service backing {@code POST /api/hjp/ai/search}.
@@ -114,24 +117,78 @@ public class AiSearchService {
         if (p.salaryMin() != null) f.setSalaryMin(BigDecimal.valueOf(p.salaryMin()));
         if (p.salaryMax() != null) f.setSalaryMax(BigDecimal.valueOf(p.salaryMax()));
 
-        // First keyword anchors a title LIKE. Skills go into description
-        // LIKE so jobs whose title is generic ("Software Engineer") but
-        // whose description mentions the skill still match.
-        if (!p.keywords().isEmpty()) f.setJobTitle(p.keywords().get(0));
-        if (!p.skills().isEmpty()) f.setDescriptionOfJob(p.skills().get(0));
+        // Anchor on keywords + skills, OR-matched across title AND
+        // description. A job whose title is generic ("Software Engineer")
+        // still matches when its body mentions the skill, and no single
+        // keyword is allowed to over-constrain the result set.
+        Set<String> anchors = new LinkedHashSet<>();
+        anchors.addAll(tokenize(String.join(" ", p.keywords())));
+        anchors.addAll(tokenize(String.join(" ", p.skills())));
+        if (!anchors.isEmpty()) f.setKeywordAny(new ArrayList<>(anchors));
 
         return f;
     }
 
     /**
-     * Pure keyword fallback: title LIKE on the original query. We don't
-     * try to be clever — the model already failed to extract structure,
-     * any heuristic we layer on top is more likely to hurt than help.
+     * Keyword fallback used when the model can't extract structure (or is
+     * unreachable / unconfigured). Rather than LIKE the whole sentence
+     * against the title — which never matches — we tokenize the query,
+     * drop EN/FR filler words, and OR-match each surviving token across
+     * title AND description. So "i need a job where i wash dishes" reduces
+     * to [wash, dishes] and surfaces a "Dish Washer" listing.
      */
     private JobActivityFilterDto buildFallbackFilter(String query, int size) {
         JobActivityFilterDto f = baseFilter(size);
-        f.setJobTitle(query);
+        List<String> tokens = tokenize(query);
+        if (!tokens.isEmpty()) {
+            f.setKeywordAny(tokens);
+        } else {
+            // Nothing meaningful survived stop-word removal — last-resort
+            // substring match on the raw query.
+            f.setJobTitle(query);
+        }
         return f;
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  keyword tokenization
+     * ------------------------------------------------------------------ */
+
+    /** EN + FR filler words stripped before keyword matching. */
+    private static final Set<String> STOP_WORDS = Set.of(
+            // English
+            "the", "a", "an", "and", "or", "for", "with", "without", "to", "of",
+            "in", "on", "at", "by", "from", "as", "is", "are", "be",
+            "i", "me", "my", "we", "you", "your", "he", "she", "it", "they",
+            "need", "needs", "want", "wants", "looking", "look", "seeking",
+            "seek", "find", "get", "where", "who", "which", "that", "this",
+            "some", "any", "job", "jobs", "work", "working", "position",
+            "positions", "role", "roles", "vacancy", "vacancies", "opening",
+            "openings", "please", "would", "like", "near", "around", "about",
+            // French
+            "le", "la", "les", "un", "une", "des", "et", "ou", "pour", "avec",
+            "sans", "de", "du", "dans", "sur", "au", "aux", "je", "tu", "il",
+            "elle", "nous", "vous", "ils", "elles", "mon", "ma", "mes",
+            "cherche", "chercher", "recherche", "besoin", "veux", "voudrais",
+            "trouver", "emploi", "travail", "poste", "postes", "ce", "cette",
+            "qui", "que", "est", "suis"
+    );
+
+    /**
+     * Split free text into distinct, meaningful lowercase tokens: drop
+     * anything shorter than 3 chars, drop stop-words, preserve order,
+     * cap at 8 to keep the OR predicate bounded.
+     */
+    private static List<String> tokenize(String text) {
+        if (text == null || text.isBlank()) return List.of();
+        Set<String> out = new LinkedHashSet<>();
+        for (String tok : text.toLowerCase().split("[^\\p{L}]+")) {
+            if (tok.length() < 3) continue;
+            if (STOP_WORDS.contains(tok)) continue;
+            out.add(tok);
+            if (out.size() >= 8) break;
+        }
+        return new ArrayList<>(out);
     }
 
     private JobActivityFilterDto baseFilter(int size) {

@@ -26,10 +26,22 @@ public record AiProperties(
             String model,
             double temperature,
             int maxTokens,
-            int timeoutSeconds
+            int timeoutSeconds,
+            Integer thinkingBudget
     ) {
         public boolean isConfigured() {
             return apiKey != null && !apiKey.isBlank();
+        }
+
+        /**
+         * Whether an explicit thinking budget should be sent to Gemini.
+         * Only a positive budget is valid: Gemini 2.5 also accepts 0 to
+         * disable thinking, but Gemini 3.x rejects 0 with HTTP 400 — so we
+         * treat null / &lt;= 0 as "omit thinkingConfig and let the model
+         * decide", which is safe across all model versions.
+         */
+        public boolean hasThinkingBudget() {
+            return thinkingBudget != null && thinkingBudget > 0;
         }
     }
 

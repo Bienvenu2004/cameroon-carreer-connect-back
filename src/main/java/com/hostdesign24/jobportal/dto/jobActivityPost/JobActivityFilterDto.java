@@ -13,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -58,4 +59,13 @@ public class JobActivityFilterDto extends FilterDto {
     private String jobTitle;
 
     private Integer createdDaysAgo;
+
+    /**
+     * Free-text tokens matched with OR semantics: a job matches when ANY
+     * token appears in its title OR description. Set programmatically by
+     * the AI keyword fallback (never bound from a request param), so a
+     * conversational query like "i need a job where i wash dishes" can
+     * still surface a "Dish Washer" listing.
+     */
+    private List<String> keywordAny;
 }
