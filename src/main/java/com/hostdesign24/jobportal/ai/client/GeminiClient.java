@@ -87,13 +87,15 @@ public class GeminiClient {
                         props.gemini().temperature(),
                         props.gemini().maxTokens(),
                         jsonMode ? "application/json" : null,
-                        // Gemini 2.5 / flash-latest spend hidden "thinking"
-                        // tokens out of the maxOutputTokens budget. For
-                        // structured ranking over a pre-filtered job pool
-                        // we don't need extended reasoning — disable it so
-                        // the full budget goes to the JSON we actually
-                        // want. Saves cost AND avoids truncated responses.
-                        new ThinkingConfig(0)
+                        // Only send an explicit thinking budget when it's a
+                        // positive value. Gemini 2.5 accepted 0 to disable
+                        // thinking, but gemini-flash-latest now resolves to a
+                        // Gemini 3.x thinking model that rejects 0 with HTTP
+                        // 400. Omitting the config (null) lets the model use
+                        // its default and works across every model version.
+                        props.gemini().hasThinkingBudget()
+                                ? new ThinkingConfig(props.gemini().thinkingBudget())
+                                : null
                 )
         );
 

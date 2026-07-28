@@ -117,6 +117,12 @@ app:
       temperature: 0.3
       max-tokens: 4096
       timeout-seconds: 60
+      # Explicit "thinking" token budget. Leave <= 0 to omit it entirely
+      # and let the model use its default. NOTE: gemini-flash-latest now
+      # resolves to a Gemini 3.x thinking model, which returns HTTP 400 if
+      # thinkingBudget is 0 — so never set this to 0. Use a positive value
+      # (e.g. 512) only if you want to cap thinking on a model that allows it.
+      thinking-budget: -1
     recommendations:
       candidate-pool-size: 50      # max jobs we send to the model per request
       return-size: 5               # max jobs the model returns to the user
