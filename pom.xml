@@ -169,6 +169,34 @@
 
     <build>
         <plugins>
+            <!--
+                Coverage report. Bound to `verify`, written to
+                target/site/jacoco/index.html. There is no enforced minimum yet:
+                the suite is deliberately small and focused on the paths that
+                carry risk (token handling, login lockout, interceptor wiring),
+                so a global threshold would only encourage padding.
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop", "hardening-**"]
+  pull_request:
+    branches: ["main", "develop"]
+
+# A superseded run for the same branch is not worth the queue time.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      # The test suite is deliberately free of infrastructure -- no database, no
+      # Testcontainers, no live Gemini key -- so `verify` runs unmodified here and
+      # finishes in well under a minute.
+      - name: Build, test and report coverage
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+          if-no-files-found: warn
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
