@@ -57,7 +57,18 @@ public class AuthenticationController {
                     + "Call once before issuing any state-changing request."
     )
     @PermitAll
-    public ResponseEntity<ApiResponse<CsrfTokenDto>> csrf(CsrfToken token) {
+    public ResponseEntity<ApiResponse<CsrfTokenDto>> csrf(HttpServletRequest request) {
+        // Read the token CsrfFilter put on the request rather than declaring a
+        // CsrfToken parameter: Spring Security 7 no longer ships the argument
+        // resolver that used to make that work. Calling getToken() on the
+        // supplier-backed instance is what generates the value and writes the
+        // XSRF-TOKEN cookie, which is the point of this endpoint.
+        CsrfToken token = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        if (token == null) {
+            log.warn("CSRF token requested but no CsrfToken was present on the request");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(ApiResponse.success(null, "CSRF protection is not active"));
+        }
         return ResponseEntity.ok(ApiResponse.success(
                 new CsrfTokenDto(token.getToken(), token.getHeaderName()),
                 "CSRF token issued"));
