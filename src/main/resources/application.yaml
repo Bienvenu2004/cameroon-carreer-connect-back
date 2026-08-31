@@ -23,6 +23,14 @@ spring:
     virtual:
       enabled: true
   jpa:
+    # Open-session-in-view keeps the Hibernate session open through view rendering,
+    # which silently turns every un-fetched lazy association into an extra query
+    # during serialization instead of raising LazyInitializationException. Turning
+    # it off surfaces those N+1s as errors during development rather than hiding
+    # them as latency in production. All read paths map to DTOs inside a
+    # @Transactional(readOnly = true) boundary, so nothing should be touched
+    # outside a session.
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:

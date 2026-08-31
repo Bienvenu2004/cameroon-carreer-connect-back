@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public RecruiterProfileResponseDto getOne(UUID id) {
         RecruiterProfile profile = recruiterProfileRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("profile not found with id: " + id)
@@ -42,6 +44,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     }
 
     @Override
+    @Transactional
     public RecruiterProfile addNew(RecruiterProfileUpsertDto dto) {
         User currentUser = Utils.getCurrentUser().orElseThrow(
                 () -> new UsernameNotFoundException("you most be authenticated to update your profile")
@@ -62,6 +65,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RecruiterProfileResponseDto getCurrentRecruiterProfile() {
 
         User user = Utils.getCurrentUser().orElseThrow(

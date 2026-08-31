@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -22,6 +23,7 @@ public class UserNotificationImpl implements UserNotificationService {
     private final NotificationPublisherService publisherService;
 
     @Override
+    @Transactional
     public void createAccountNotification(User user) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "CreateAccount", () ->
@@ -29,6 +31,7 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
+    @Transactional
     public void passwordResetNotification(User user) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "PasswordReset", () ->
@@ -36,6 +39,7 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
+    @Transactional
     public void newConnectionDeviceNotification(User user, String deviceName) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "AlertConnection", () ->
@@ -43,6 +47,7 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
+    @Transactional
     public void newJobApplicationNotification(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId) {
         Assert.notNull(recruiterId, "Recruiter ID cannot be null");
         sendNotification(recruiterId, "NewApplication", () ->
@@ -50,6 +55,7 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
+    @Transactional
     public void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId) {
         Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
         sendNotification(jobSeekerId, "ApplicationStatusChanged", () ->

@@ -20,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Streams stored files back to the browser.
@@ -54,11 +55,13 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<Resource> getFileByUrl(UUID fileId) {
         return stream(fileId, false);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<Resource> downloadFile(UUID fileId) {
         return stream(fileId, true);
     }

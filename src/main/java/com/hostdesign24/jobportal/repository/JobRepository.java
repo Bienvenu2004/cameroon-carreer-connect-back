@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.model.Job;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,6 +18,23 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificationExecutor<Job> {
 
+    /* =====================================================================
+     * Fetch graph for job listings.
+     *
+     * Job.company is a @ManyToOne (EAGER by default) and Company.logo is another
+     * @ManyToOne, so rendering a page of 20 job cards previously issued one extra
+     * SELECT per row for the company and another for its logo -- roughly 41
+     * queries to display one page.
+     *
+     * Redeclaring the Specification query here lets us attach an entity graph to
+     * it. Both associations are single-valued, so the join does not multiply rows
+     * and pagination stays in the database.
+     * ===================================================================== */
+    @Override
+    @EntityGraph(attributePaths = {"company", "company.logo"})
+    Page<Job> findAll(Specification<Job> spec, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"company", "company.logo"})
     @Query("SELECT j FROM Job j WHERE " +
            "(:title = '' OR LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
            "(:location = '' OR LOWER(j.location.city) LIKE LOWER(CONCAT('%', :location, '%')) " +

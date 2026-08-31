@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
     private final JobSeekerSaveMapper jobSeekerSaveMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public PageResponseDto<JobSeekerSaveDto> getSavedJobsResponse(JobSeekerSaveFilter filter) {
         Specification<JobSave> spec = jobSeekerSaveSpecification.build(filter);
         Page<JobSave> page = jobSeekerSaveRepository.findAll(spec, filter.toPageable());
@@ -61,7 +63,7 @@ public class JobSeekerSaveServiceImpl implements JobSeekerSaveService {
      * row-set in an inconsistent state.
      */
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void addNew(UUID jobId) {
         JobSeekerProfile seekerProfile = jobSeekerProfileService.getJobSeekerProfileEntity();
         if (seekerProfile == null) {
