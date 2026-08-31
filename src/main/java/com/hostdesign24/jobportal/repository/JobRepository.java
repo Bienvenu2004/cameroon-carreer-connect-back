@@ -59,4 +59,29 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
          ORDER BY j.createdAt DESC
     """)
     List<Job> findAiCandidatePool(@Param("profileId") UUID profileId, Pageable pageable);
+
+    /* =====================================================================
+     * Dashboard aggregates -- see the note on UserRepository.
+     * ===================================================================== */
+
+    @Query("SELECT COUNT(j) FROM Job j WHERE j.deleted = false")
+    long countNotDeleted();
+
+    @Query("SELECT COUNT(j) FROM Job j WHERE j.deleted = false AND j.isActive = true")
+    long countActiveJobs();
+
+    @Query("SELECT COUNT(j) FROM Job j WHERE j.deleted = false AND j.isActive = true AND j.createdBy = :creator")
+    long countActiveJobsByCreator(@Param("creator") UUID creator);
+
+    /** Jobs posted per calendar day since {@code from}; folded into months by the service. */
+    @Query("SELECT j.postedDate, COUNT(j) FROM Job j "
+            + "WHERE j.deleted = false AND j.postedDate >= :from "
+            + "GROUP BY j.postedDate")
+    List<Object[]> countPostedByDaySince(@Param("from") LocalDate from);
+
+    /** Job counts per Cameroon region, as Object[]{ Region, Long }. */
+    @Query("SELECT j.location.region, COUNT(j) FROM Job j "
+            + "WHERE j.deleted = false AND j.location.region IS NOT NULL "
+            + "GROUP BY j.location.region")
+    List<Object[]> countByRegion();
 }

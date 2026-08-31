@@ -13,6 +13,7 @@ import com.hostdesign24.jobportal.model.RecruiterProfile;
 import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
 import com.hostdesign24.jobportal.model.enums.CompanyStatus;
+import com.hostdesign24.jobportal.model.enums.Region;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.repository.CompanyRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
@@ -120,67 +121,67 @@ public class AdminServiceImpl implements AdminService {
         return companyService.suspend(companyId, reason);
     }
 
+    /**
+     * Platform-wide counters for the admin dashboard.
+     *
+     * This previously ran findAll() over the users table three times, the jobs
+     * table three times and the applications table once, then filtered and
+     * counted in Java -- seven full table scans per dashboard load, with every
+     * row materialised as a managed entity.
+     *
+     * Every counter is now a database aggregate. The two time series group by
+     * calendar day and are folded into weeks/months here, so the number of rows
+     * crossing the wire is bounded by the length of the window (12 weeks, 6
+     * months) rather than by the size of the tables.
+     */
     @Override
     @Transactional(readOnly = true)
     public AdminPlatformStatsDto getPlatformStats() {
         long totalUsers = userRepository.count();
+        long activeUsers = userRepository.countActive();
 
-        Map<UserRole, Long> roleCounts = new HashMap<>();
-        for (UserRole role : UserRole.values()) roleCounts.put(role, 0L);
-        userRepository.findAll().stream()
-                .filter(u -> !u.isDeleted())
-                .forEach(u -> roleCounts.merge(u.getRole(), 1L, Long::sum));
-
-        long activeUsers = userRepository.findAll().stream()
-                .filter(u -> !u.isDeleted() && u.isActive()).count();
+        Map<UserRole, Long> roleCounts = zeroed(UserRole.values());
+        fold(userRepository.countByRole(), roleCounts);
 
         long totalCompanies = companyRepository.count();
-        Map<CompanyStatus, Long> companyStatusCounts = new HashMap<>();
-        for (CompanyStatus s : CompanyStatus.values()) companyStatusCounts.put(s, 0L);
-        companyRepository.findAll().stream()
-                .filter(c -> !c.isDeleted())
-                .forEach(c -> companyStatusCounts.merge(
-                        c.getStatus() == null ? CompanyStatus.PENDING : c.getStatus(),
-                        1L, Long::sum));
+        Map<CompanyStatus, Long> companyStatusCounts = zeroed(CompanyStatus.values());
+        // A company with no status set is treated as PENDING, matching the entity default.
+        for (Object[] row : companyRepository.countByStatus()) {
+            CompanyStatus status = row[0] == null ? CompanyStatus.PENDING : (CompanyStatus) row[0];
+            companyStatusCounts.merge(status, ((Number) row[1]).longValue(), Long::sum);
+        }
 
         long totalJobs = jobRepository.count();
-        long activeJobs = jobRepository.findAll().stream()
-                .filter(j -> !j.isDeleted() && j.isActive()).count();
+        long activeJobs = jobRepository.countActiveJobs();
 
         long totalApps = jobApplicationRepository.count();
         Map<String, Long> appsByStatus = new HashMap<>();
         for (ApplicationStatus s : ApplicationStatus.values()) appsByStatus.put(s.name(), 0L);
-        jobApplicationRepository.findAll().forEach(a -> appsByStatus.merge(
-                a.getStatus() == null ? ApplicationStatus.APPLIED.name() : a.getStatus().name(),
-                1L, Long::sum));
+        for (Object[] row : jobApplicationRepository.countByStatus()) {
+            ApplicationStatus status = row[0] == null ? ApplicationStatus.APPLIED : (ApplicationStatus) row[0];
+            appsByStatus.merge(status.name(), ((Number) row[1]).longValue(), Long::sum);
+        }
 
-        Map<String, Long> jobsByMonth = new TreeMap<>();
         DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("yyyy-MM");
-        LocalDate cutoff6m = LocalDate.now().minusMonths(6);
-        jobRepository.findAll().stream()
-                .filter(j -> !j.isDeleted() && j.getPostedDate() != null
-                        && !j.getPostedDate().isBefore(cutoff6m))
-                .forEach(j -> jobsByMonth.merge(j.getPostedDate().format(monthFmt), 1L, Long::sum));
+        Map<String, Long> jobsByMonth = new TreeMap<>();
+        for (Object[] row : jobRepository.countPostedByDaySince(LocalDate.now().minusMonths(6))) {
+            LocalDate day = (LocalDate) row[0];
+            jobsByMonth.merge(day.format(monthFmt), ((Number) row[1]).longValue(), Long::sum);
+        }
 
-        Map<String, Long> signupsByWeek = new TreeMap<>();
-        LocalDate cutoff12w = LocalDate.now().minusWeeks(12);
         WeekFields wf = WeekFields.of(Locale.getDefault());
-        userRepository.findAll().stream()
-                .filter(u -> !u.isDeleted() && u.getRegistrationDate() != null
-                        && !u.getRegistrationDate().isBefore(cutoff12w))
-                .forEach(u -> {
-                    LocalDate d = u.getRegistrationDate();
-                    String key = d.getYear() + "-W"
-                            + String.format("%02d", d.get(wf.weekOfWeekBasedYear()));
-                    signupsByWeek.merge(key, 1L, Long::sum);
-                });
+        Map<String, Long> signupsByWeek = new TreeMap<>();
+        for (Object[] row : userRepository.countSignupsByDaySince(LocalDate.now().minusWeeks(12))) {
+            LocalDate day = (LocalDate) row[0];
+            String key = day.getYear() + "-W"
+                    + String.format("%02d", day.get(wf.weekOfWeekBasedYear()));
+            signupsByWeek.merge(key, ((Number) row[1]).longValue(), Long::sum);
+        }
 
         Map<String, Long> jobsByRegion = new HashMap<>();
-        jobRepository.findAll().stream()
-                .filter(j -> !j.isDeleted() && j.getLocation() != null
-                        && j.getLocation().getRegion() != null)
-                .forEach(j -> jobsByRegion.merge(
-                        j.getLocation().getRegion().name(), 1L, Long::sum));
+        for (Object[] row : jobRepository.countByRegion()) {
+            jobsByRegion.merge(((Region) row[0]).name(), ((Number) row[1]).longValue(), Long::sum);
+        }
 
         return AdminPlatformStatsDto.builder()
                 .totalUsers(totalUsers)
@@ -201,6 +202,22 @@ public class AdminServiceImpl implements AdminService {
                 .signupsByWeek(signupsByWeek)
                 .jobsByRegion(jobsByRegion)
                 .build();
+    }
+
+    /** A map pre-populated with every enum constant at zero, so absent groups still render. */
+    private static <E extends Enum<E>> Map<E, Long> zeroed(E[] values) {
+        Map<E, Long> m = new HashMap<>();
+        for (E v : values) m.put(v, 0L);
+        return m;
+    }
+
+    /** Folds Object[]{ enumValue, count } aggregate rows into a counts map. */
+    @SuppressWarnings("unchecked")
+    private static <E extends Enum<E>> void fold(List<Object[]> rows, Map<E, Long> into) {
+        for (Object[] row : rows) {
+            if (row[0] == null) continue;
+            into.merge((E) row[0], ((Number) row[1]).longValue(), Long::sum);
+        }
     }
 
     /* ---------------- helpers ---------------- */
