@@ -64,6 +64,24 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.cookies.secure:false}")
     private boolean cookieSecure;
 
+    /**
+     * SameSite attribute for the session cookies.
+     *
+     * This used to be derived from {@link #cookieSecure}, which meant every
+     * production deployment got {@code SameSite=None} -- telling the browser to
+     * attach the session cookie to requests originating from any site. Combined
+     * with CSRF protection being disabled, that left every state-changing endpoint
+     * open to cross-site request forgery.
+     *
+     * {@code Lax} is now the default and is correct whenever the SPA and the API
+     * share a site (including the Vite proxy setup used in development). Only set
+     * {@code APP_COOKIES_SAME_SITE=None} when the frontend genuinely lives on a
+     * different site -- CSRF tokens then carry the protection, and None additionally
+     * requires Secure=true.
+     */
+    @Value("${app.cookies.same-site:Lax}")
+    private String cookieSameSite;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -393,10 +411,10 @@ public class AuthServiceImpl implements AuthService {
 
         ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
-                .secure(cookieSecure) // must be true if sameSite is None
+                .secure(cookieSecure)
                 .path("/")
                 .maxAge(jwtConfig.getAccessTokenExpiration() / 1000)
-                .sameSite(cookieSecure ? "None" : "Lax") // None requires Secure=true
+                .sameSite(cookieSameSite)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
@@ -404,7 +422,7 @@ public class AuthServiceImpl implements AuthService {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(jwtConfig.getRefreshTokenExpiration() / 1000)
-                .sameSite(cookieSecure ? "None" : "Lax")
+                .sameSite(cookieSameSite)
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
@@ -417,7 +435,7 @@ public class AuthServiceImpl implements AuthService {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(0)
-                .sameSite(cookieSecure ? "None" : "Lax")
+                .sameSite(cookieSameSite)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", "")
@@ -425,7 +443,7 @@ public class AuthServiceImpl implements AuthService {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(0)
-                .sameSite(cookieSecure ? "None" : "Lax")
+                .sameSite(cookieSameSite)
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());

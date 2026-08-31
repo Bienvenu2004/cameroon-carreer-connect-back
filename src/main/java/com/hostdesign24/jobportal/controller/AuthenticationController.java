@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,31 @@ public class AuthenticationController {
     private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
     private static final String CLIENT_TYPE_HEADER = "X-Client-Type";
     private final EmailVerificationService emailVerificationService;
+
+    /**
+     * Hands the SPA a CSRF token and, as a side effect, sets the XSRF-TOKEN cookie.
+     *
+     * A freshly-loaded browser has no CSRF cookie yet: the SPA's HTML is served by
+     * Vite or nginx, not by Spring, so the backend has had no opportunity to set one
+     * before the first login attempt. The client therefore calls this once at startup.
+     *
+     * The token is also returned in the body because a frontend deployed on a
+     * different site cannot read the backend's cookie from JavaScript. Returning it
+     * explicitly keeps the double-submit pattern working for both same-site and
+     * cross-site deployments.
+     */
+    @GetMapping("/csrf")
+    @Operation(
+            summary = "Fetch a CSRF token",
+            description = "Returns the CSRF token and the header it must be sent in. "
+                    + "Call once before issuing any state-changing request."
+    )
+    @PermitAll
+    public ResponseEntity<ApiResponse<CsrfTokenDto>> csrf(CsrfToken token) {
+        return ResponseEntity.ok(ApiResponse.success(
+                new CsrfTokenDto(token.getToken(), token.getHeaderName()),
+                "CSRF token issued"));
+    }
 
     @PostMapping("/request-email-verification")
     @Operation(

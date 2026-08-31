@@ -16,11 +16,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
+  private final AllowedOrigins allowedOrigins;
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
+    // Origins must match the REST CORS mapping. A wildcard here would let any
+    // site open an authenticated socket, since the browser attaches the session
+    // cookie to the handshake.
     registry.addEndpoint("/retms-websocket")
-        .setAllowedOriginPatterns("*")
+        .setAllowedOrigins(allowedOrigins.asArray())
         .addInterceptors(new WebSocketHandshakeInterceptor())
         .withSockJS();
   }

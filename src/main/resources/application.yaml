@@ -76,6 +76,17 @@ logging:
 app:
   cookies:
     secure: ${SECURE_COOKIES:false}
+    # SameSite for the session + CSRF cookies.
+    #
+    # Lax is correct whenever the SPA and this API share a site -- including the
+    # Vite proxy used in development and any single-domain deployment. It stops
+    # the browser attaching the session cookie to cross-site requests, which is
+    # the primary defence against CSRF.
+    #
+    # Set to None ONLY if the frontend is served from a different site. None also
+    # requires SECURE_COOKIES=true, and leans entirely on the CSRF token exchange
+    # (GET /api/hjp/auth/csrf) for protection.
+    same-site: ${COOKIE_SAME_SITE:Lax}
   client-url: ${CLIENT_URL}
   logo-url: ${LOGO_URL:}
   cloudinary:
