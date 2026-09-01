@@ -147,6 +147,9 @@ public class SecurityConfig {
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/industry-counts").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*/followers/count").permitAll()
+                                        // Derived from public activity only. A visitor with no
+                                        // account should be able to see the platform is alive.
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/feed").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()
                                         // AI semantic job search (§5.2) — public, anonymous-friendly
                                         .requestMatchers(HttpMethod.POST, "/api/hjp/ai/search").permitAll()
