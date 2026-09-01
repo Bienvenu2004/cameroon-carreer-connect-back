@@ -17,10 +17,15 @@ public interface JobSeekerProfileRepository
 
     /**
      * Candidate search reads skills, education, experience and the photo for
-     * every row it renders. Without the graph a page of twenty results issues
-     * roughly eighty extra queries.
+     * every row it renders.
+     *
+     * Only the photo is fetched here. The three collections are batched instead
+     * (see @BatchSize on JobSeekerProfile): Hibernate cannot fetch more than one
+     * bag in a single query, and joining three of them would multiply rows even
+     * if it could. Batching turns the N+1 into one extra query per collection
+     * per page, which is the outcome the graph was reaching for anyway.
      */
     @Override
-    @EntityGraph(attributePaths = {"skills", "educations", "experiences", "profilePhoto"})
+    @EntityGraph(attributePaths = {"profilePhoto"})
     Page<JobSeekerProfile> findAll(Specification<JobSeekerProfile> spec, Pageable pageable);
 }

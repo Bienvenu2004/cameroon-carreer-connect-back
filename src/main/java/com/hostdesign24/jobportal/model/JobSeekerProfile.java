@@ -1,6 +1,7 @@
 
 package com.hostdesign24.jobportal.model;
 
+import org.hibernate.annotations.BatchSize;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,6 +63,12 @@ public class JobSeekerProfile extends BaseEntity {
     @JoinColumn(name = "profile_photo_id", referencedColumnName = "id")
     private File profilePhoto;
 
+    /**
+     * Batched rather than join-fetched. Candidate search renders these for every
+     * row, and Hibernate cannot fetch several bags in one query -- so it loads
+     * them a page at a time instead of a row at a time.
+     */
+    @BatchSize(size = 25)
     @OneToMany(targetEntity = Skill.class, cascade = CascadeType.ALL, mappedBy = "jobSeekerProfile")
     private List<Skill> skills;
 
@@ -72,6 +79,7 @@ public class JobSeekerProfile extends BaseEntity {
      * profile view. {@code orphanRemoval = true} guarantees deletes
      * propagate when a seeker removes a row through the bulk PATCH.
      */
+    @BatchSize(size = 25)
     @OneToMany(
             mappedBy = "profile",
             cascade = CascadeType.ALL,
@@ -86,6 +94,7 @@ public class JobSeekerProfile extends BaseEntity {
      * is what makes a profile findable in candidate search and what lets a job's
      * "Bac+3 minimum" be matched rather than merely stated.
      */
+    @BatchSize(size = 25)
     @OneToMany(
             mappedBy = "profile",
             cascade = CascadeType.ALL,

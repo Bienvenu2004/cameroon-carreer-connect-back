@@ -25,17 +25,22 @@ public interface ApplicationEventRepository extends JpaRepository<ApplicationEve
      *
      * The median is approximated by the average, which is cheap in SQL and honest
      * enough at the sample sizes involved; the DTO calls it an average.
+     *
+     * Native SQL rather than JPQL: HQL compiles a timestamp subtraction into a
+     * numeric duration, and Postgres has no date_part(text, numeric). Interval
+     * arithmetic is clearer written out, and this is a reporting query against
+     * one known database rather than portable domain logic.
      */
-    @Query("""
+    @Query(value = """
         SELECT COUNT(DISTINCT a.id),
-               COUNT(DISTINCT CASE WHEN e.toStatus <> com.hostdesign24.jobportal.model.enums.ApplicationStatus.APPLIED
-                                   THEN a.id END),
-               AVG(CASE WHEN e.toStatus <> com.hostdesign24.jobportal.model.enums.ApplicationStatus.APPLIED
-                        THEN CAST(FUNCTION('DATE_PART', 'day', e.occurredAt - a.createdAt) AS double) END)
-          FROM JobApplication a
-          LEFT JOIN ApplicationEvent e ON e.application = a
-         WHERE a.job.company.id = :companyId
-           AND a.job.deleted = false
-    """)
+               COUNT(DISTINCT CASE WHEN e.to_status <> 'APPLIED' THEN a.id END),
+               AVG(CASE WHEN e.to_status <> 'APPLIED'
+                        THEN EXTRACT(EPOCH FROM (e.occurred_at - a.created_at)) / 86400.0 END)
+          FROM job_applications a
+          LEFT JOIN application_events e ON e.application_id = a.id
+          JOIN jobs j ON j.id = a.job_id
+         WHERE j.company_id = :companyId
+           AND j.deleted = false
+    """, nativeQuery = true)
     List<Object[]> responsivenessForCompany(@Param("companyId") UUID companyId);
 }

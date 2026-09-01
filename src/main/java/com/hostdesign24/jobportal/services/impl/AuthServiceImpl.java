@@ -101,6 +101,13 @@ public class AuthServiceImpl implements AuthService {
     private final UsersService usersService;
 
     @Override
+    /**
+     * Transactional because the response maps the authenticated {@link User} to a
+     * DTO, and for a job seeker that walks into the profile's lazily-loaded
+     * skills collection. With open-in-view disabled there is no session open at
+     * that point, so the mapping has to happen inside this boundary.
+     */
+    @Transactional
     public AuthenticationResponse authenticateUser(
             AuthenticationRequest authenticationRequest,
             HttpServletResponse response,
@@ -148,6 +155,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthenticationResponse authenticateWithGoogle(
             GoogleAuthRequest request,
             HttpServletResponse response,

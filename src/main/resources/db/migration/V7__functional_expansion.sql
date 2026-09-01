@@ -72,7 +72,10 @@ CREATE TABLE IF NOT EXISTS educations (
     end_date       DATE,
     is_current     BOOLEAN      NOT NULL DEFAULT FALSE,
     description    TEXT,
-    profile_id     UUID REFERENCES job_seeker_profiles (id)
+    -- job_seeker_profiles is keyed on user_id, not id: the entity uses @MapsId so
+    -- the profile's identifier IS its user's. work_experiences references it the
+    -- same way.
+    profile_id     UUID REFERENCES job_seeker_profiles (user_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_educations_profile ON educations (profile_id);
@@ -178,7 +181,7 @@ CREATE TABLE IF NOT EXISTS job_invitations (
     updated_by   UUID,
     deleted      BOOLEAN   NOT NULL DEFAULT FALSE,
     job_id       UUID      NOT NULL REFERENCES jobs (id),
-    profile_id   UUID      NOT NULL REFERENCES job_seeker_profiles (id),
+    profile_id   UUID      NOT NULL REFERENCES job_seeker_profiles (user_id),
     invited_by   UUID,
     message      TEXT,
     sent_at      TIMESTAMP NOT NULL,
