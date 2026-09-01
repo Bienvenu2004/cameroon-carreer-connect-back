@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.services;
 
+import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
 import com.hostdesign24.jobportal.dto.company.CompanyFilterDto;
@@ -9,6 +10,12 @@ import com.hostdesign24.jobportal.dto.company.CompanyResponseDto;
 import java.util.UUID;
 
 public interface CompanyService {
+
+    /**
+     * How this employer treats applicants, computed from application history.
+     * Public: it is for candidates deciding whether applying is worth their time.
+     */
+    CompanyResponsivenessDto getResponsiveness(UUID companyId);
 
     CompanyResponseDto create(CompanyEntryDto dto);
 

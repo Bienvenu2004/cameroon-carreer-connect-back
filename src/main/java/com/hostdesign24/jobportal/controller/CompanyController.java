@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.controller;
 
+import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.dto.common.ApiResponse;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
@@ -31,6 +32,12 @@ public class CompanyController {
     @GetMapping("/me")
     public ApiResponse<java.util.List<CompanyResponseDto>> listMyCompanies() {
         return ApiResponse.success(companyService.listMyCompanies(), "Companies retrieved successfully");
+    }
+
+    @GetMapping("/{id}/responsiveness")
+    public ApiResponse<CompanyResponsivenessDto> responsiveness(@PathVariable UUID id) {
+        return ApiResponse.success(companyService.getResponsiveness(id),
+                "Company responsiveness retrieved successfully");
     }
 
     @GetMapping("/{id}")

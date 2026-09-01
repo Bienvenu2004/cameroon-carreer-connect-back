@@ -11,4 +11,6 @@ public interface UserNotificationService {
     void newConnectionDeviceNotification(User user, String deviceName);
     void newJobApplicationNotification(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId);
     void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId);
+    void jobInvitationNotification(UUID jobSeekerId, String jobTitle, String companyName, UUID jobId);
+    void jobReportResolvedNotification(UUID reporterId, String jobTitle, boolean upheld, UUID jobId);
 }

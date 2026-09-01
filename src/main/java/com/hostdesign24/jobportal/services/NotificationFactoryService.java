@@ -16,4 +16,10 @@ public interface NotificationFactoryService {
     NotificationRequestDto newJobApplication(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId);
 
     NotificationRequestDto applicationStatusChanged(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId);
+
+    /** A recruiter has asked this candidate to apply for a specific job. */
+    NotificationRequestDto jobInvitation(UUID jobSeekerId, String jobTitle, String companyName, UUID jobId);
+
+    /** An administrator has acted on a job the user reported. */
+    NotificationRequestDto jobReportResolved(UUID reporterId, String jobTitle, boolean upheld, UUID jobId);
 }

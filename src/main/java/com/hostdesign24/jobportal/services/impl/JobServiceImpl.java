@@ -1,5 +1,8 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import org.springframework.data.domain.PageRequest;
+import com.hostdesign24.jobportal.model.enums.Region;
+import com.hostdesign24.jobportal.model.enums.Industry;
 import java.time.temporal.ChronoUnit;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.common.utils.Utils;
@@ -253,6 +256,41 @@ public class JobServiceImpl implements JobService {
      * (requires the publicUrl parameter that can't be injected into a static mapper).
      */
     @NonNull
+    @Override
+    @Transactional(readOnly = true)
+    public List<JobPostResponseDto> getSimilar(UUID jobId, int limit) {
+        Job job = findJobOrThrow(jobId);
+        Industry industry = job.getCompany() != null ? job.getCompany().getIndustry() : null;
+        Region region = job.getLocation() != null ? job.getLocation().getRegion() : null;
+
+        // With neither signal there is nothing meaningful to be similar to, and a
+        // list of arbitrary recent jobs would be worse than showing nothing.
+        if (industry == null && region == null) {
+            return List.of();
+        }
+
+        return jobRepository
+                .findSimilar(jobId, industry, region, PageRequest.of(0, Math.max(1, limit)))
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JobPostResponseDto> getOtherJobsAtCompany(UUID jobId, int limit) {
+        Job job = findJobOrThrow(jobId);
+        if (job.getCompany() == null) {
+            return List.of();
+        }
+        return jobRepository
+                .findOtherOpenJobsAtCompany(job.getCompany().getId(), jobId,
+                        PageRequest.of(0, Math.max(1, limit)))
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
     private JobPostResponseDto buildResponse(Job job) {
         JobPostResponseDto response = jobResponseMapper.toResponse(job);
         applyDeadlineState(job, response);

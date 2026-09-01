@@ -43,6 +43,21 @@ public class JobController {
         return ApiResponse.success(jobService.search(title, location, date), "Search results retrieved successfully");
     }
 
+    @GetMapping("/{id}/similar")
+    public ApiResponse<List<JobPostResponseDto>> similar(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "4") int limit) {
+        return ApiResponse.success(jobService.getSimilar(id, limit), "Similar jobs retrieved successfully");
+    }
+
+    @GetMapping("/{id}/company-jobs")
+    public ApiResponse<List<JobPostResponseDto>> otherJobsAtCompany(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "4") int limit) {
+        return ApiResponse.success(jobService.getOtherJobsAtCompany(id, limit),
+                "Other jobs at this company retrieved successfully");
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<JobPostResponseDto> getOne(@PathVariable UUID id) {
         return ApiResponse.success(jobService.getOne(id), "Job post retrieved successfully");

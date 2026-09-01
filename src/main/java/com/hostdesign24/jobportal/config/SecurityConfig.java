@@ -135,6 +135,14 @@ public class SecurityConfig {
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/all").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/search").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*/similar").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*/company-jobs").permitAll()
+                                        // Reporting a suspect listing is open to anonymous visitors:
+                                        // the people most likely to spot a "pay a deposit to secure
+                                        // the position" advert are exactly those browsing before they
+                                        // trust the site enough to register.
+                                        .requestMatchers(HttpMethod.POST, "/api/hjp/jobs/*/report").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*/responsiveness").permitAll()
                                         // Public company browsing — company list and detail
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()

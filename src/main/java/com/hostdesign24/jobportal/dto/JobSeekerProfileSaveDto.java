@@ -72,4 +72,18 @@ public class JobSeekerProfileSaveDto {
      * Sending an empty list clears all experiences.
      */
     private List<WorkExperienceSaveDto> experiences;
+
+    /**
+     * Qualifications. The diploma is typically the first screen a Cameroonian
+     * recruiter applies, so this is what makes a profile findable.
+     */
+    private List<EducationSaveDto> educations;
+
+    /**
+     * Opt in to appearing in recruiter candidate search.
+     *
+     * Null means "leave as it is", so an ordinary profile save never silently
+     * changes a privacy setting the seeker did not touch.
+     */
+    private Boolean searchable;
 }

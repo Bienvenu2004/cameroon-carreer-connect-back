@@ -56,6 +56,22 @@ public class UserNotificationImpl implements UserNotificationService {
 
     @Override
     @Transactional
+    public void jobInvitationNotification(UUID jobSeekerId, String jobTitle, String companyName, UUID jobId) {
+        Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
+        sendNotification(jobSeekerId, "JobInvitation", () ->
+                factoryService.jobInvitation(jobSeekerId, jobTitle, companyName, jobId));
+    }
+
+    @Override
+    @Transactional
+    public void jobReportResolvedNotification(UUID reporterId, String jobTitle, boolean upheld, UUID jobId) {
+        Assert.notNull(reporterId, "Reporter ID cannot be null");
+        sendNotification(reporterId, "JobReportResolved", () ->
+                factoryService.jobReportResolved(reporterId, jobTitle, upheld, jobId));
+    }
+
+    @Override
+    @Transactional
     public void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId) {
         Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
         sendNotification(jobSeekerId, "ApplicationStatusChanged", () ->

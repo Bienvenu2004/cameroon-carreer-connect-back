@@ -1,5 +1,7 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import com.hostdesign24.jobportal.repository.ApplicationEventRepository;
+import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
@@ -34,6 +36,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
+
+    private final ApplicationEventRepository applicationEventRepository;
 
     private final JobCompanyRepository companyRepository;
     private final JobRepository jobRepository;
@@ -209,5 +213,42 @@ public class CompanyServiceImpl implements CompanyService {
     private Company findCompanyOrThrow(UUID id) {
         return companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
+    }
+
+    /**
+     * Employer responsiveness.
+     *
+     * The threshold matters as much as the arithmetic: publishing "0% response
+     * rate" off a single unanswered application would defame an employer who
+     * joined last week, so below it we say we do not know rather than guessing.
+     */
+    private static final int MIN_APPLICATIONS_FOR_A_RATE = 5;
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyResponsivenessDto getResponsiveness(UUID companyId) {
+        List<Object[]> rows = applicationEventRepository.responsivenessForCompany(companyId);
+
+        long received = 0;
+        long answered = 0;
+        Double avgDays = null;
+
+        if (rows != null && !rows.isEmpty() && rows.get(0) != null) {
+            Object[] row = rows.get(0);
+            received = row[0] == null ? 0 : ((Number) row[0]).longValue();
+            answered = row[1] == null ? 0 : ((Number) row[1]).longValue();
+            avgDays = row[2] == null ? null : ((Number) row[2]).doubleValue();
+        }
+
+        boolean enough = received >= MIN_APPLICATIONS_FOR_A_RATE;
+
+        return CompanyResponsivenessDto.builder()
+                .applicationsReceived(received)
+                .applicationsAnswered(answered)
+                .responseRate(enough ? (int) Math.round(100.0 * answered / received) : null)
+                .averageDaysToRespond(enough && avgDays != null
+                        ? (int) Math.round(Math.max(0, avgDays)) : null)
+                .enoughData(enough)
+                .build();
     }
 }

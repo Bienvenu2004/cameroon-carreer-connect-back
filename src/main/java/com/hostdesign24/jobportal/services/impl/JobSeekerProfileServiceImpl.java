@@ -1,5 +1,11 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import java.util.Comparator;
+import java.time.LocalDateTime;
+import com.hostdesign24.jobportal.model.enums.DiplomaLevel;
+import com.hostdesign24.jobportal.model.Education;
+import com.hostdesign24.jobportal.mapper.EducationMapper;
+import com.hostdesign24.jobportal.dto.EducationSaveDto;
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.JobSeekerProfileResponseDto;
 import com.hostdesign24.jobportal.dto.JobSeekerProfileSaveDto;
@@ -50,6 +56,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
     private final SkillRepository skillRepository;
     private final FileMapper fileMapper;
     private final WorkExperienceMapper workExperienceMapper;
+    private final EducationMapper educationMapper;
 
 
 
@@ -111,8 +118,85 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         // triggers and stale rows are dropped. Replacing the reference
         // would skip the collection-listener and leak orphans.
         syncExperiencesFromDto(dto, jobSeekerProfile);
+        syncEducationsFromDto(dto, jobSeekerProfile);
+        applySearchability(dto, jobSeekerProfile);
 
         return jobSeekerProfileRepository.save(jobSeekerProfile);
+    }
+
+    /**
+     * Opt in or out of recruiter candidate search.
+     *
+     * A null flag means "leave it alone", so saving an unrelated part of the
+     * profile never silently changes a privacy setting the seeker did not touch.
+     * Appearing in an employer-facing search is materially different from posting
+     * an application, and it should only ever happen because someone chose it.
+     */
+    private void applySearchability(JobSeekerProfileSaveDto dto, JobSeekerProfile profile) {
+        if (dto == null || dto.getSearchable() == null) {
+            return;
+        }
+        boolean wanted = dto.getSearchable();
+        if (wanted == profile.isSearchable()) {
+            return;
+        }
+        profile.setSearchable(wanted);
+        profile.setSearchableSince(wanted ? LocalDateTime.now() : null);
+    }
+
+    /**
+     * Replace the profile's education rows with whatever the DTO sent.
+     *
+     * Mirrors {@link #syncExperiencesFromDto}: mutate the managed collection in
+     * place so orphanRemoval fires and stale rows are actually deleted, rather
+     * than replacing the reference and leaking them.
+     */
+    private void syncEducationsFromDto(JobSeekerProfileSaveDto dto, JobSeekerProfile profile) {
+        if (profile.getEducations() == null) {
+            profile.setEducations(new ArrayList<>());
+        }
+        profile.getEducations().clear();
+
+        if (dto == null || dto.getEducations() == null) return;
+
+        LocalDate today = LocalDate.now();
+        for (EducationSaveDto row : dto.getEducations()) {
+            if (row == null) continue;
+            validateEducation(row, today);
+
+            Education entity = educationMapper.toEntity(row);
+            if (entity == null) continue;
+
+            // One source of truth for the ongoing-study invariant: never trust an
+            // end date that arrived alongside isCurrent=true.
+            if (row.isCurrent()) {
+                entity.setEndDate(null);
+                entity.setCurrent(true);
+            }
+
+            entity.setProfile(profile);
+            profile.getEducations().add(entity);
+        }
+    }
+
+    private static void validateEducation(EducationSaveDto row, LocalDate today) {
+        if (row.getLevel() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Education: diploma level is required");
+        }
+        if (row.getInstitution() == null || row.getInstitution().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Education: institution is required");
+        }
+        if (row.getStartDate() != null && row.getStartDate().isAfter(today)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Education: start date cannot be in the future");
+        }
+        if (!row.isCurrent() && row.getEndDate() != null && row.getStartDate() != null
+                && row.getEndDate().isBefore(row.getStartDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Education: end date cannot be before the start date");
+        }
     }
 
     /**
@@ -249,7 +333,69 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         Integer years = computeTotalYearsOfExperience(seekerProfile);
         dto.setTotalYearsOfExperience(years);
 
+        dto.setHighestDiploma(highestDiploma(seekerProfile));
+        applyCompleteness(seekerProfile, dto);
+
         return dto;
+    }
+
+    /** The best qualification on the profile, by Bac+N rank. */
+    static DiplomaLevel highestDiploma(JobSeekerProfile profile) {
+        if (profile == null || profile.getEducations() == null) {
+            return null;
+        }
+        return profile.getEducations().stream()
+                .filter(e -> e != null && !e.isDeleted() && e.getLevel() != null)
+                .map(Education::getLevel)
+                .max(Comparator.comparingInt(DiplomaLevel::getBacPlus))
+                .orElse(null);
+    }
+
+    /**
+     * Score the profile out of 100 and say what is missing.
+     *
+     * Weighted by what actually drives outcomes rather than by field count: a
+     * recruiter searching for candidates filters on skills, diploma and location,
+     * so those are worth more than a portfolio link. The hints are returned as
+     * i18n keys, not sentences, because the frontend is bilingual and the backend
+     * has no business deciding which language this seeker reads.
+     */
+    private static void applyCompleteness(JobSeekerProfile profile, JobSeekerProfileResponseDto dto) {
+        record Check(String key, int weight, boolean done) {}
+
+        boolean hasName = isSet(profile.getFirstName()) && isSet(profile.getLastName());
+        boolean hasContact = isSet(profile.getPhoneNumber());
+        boolean hasLocation = profile.getAddress() != null
+                && (isSet(profile.getAddress().getCity()) || profile.getAddress().getRegion() != null);
+        boolean hasSkills = profile.getSkills() != null && !profile.getSkills().isEmpty();
+        boolean hasExperience = profile.getExperiences() != null && !profile.getExperiences().isEmpty();
+        boolean hasEducation = profile.getEducations() != null && !profile.getEducations().isEmpty();
+        boolean hasResume = profile.getResume() != null;
+        boolean hasPhoto = profile.getProfilePhoto() != null;
+        boolean hasLanguages = isSet(profile.getSpokenLanguages());
+
+        List<Check> checks = List.of(
+                new Check("profile.completeness.name", 10, hasName),
+                new Check("profile.completeness.contact", 10, hasContact),
+                new Check("profile.completeness.location", 10, hasLocation),
+                new Check("profile.completeness.skills", 20, hasSkills),
+                new Check("profile.completeness.education", 20, hasEducation),
+                new Check("profile.completeness.experience", 15, hasExperience),
+                new Check("profile.completeness.resume", 10, hasResume),
+                new Check("profile.completeness.languages", 3, hasLanguages),
+                new Check("profile.completeness.photo", 2, hasPhoto));
+
+        int score = checks.stream().filter(Check::done).mapToInt(Check::weight).sum();
+        dto.setCompleteness(score);
+        dto.setCompletenessHints(checks.stream()
+                .filter(c -> !c.done())
+                .sorted(Comparator.comparingInt(Check::weight).reversed())
+                .map(Check::key)
+                .toList());
+    }
+
+    private static boolean isSet(String value) {
+        return value != null && !value.isBlank();
     }
 
     /**
