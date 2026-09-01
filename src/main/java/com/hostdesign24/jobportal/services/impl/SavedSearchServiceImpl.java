@@ -196,9 +196,19 @@ public class SavedSearchServiceImpl implements SavedSearchService {
                 && (j.getCompany() == null || j.getCompany().getIndustry() != s.getIndustry())) return false;
         if (s.getJobType() != null && j.getType() != s.getJobType()) return false;
         if (s.getJobSite() != null && j.getSite() != s.getJobSite()) return false;
-        BigDecimal salary = j.getSalary();
-        if (s.getSalaryMin() != null && (salary == null || salary.compareTo(s.getSalaryMin()) < 0)) return false;
-        if (s.getSalaryMax() != null && (salary == null || salary.compareTo(s.getSalaryMax()) > 0)) return false;
+        // Jobs advertise a band now rather than a single figure, so a saved search
+        // matches when the two ranges overlap. A job with no pay stated still fails
+        // any salary constraint, as before.
+        BigDecimal jobMin = j.getSalaryMin();
+        BigDecimal jobMax = j.getSalaryMax();
+        if (s.getSalaryMin() != null) {
+            BigDecimal top = jobMax != null ? jobMax : jobMin;
+            if (top == null || top.compareTo(s.getSalaryMin()) < 0) return false;
+        }
+        if (s.getSalaryMax() != null) {
+            BigDecimal bottom = jobMin != null ? jobMin : jobMax;
+            if (bottom == null || bottom.compareTo(s.getSalaryMax()) > 0) return false;
+        }
         return true;
     }
 

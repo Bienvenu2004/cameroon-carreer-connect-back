@@ -1,5 +1,8 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import java.time.temporal.ChronoUnit;
+import com.hostdesign24.jobportal.model.enums.UserRole;
+import com.hostdesign24.jobportal.common.utils.Utils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +53,12 @@ public class JobServiceImpl implements JobService {
     public Job addNew(JobPostActivityUpsertDto dto) {
         Job job = jobMapper.toEntity(dto);
         job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
+        // toEntity maps the DTO blindly, so clear anything the caller was not
+        // entitled to set before re-applying it under the right authority.
+        job.setPublicSector(false);
+        job.setPublicSectorRef(null);
+        job.setPublicSectorBody(null);
+        applyPublicSectorFields(dto, job);
         return jobRepository.save(job);
     }
 
@@ -75,8 +84,31 @@ public class JobServiceImpl implements JobService {
             job.setType(dto.getType());
         }
 
-        if (dto.getSalary() != null){
-            job.setSalary(dto.getSalary());
+        if (dto.getSalaryMin() != null){
+            job.setSalaryMin(dto.getSalaryMin());
+        }
+
+        if (dto.getSalaryMax() != null){
+            job.setSalaryMax(dto.getSalaryMax());
+        }
+
+        if (dto.getExperienceLevel() != null){
+            job.setExperienceLevel(dto.getExperienceLevel());
+        }
+
+        if (dto.getMinimumDiploma() != null){
+            job.setMinimumDiploma(dto.getMinimumDiploma());
+        }
+
+        if (dto.getApplicationDeadline() != null){
+            job.setApplicationDeadline(dto.getApplicationDeadline());
+            // Editing a lapsed posting to push the date out should bring it back,
+            // but only if expiry is what closed it in the first place.
+            if (job.isClosedByExpiry()
+                    && !dto.getApplicationDeadline().isBefore(LocalDate.now())) {
+                job.setActive(true);
+                job.setClosedByExpiry(false);
+            }
         }
 
         if (dto.getSalaryCurrency() != null){
@@ -97,6 +129,33 @@ public class JobServiceImpl implements JobService {
 
         if (dto.getCompanyId() != null) {
             job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
+        }
+
+        applyPublicSectorFields(dto, job);
+    }
+
+    /**
+     * Concours listings are curated by an administrator, not posted by recruiters:
+     * they carry the authority of a ministry notice, so a recruiter must not be
+     * able to dress an ordinary advert up as one. The fields are silently ignored
+     * for anyone else rather than rejected, since a recruiter has no legitimate
+     * reason to send them and a 403 would only leak that the flag exists.
+     */
+    private void applyPublicSectorFields(JobPostActivityUpsertDto dto, Job job) {
+        boolean isAdmin = Utils.getCurrentUser()
+                .map(u -> u.getRole() == UserRole.SYSTEM_ADMIN)
+                .orElse(false);
+        if (!isAdmin) {
+            return;
+        }
+        if (dto.getPublicSector() != null) {
+            job.setPublicSector(dto.getPublicSector());
+        }
+        if (dto.getPublicSectorRef() != null) {
+            job.setPublicSectorRef(dto.getPublicSectorRef());
+        }
+        if (dto.getPublicSectorBody() != null) {
+            job.setPublicSectorBody(dto.getPublicSectorBody());
         }
     }
 
@@ -159,6 +218,11 @@ public class JobServiceImpl implements JobService {
     @Override
     @Transactional(readOnly = true)
     public PageResponseDto<JobPostResponseDto> getAll(JobActivityFilterDto filter) {
+        // Public browsing hides lapsed listings unless asked otherwise. Applying
+        // into a advert that closed months ago is how a job board loses people.
+        if (filter.getHideExpired() == null) {
+            filter.setHideExpired(true);
+        }
         Specification<Job> spec = jobActivitySpecification.build(filter);
         return pageToResponse(jobRepository.findAll(spec, filter.toPageable()));
     }
@@ -191,12 +255,31 @@ public class JobServiceImpl implements JobService {
     @NonNull
     private JobPostResponseDto buildResponse(Job job) {
         JobPostResponseDto response = jobResponseMapper.toResponse(job);
+        applyDeadlineState(job, response);
         if (job.getCompany() != null
                 && job.getCompany().getLogo() != null
                 && response.getCompany() != null) {
             response.getCompany().setLogo(fileMapper.toDto(job.getCompany().getLogo()));
         }
         return response;
+    }
+
+    /**
+     * Derive the two deadline fields the UI needs so every screen renders the
+     * same way -- "closes in 6 days", or a closed badge -- without each of them
+     * re-implementing the date arithmetic.
+     */
+    private static void applyDeadlineState(Job job, JobPostResponseDto response) {
+        LocalDate deadline = job.getApplicationDeadline();
+        if (deadline == null) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        if (deadline.isBefore(today)) {
+            response.setExpired(true);
+            return;
+        }
+        response.setDaysUntilDeadline(ChronoUnit.DAYS.between(today, deadline));
     }
 
     private PageResponseDto<JobPostResponseDto> pageToResponse(Page<Job> page) {

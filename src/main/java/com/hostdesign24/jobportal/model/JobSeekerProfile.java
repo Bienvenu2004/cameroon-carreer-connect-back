@@ -4,6 +4,7 @@ package com.hostdesign24.jobportal.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 @Entity
 @Table(name = "job_seeker_profiles")
@@ -78,6 +79,33 @@ public class JobSeekerProfile extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private List<WorkExperience> experiences;
+
+    /**
+     * Structured education — one row per qualification.
+     * The diploma is the first filter most Cameroonian recruiters apply, so this
+     * is what makes a profile findable in candidate search and what lets a job's
+     * "Bac+3 minimum" be matched rather than merely stated.
+     */
+    @OneToMany(
+            mappedBy = "profile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<Education> educations;
+
+    /**
+     * Whether recruiters may find this person through candidate search.
+     *
+     * Defaults to false, and stays false until the seeker says otherwise.
+     * Appearing in an employer-facing search is a materially different thing
+     * from posting an application, so it is an explicit opt-in rather than
+     * something that happens to people who signed up to look for work.
+     */
+    private boolean searchable = false;
+
+    /** When the seeker last opted in, for the "active candidates" filter. */
+    private LocalDateTime searchableSince;
 
     public JobSeekerProfile(User user) {
         this.user = user;

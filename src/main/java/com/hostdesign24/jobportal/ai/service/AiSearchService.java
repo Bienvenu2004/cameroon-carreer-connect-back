@@ -111,6 +111,10 @@ public class AiSearchService {
         f.setJobType(p.jobType());
         f.setJobSite(p.jobSite());
         f.setRequiredLanguage(p.language());
+        // Until jobs carried an experience level this was parsed out of the query
+        // and then dropped on the floor. "Junior developer jobs in Douala" now
+        // filters on JUNIOR instead of merely reporting that it understood it.
+        f.setExperienceLevel(p.level());
 
         if (p.city() != null) f.setCompanyCity(p.city());
 

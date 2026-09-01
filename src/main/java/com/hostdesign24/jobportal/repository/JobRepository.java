@@ -1,5 +1,7 @@
 package com.hostdesign24.jobportal.repository;
 
+import com.hostdesign24.jobportal.model.enums.Region;
+import com.hostdesign24.jobportal.model.enums.Industry;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -83,6 +85,42 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
     /* =====================================================================
      * Dashboard aggregates -- see the note on UserRepository.
      * ===================================================================== */
+
+    /**
+     * Open listings whose deadline has passed, for the nightly expiry sweep.
+     * Excludes jobs already closed so the pass is idempotent.
+     */
+    @Query("SELECT j FROM Job j "
+            + "WHERE j.deleted = false AND j.isActive = true "
+            + "AND j.applicationDeadline IS NOT NULL AND j.applicationDeadline < :today")
+    List<Job> findLapsed(@Param("today") LocalDate today);
+
+    /**
+     * Other open listings from the same company, for the "more from this
+     * employer" block on a job page. Excludes the job being viewed.
+     */
+    @Query("SELECT j FROM Job j "
+            + "WHERE j.deleted = false AND j.isActive = true "
+            + "AND j.company.id = :companyId AND j.id <> :excludeJobId "
+            + "ORDER BY j.postedDate DESC")
+    List<Job> findOtherOpenJobsAtCompany(@Param("companyId") UUID companyId,
+                                         @Param("excludeJobId") UUID excludeJobId,
+                                         Pageable pageable);
+
+    /**
+     * Listings similar to the one being viewed: same industry, preferring the
+     * same region. Cheapest useful version of "you might also like" -- no
+     * embeddings, no extra infrastructure, and it gives a visitor somewhere to
+     * go other than the back button.
+     */
+    @Query("SELECT j FROM Job j "
+            + "WHERE j.deleted = false AND j.isActive = true AND j.id <> :excludeJobId "
+            + "AND (j.company.industry = :industry OR j.location.region = :region) "
+            + "ORDER BY CASE WHEN j.location.region = :region THEN 0 ELSE 1 END, j.postedDate DESC")
+    List<Job> findSimilar(@Param("excludeJobId") UUID excludeJobId,
+                          @Param("industry") Industry industry,
+                          @Param("region") Region region,
+                          Pageable pageable);
 
     @Query("SELECT COUNT(j) FROM Job j WHERE j.deleted = false")
     long countNotDeleted();

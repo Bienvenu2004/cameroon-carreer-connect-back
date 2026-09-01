@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.ai.service;
 
+import java.math.BigDecimal;
 import com.hostdesign24.jobportal.ai.dto.AnonymizedProfileContext;
 import com.hostdesign24.jobportal.model.Job;
 import org.springframework.stereotype.Component;
@@ -124,10 +125,11 @@ public class RecommendationPromptBuilder {
             if (j.getRequiredLanguage() != null) {
                 sb.append("  language: ").append(j.getRequiredLanguage().name()).append("\n");
             }
-            if (j.getSalary() != null) {
-                sb.append("  salary: ").append(j.getSalary())
-                  .append(" ").append(j.getSalaryCurrency() == null ? "XAF" : j.getSalaryCurrency().name())
-                  .append("\n");
+            if (j.getSalaryMin() != null || j.getSalaryMax() != null) {
+                String currency = j.getSalaryCurrency() == null ? "XAF" : j.getSalaryCurrency().name();
+                sb.append("  salary: ")
+                  .append(formatSalaryRange(j.getSalaryMin(), j.getSalaryMax()))
+                  .append(" ").append(currency).append("\n");
             }
             if (j.getDescription() != null && !j.getDescription().isBlank()) {
                 String desc = j.getDescription().length() > JOB_DESC_MAX_CHARS
@@ -151,4 +153,15 @@ public class RecommendationPromptBuilder {
 
     /** Parsed item from the model's response. */
     public record LlmRankedItem(UUID jobId, double score, String reason) {}
+
+    /**
+     * Render a pay band for the model. Either bound may be absent: min alone
+     * reads as "from X", max alone as "up to X".
+     */
+    private static String formatSalaryRange(BigDecimal min, BigDecimal max) {
+        if (min != null && max != null) {
+            return min.compareTo(max) == 0 ? min.toString() : min + "-" + max;
+        }
+        return min != null ? "from " + min : "up to " + max;
+    }
 }
