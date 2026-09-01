@@ -27,4 +27,13 @@ public interface NotificationAsyncService {
      */
     void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle,
                                    String companyName, String reason);
+
+    /**
+     * Tell a follower that an employer they follow has posted a job.
+     *
+     * @param jobId used to deep-link straight to the listing; a follower who has
+     *              to search for the job they were just emailed about will not
+     */
+    void notifyFollowedCompanyPosted(String seekerEmail, String seekerName, String companyName,
+                                     String jobTitle, java.util.UUID jobId);
 }

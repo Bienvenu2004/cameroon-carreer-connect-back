@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.hostdesign24.jobportal.services.EmailService;
 import com.hostdesign24.jobportal.services.GeolocationService;
 import com.hostdesign24.jobportal.services.NotificationAsyncService;
@@ -19,6 +20,21 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class NotificationAsyncServiceImpl implements NotificationAsyncService {
+
+    /**
+
+     * Origin of the SPA, so emails can link straight to the listing.
+
+     * A follower who has to go and search for the job they were just
+
+     * emailed about is a follower who does not apply.
+
+     */
+
+    @Value("${app.client-url:}")
+
+    private String clientUrl;
+
 
     private final EmailService emailService;
     private final GeolocationService geolocationService;
@@ -181,6 +197,32 @@ public class NotificationAsyncServiceImpl implements NotificationAsyncService {
             log.info("Rejection notification sent to {} for job: {}", seekerEmail, jobTitle);
         } catch (Exception e) {
             log.error("Failed to send rejection notification to {}", seekerEmail, e);
+        }
+    }
+
+    @Override
+    @Async
+    public void notifyFollowedCompanyPosted(String seekerEmail, String seekerName, String companyName,
+                                            String jobTitle, java.util.UUID jobId) {
+        try {
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("companyName", companyName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("jobUrl", clientUrl + "/jobs/" + jobId);
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", storageService.getLogoUrl());
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    companyName + " just posted: " + jobTitle,
+                    "followed-company-posted",
+                    templateModel
+            );
+
+            log.info("Followed-company alert sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send followed-company alert to {}", seekerEmail, e);
         }
     }
 }

@@ -122,6 +122,11 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
                           @Param("region") Region region,
                           Pageable pageable);
 
+    /** Open jobs at one company, for the "following" list. */
+    @Query("SELECT COUNT(j) FROM Job j "
+            + "WHERE j.deleted = false AND j.isActive = true AND j.company.id = :companyId")
+    long countOpenAtCompany(@Param("companyId") UUID companyId);
+
     @Query("SELECT COUNT(j) FROM Job j WHERE j.deleted = false")
     long countNotDeleted();
 

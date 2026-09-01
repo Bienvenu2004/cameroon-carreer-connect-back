@@ -146,6 +146,7 @@ public class SecurityConfig {
                                         // Public company browsing — company list and detail
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/industry-counts").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*/followers/count").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()
                                         // AI semantic job search (§5.2) — public, anonymous-friendly
                                         .requestMatchers(HttpMethod.POST, "/api/hjp/ai/search").permitAll()

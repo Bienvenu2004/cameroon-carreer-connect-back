@@ -1,5 +1,7 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import com.hostdesign24.jobportal.services.CompanyFollowService;
 import org.springframework.data.domain.PageRequest;
 import com.hostdesign24.jobportal.model.enums.Region;
 import com.hostdesign24.jobportal.model.enums.Industry;
@@ -35,6 +37,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobServiceImpl implements JobService {
@@ -48,6 +51,7 @@ public class JobServiceImpl implements JobService {
     private final JobResponseMapper jobResponseMapper;
     private final FileMapper fileMapper;
     private final FileService fileService;
+    private final CompanyFollowService companyFollowService;
 
 
 
@@ -62,7 +66,18 @@ public class JobServiceImpl implements JobService {
         job.setPublicSectorRef(null);
         job.setPublicSectorBody(null);
         applyPublicSectorFields(dto, job);
-        return jobRepository.save(job);
+        Job saved = jobRepository.save(job);
+
+        // Anyone following this employer asked to hear exactly this. Best-effort:
+        // a notification failure must never roll back the posting the recruiter
+        // was actually trying to create.
+        try {
+            companyFollowService.notifyFollowersOfNewJob(saved);
+        } catch (RuntimeException e) {
+            log.warn("Could not notify followers of new job {}: {}", saved.getId(), e.getMessage());
+        }
+
+        return saved;
     }
 
     @Override

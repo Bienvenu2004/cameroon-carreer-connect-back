@@ -73,6 +73,23 @@ public class NotificationFactoryServiceImpl implements NotificationFactoryServic
     }
 
     @Override
+    public NotificationRequestDto newJobAtFollowedCompany(UUID jobSeekerId, String companyName,
+                                                          String jobTitle, UUID jobId) {
+        String message = String.format("%s just posted: %s", companyName, jobTitle);
+
+        // ALERT rather than INFO: this is the thing the seeker explicitly asked
+        // to be told about, so it earns the same weight as a status change on
+        // their own application.
+        return NotificationRequestDto.builder()
+                .recipientId(jobSeekerId)
+                .message(message)
+                .type("ALERT")
+                .relatedEntityType("JOB")
+                .relatedEntityId(jobId)
+                .build();
+    }
+
+    @Override
     public NotificationRequestDto jobReportResolved(UUID reporterId, String jobTitle, boolean upheld, UUID jobId) {
         // Closing the loop matters more than it looks: someone who reports a
         // fraudulent listing and hears nothing back learns that reporting is
