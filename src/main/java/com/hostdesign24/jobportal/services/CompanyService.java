@@ -1,5 +1,7 @@
 package com.hostdesign24.jobportal.services;
 
+import java.util.List;
+import com.hostdesign24.jobportal.dto.company.IndustryCountDto;
 import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
@@ -16,6 +18,15 @@ public interface CompanyService {
      * Public: it is for candidates deciding whether applying is worth their time.
      */
     CompanyResponsivenessDto getResponsiveness(UUID companyId);
+
+    /**
+     * Approved company counts for every industry, including the empty ones.
+     *
+     * Zeros are included deliberately: the directory renders a fixed grid, and a
+     * category that quietly disappears when it empties makes the page look
+     * broken rather than honest.
+     */
+    List<IndustryCountDto> getIndustryCounts();
 
     CompanyResponseDto create(CompanyEntryDto dto);
 

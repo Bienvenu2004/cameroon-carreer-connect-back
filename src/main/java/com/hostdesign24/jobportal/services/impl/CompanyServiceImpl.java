@@ -1,5 +1,9 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import java.util.Map;
+import java.util.EnumMap;
+import com.hostdesign24.jobportal.model.enums.Industry;
+import com.hostdesign24.jobportal.dto.company.IndustryCountDto;
 import com.hostdesign24.jobportal.repository.ApplicationEventRepository;
 import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.common.utils.Utils;
@@ -250,5 +254,21 @@ public class CompanyServiceImpl implements CompanyService {
                         ? (int) Math.round(Math.max(0, avgDays)) : null)
                 .enoughData(enough)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<IndustryCountDto> getIndustryCounts() {
+        Map<Industry, Long> counts = new EnumMap<>(Industry.class);
+        for (Industry i : Industry.values()) {
+            counts.put(i, 0L);
+        }
+        for (Object[] row : companyRepository.countApprovedByIndustry()) {
+            if (row[0] == null) continue;
+            counts.put((Industry) row[0], ((Number) row[1]).longValue());
+        }
+        return counts.entrySet().stream()
+                .map(e -> new IndustryCountDto(e.getKey(), e.getValue()))
+                .toList();
     }
 }
