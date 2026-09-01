@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.dto;
 
+import com.hostdesign24.jobportal.model.enums.DiplomaLevel;
 import com.hostdesign24.jobportal.dto.company.CompanyAddressDto;
 import com.hostdesign24.jobportal.dto.file.FileDto;
 import lombok.Getter;
@@ -41,5 +42,37 @@ public class JobSeekerProfileResponseDto {
 
     private FileDto profilePhoto;
     private FileDto resume;
+    /** Streamable video-introduction file (Cloudinary video URL), or null. */
+    private FileDto videoResume;
     private List<SkillDto> skills;
+
+    /** Newest-start-first list of past or current roles. */
+    private List<WorkExperienceDto> experiences;
+    private List<EducationDto> educations;
+
+    /** Highest qualification held, for the summary line and search facets. */
+    private DiplomaLevel highestDiploma;
+
+    /** Whether this profile appears in recruiter candidate search. */
+    private boolean searchable;
+
+    /**
+     * How complete the profile is, 0-100.
+     *
+     * Recommendations, candidate search and matching all degrade badly against
+     * thin profiles, and most people fill in the minimum unless prompted. Showing
+     * the number is the cheapest lever there is on data quality.
+     */
+    private Integer completeness;
+
+    /** What to fill in next, as i18n keys the frontend resolves. */
+    private List<String> completenessHints;
+
+    /**
+     * Derived total of all experience-row date ranges in whole years.
+     * Computed server-side (sum of {@code endDate || today − startDate})
+     * so the UI doesn't have to and the AI matcher gets the same value.
+     * Null when the seeker has no experience rows.
+     */
+    private Integer totalYearsOfExperience;
 }

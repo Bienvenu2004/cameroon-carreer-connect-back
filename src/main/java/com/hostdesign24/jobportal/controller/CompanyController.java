@@ -1,5 +1,8 @@
 package com.hostdesign24.jobportal.controller;
 
+import java.util.List;
+import com.hostdesign24.jobportal.dto.company.IndustryCountDto;
+import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.dto.common.ApiResponse;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
@@ -31,6 +34,23 @@ public class CompanyController {
     @GetMapping("/me")
     public ApiResponse<java.util.List<CompanyResponseDto>> listMyCompanies() {
         return ApiResponse.success(companyService.listMyCompanies(), "Companies retrieved successfully");
+    }
+
+    /**
+     * The industry directory. Public: it is a browse surface, not account data.
+     *
+     * Declared before /{id} so "industry-counts" is not swallowed as an id.
+     */
+    @GetMapping("/industry-counts")
+    public ApiResponse<List<IndustryCountDto>> industryCounts() {
+        return ApiResponse.success(companyService.getIndustryCounts(),
+                "Industry counts retrieved successfully");
+    }
+
+    @GetMapping("/{id}/responsiveness")
+    public ApiResponse<CompanyResponsivenessDto> responsiveness(@PathVariable UUID id) {
+        return ApiResponse.success(companyService.getResponsiveness(id),
+                "Company responsiveness retrieved successfully");
     }
 
     @GetMapping("/{id}")

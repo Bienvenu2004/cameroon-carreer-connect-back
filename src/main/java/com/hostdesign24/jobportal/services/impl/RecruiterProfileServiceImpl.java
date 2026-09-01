@@ -15,11 +15,11 @@ import com.hostdesign24.jobportal.repository.UserRepository;
 import com.hostdesign24.jobportal.services.FileService;
 import com.hostdesign24.jobportal.services.RecruiterProfileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +31,10 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     private final FileService fileService;
     private final FileMapper fileMapper;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     @Override
+    @Transactional(readOnly = true)
     public RecruiterProfileResponseDto getOne(UUID id) {
         RecruiterProfile profile = recruiterProfileRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("profile not found with id: " + id)
@@ -44,6 +44,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     }
 
     @Override
+    @Transactional
     public RecruiterProfile addNew(RecruiterProfileUpsertDto dto) {
         User currentUser = Utils.getCurrentUser().orElseThrow(
                 () -> new UsernameNotFoundException("you most be authenticated to update your profile")
@@ -64,6 +65,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RecruiterProfileResponseDto getCurrentRecruiterProfile() {
 
         User user = Utils.getCurrentUser().orElseThrow(
@@ -77,7 +79,7 @@ public class RecruiterProfileServiceImpl implements RecruiterProfileService {
     private RecruiterProfileResponseDto getRecruiterProfileResponse(RecruiterProfile recruiterProfile) {
         if (recruiterProfile  != null) {
             RecruiterProfileResponseDto response = recruiterProfileMapper.toResponse(recruiterProfile);
-            FileDto fileDto = fileMapper.toDto(recruiterProfile.getProfilePhoto(), publicUrl);
+            FileDto fileDto = fileMapper.toDto(recruiterProfile.getProfilePhoto());
             response.setProfilePhoto(fileDto);
 
             return response;

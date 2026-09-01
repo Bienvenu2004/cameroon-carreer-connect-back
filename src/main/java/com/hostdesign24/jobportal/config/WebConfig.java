@@ -2,7 +2,6 @@ package com.hostdesign24.jobportal.config;
 
 import com.hostdesign24.jobportal.config.converters.StringToEnumConverterFactory;
 import com.hostdesign24.jobportal.security.interceptor.RateLimitingInterceptor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -13,20 +12,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
   private final RateLimitingInterceptor rateLimitingInterceptor;
-  @Value("${app.client-url}")
-  private String clientUrl;
+  private final AllowedOrigins allowedOrigins;
 
-  public WebConfig(RateLimitingInterceptor rateLimitingInterceptor) {
+  public WebConfig(RateLimitingInterceptor rateLimitingInterceptor,
+                   AllowedOrigins allowedOrigins) {
     this.rateLimitingInterceptor = rateLimitingInterceptor;
+    this.allowedOrigins = allowedOrigins;
   }
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/api/hjp/**")
-        .allowedOrigins(
-                clientUrl,
-                "http://localhost:5173"
-        )
+        .allowedOrigins(allowedOrigins.asArray())
         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         .allowedHeaders("*")
         .allowCredentials(true)
@@ -38,10 +35,27 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addConverterFactory(new StringToEnumConverterFactory());
   }
 
+  /**
+   * Bucket4j throttling.
+   *
+   * This was previously registered on {@code /api/v1/**}, a prefix no controller
+   * in this application uses -- so the interceptor never ran. It is now bound to
+   * the real {@code /api/hjp/**} prefix.
+   *
+   * Anonymous job and company browsing is excluded: those are the pages a single
+   * visitor hits repeatedly while scrolling listings, and buckets for unauthenticated
+   * callers are keyed by IP -- which, behind the carrier-grade NAT common on
+   * Cameroonian mobile networks, is shared by many genuine users at once.
+   */
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(rateLimitingInterceptor)
-        .addPathPatterns("/api/v1/**");
+        .addPathPatterns("/api/hjp/**")
+        .excludePathPatterns(
+            "/api/hjp/jobs/all",
+            "/api/hjp/jobs/search",
+            "/api/hjp/companies",
+            "/api/hjp/companies/**");
   }
 
 }

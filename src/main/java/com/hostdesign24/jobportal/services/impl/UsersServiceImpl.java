@@ -9,8 +9,10 @@ import com.hostdesign24.jobportal.model.EmailVerification;
 import com.hostdesign24.jobportal.model.JobSeekerProfile;
 import com.hostdesign24.jobportal.model.RecruiterProfile;
 import com.hostdesign24.jobportal.model.User;
+import com.hostdesign24.jobportal.model.enums.AuthProvider;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import com.hostdesign24.jobportal.model.enums.VerificationType;
+import com.hostdesign24.jobportal.security.GoogleUserInfo;
 import com.hostdesign24.jobportal.repository.EmailVerificationRepository;
 import com.hostdesign24.jobportal.repository.JobSeekerProfileRepository;
 import com.hostdesign24.jobportal.repository.RecruiterProfileRepository;
@@ -100,6 +102,49 @@ public class UsersServiceImpl implements UsersService {
             user.setJobSeekerProfile(profile);
         }
 
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public User findOrCreateGoogleUser(GoogleUserInfo info, UserRole desiredRole) {
+        String normalizedEmail = normalizeEmail(info.email());
+
+        Optional<User> existing = userRepository.findByEmailAndDeletedFalse(normalizedEmail);
+        if (existing.isPresent()) {
+            log.info("Google sign-in for existing account: {}", normalizedEmail);
+            return existing.get();
+        }
+
+        UserRole role = desiredRole != null ? desiredRole : UserRole.JOB_SEEKER;
+        log.info("Provisioning new account via Google sign-in: {} (role {})", normalizedEmail, role);
+
+        User user = new User();
+        user.setEmail(normalizedEmail);
+        // Google accounts never authenticate with a password, but the column
+        // is NOT NULL / @NotEmpty — store a random, un-guessable encoded value.
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        user.setRole(role);
+        user.setAuthProvider(AuthProvider.GOOGLE);
+        user.setActive(true);
+        user = userRepository.save(user);
+
+        if (role == UserRole.RECRUITER) {
+            RecruiterProfile profile = new RecruiterProfile(user);
+            profile.setFirstName(info.givenName());
+            profile.setLastName(info.familyName());
+            profile = recruiterProfileRepository.save(profile);
+            user.setRecruiterProfile(profile);
+        } else {
+            JobSeekerProfile profile = new JobSeekerProfile(user);
+            profile.setFirstName(info.givenName());
+            profile.setLastName(info.familyName());
+            profile = jobSeekerProfileRepository.save(profile);
+            user.setJobSeekerProfile(profile);
+        }
+
+        sendWelcomeEmail(user);
+        log.info("Google account {} created successfully with role {}", user.getEmail(), role);
         return user;
     }
 

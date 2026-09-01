@@ -53,10 +53,37 @@ public class JobSeekerProfileSaveDto {
     private MultipartFile resume;
     private MultipartFile profilePhoto;
 
+    /** Short-form video introduction (mp4/webm/…). Uploaded to Cloudinary as a
+     *  streamable {@code video} resource. */
+    private MultipartFile videoResume;
+
     /**
      * Skills the candidate wants to advertise. Each entry binds from
      * skills[0].name, skills[1].name, ... in the multipart form data.
      * The full list replaces any previous skills on save.
      */
     private List<SkillSaveDto> skills;
+
+    /**
+     * Work-experience rows. Each entry binds from indexed form-data:
+     *   experiences[0].title, experiences[0].companyName,
+     *   experiences[0].startDate, experiences[0].endDate,
+     *   experiences[0].isCurrent, experiences[0].description, ...
+     * Sending an empty list clears all experiences.
+     */
+    private List<WorkExperienceSaveDto> experiences;
+
+    /**
+     * Qualifications. The diploma is typically the first screen a Cameroonian
+     * recruiter applies, so this is what makes a profile findable.
+     */
+    private List<EducationSaveDto> educations;
+
+    /**
+     * Opt in to appearing in recruiter candidate search.
+     *
+     * Null means "leave as it is", so an ordinary profile save never silently
+     * changes a privacy setting the seeker did not touch.
+     */
+    private Boolean searchable;
 }

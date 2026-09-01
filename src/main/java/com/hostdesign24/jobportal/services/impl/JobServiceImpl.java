@@ -1,16 +1,26 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import com.hostdesign24.jobportal.services.CompanyFollowService;
+import org.springframework.data.domain.PageRequest;
+import com.hostdesign24.jobportal.model.enums.Region;
+import com.hostdesign24.jobportal.model.enums.Industry;
+import java.time.temporal.ChronoUnit;
+import com.hostdesign24.jobportal.model.enums.UserRole;
+import com.hostdesign24.jobportal.common.utils.Utils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.dto.jobActivityPost.*;
+import com.hostdesign24.jobportal.exception.ActionDeniedException;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.mapper.FileMapper;
 import com.hostdesign24.jobportal.mapper.JobMapper;
 import com.hostdesign24.jobportal.mapper.JobResponseMapper;
 import com.hostdesign24.jobportal.model.Company;
 import com.hostdesign24.jobportal.model.Job;
+import com.hostdesign24.jobportal.model.enums.CompanyStatus;
 import com.hostdesign24.jobportal.repository.JobCompanyRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
 import com.hostdesign24.jobportal.repository.specifications.JobActivitySpecification;
@@ -22,12 +32,12 @@ import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
 
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobServiceImpl implements JobService {
@@ -41,20 +51,33 @@ public class JobServiceImpl implements JobService {
     private final JobResponseMapper jobResponseMapper;
     private final FileMapper fileMapper;
     private final FileService fileService;
+    private final CompanyFollowService companyFollowService;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     @Override
     @Transactional
     public Job addNew(JobPostActivityUpsertDto dto) {
         Job job = jobMapper.toEntity(dto);
+        job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
+        // toEntity maps the DTO blindly, so clear anything the caller was not
+        // entitled to set before re-applying it under the right authority.
+        job.setPublicSector(false);
+        job.setPublicSectorRef(null);
+        job.setPublicSectorBody(null);
+        applyPublicSectorFields(dto, job);
+        Job saved = jobRepository.save(job);
 
-        Company company = jobCompanyRepository.findById(dto.getCompanyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + dto.getCompanyId()));
+        // Anyone following this employer asked to hear exactly this. Best-effort:
+        // a notification failure must never roll back the posting the recruiter
+        // was actually trying to create.
+        try {
+            companyFollowService.notifyFollowersOfNewJob(saved);
+        } catch (RuntimeException e) {
+            log.warn("Could not notify followers of new job {}: {}", saved.getId(), e.getMessage());
+        }
 
-        job.setCompany(company);
-        return jobRepository.save(job);
+        return saved;
     }
 
     @Override
@@ -79,8 +102,31 @@ public class JobServiceImpl implements JobService {
             job.setType(dto.getType());
         }
 
-        if (dto.getSalary() != null){
-            job.setSalary(dto.getSalary());
+        if (dto.getSalaryMin() != null){
+            job.setSalaryMin(dto.getSalaryMin());
+        }
+
+        if (dto.getSalaryMax() != null){
+            job.setSalaryMax(dto.getSalaryMax());
+        }
+
+        if (dto.getExperienceLevel() != null){
+            job.setExperienceLevel(dto.getExperienceLevel());
+        }
+
+        if (dto.getMinimumDiploma() != null){
+            job.setMinimumDiploma(dto.getMinimumDiploma());
+        }
+
+        if (dto.getApplicationDeadline() != null){
+            job.setApplicationDeadline(dto.getApplicationDeadline());
+            // Editing a lapsed posting to push the date out should bring it back,
+            // but only if expiry is what closed it in the first place.
+            if (job.isClosedByExpiry()
+                    && !dto.getApplicationDeadline().isBefore(LocalDate.now())) {
+                job.setActive(true);
+                job.setClosedByExpiry(false);
+            }
         }
 
         if (dto.getSalaryCurrency() != null){
@@ -100,10 +146,59 @@ public class JobServiceImpl implements JobService {
         }
 
         if (dto.getCompanyId() != null) {
-            Company company = jobCompanyRepository.findById(dto.getCompanyId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + dto.getCompanyId()));
-            job.setCompany(company);
+            job.setCompany(resolveApprovedCompany(dto.getCompanyId()));
         }
+
+        applyPublicSectorFields(dto, job);
+    }
+
+    /**
+     * Concours listings are curated by an administrator, not posted by recruiters:
+     * they carry the authority of a ministry notice, so a recruiter must not be
+     * able to dress an ordinary advert up as one. The fields are silently ignored
+     * for anyone else rather than rejected, since a recruiter has no legitimate
+     * reason to send them and a 403 would only leak that the flag exists.
+     */
+    private void applyPublicSectorFields(JobPostActivityUpsertDto dto, Job job) {
+        boolean isAdmin = Utils.getCurrentUser()
+                .map(u -> u.getRole() == UserRole.SYSTEM_ADMIN)
+                .orElse(false);
+        if (!isAdmin) {
+            return;
+        }
+        if (dto.getPublicSector() != null) {
+            job.setPublicSector(dto.getPublicSector());
+        }
+        if (dto.getPublicSectorRef() != null) {
+            job.setPublicSectorRef(dto.getPublicSectorRef());
+        }
+        if (dto.getPublicSectorBody() != null) {
+            job.setPublicSectorBody(dto.getPublicSectorBody());
+        }
+    }
+
+    /**
+     * Look up a company by id and assert it's in APPROVED state. Used by
+     * both {@link #addNew} and {@link #updateFromDto} so jobs can only ever
+     * be created or re-assigned under a verified company.
+     *
+     *   - {@link ResourceNotFoundException} (HTTP 404) when the id doesn't exist
+     *   - {@link ActionDeniedException}     (HTTP 403) when the company is
+     *     PENDING / REJECTED / SUSPENDED — i.e. not allowed to host listings
+     *
+     * The frontend filters the company picker to APPROVED only, so users
+     * shouldn't normally hit this guard; it's defense-in-depth for a stale
+     * client / direct API call.
+     */
+    private Company resolveApprovedCompany(UUID companyId) {
+        Company company = jobCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + companyId));
+        if (company.getStatus() != CompanyStatus.APPROVED) {
+            throw new ActionDeniedException(
+                    "Only approved companies can post jobs. Current status: " + company.getStatus()
+            );
+        }
+        return company;
     }
 
     @Override
@@ -141,6 +236,11 @@ public class JobServiceImpl implements JobService {
     @Override
     @Transactional(readOnly = true)
     public PageResponseDto<JobPostResponseDto> getAll(JobActivityFilterDto filter) {
+        // Public browsing hides lapsed listings unless asked otherwise. Applying
+        // into a advert that closed months ago is how a job board loses people.
+        if (filter.getHideExpired() == null) {
+            filter.setHideExpired(true);
+        }
         Specification<Job> spec = jobActivitySpecification.build(filter);
         return pageToResponse(jobRepository.findAll(spec, filter.toPageable()));
     }
@@ -171,14 +271,68 @@ public class JobServiceImpl implements JobService {
      * (requires the publicUrl parameter that can't be injected into a static mapper).
      */
     @NonNull
+    @Override
+    @Transactional(readOnly = true)
+    public List<JobPostResponseDto> getSimilar(UUID jobId, int limit) {
+        Job job = findJobOrThrow(jobId);
+        Industry industry = job.getCompany() != null ? job.getCompany().getIndustry() : null;
+        Region region = job.getLocation() != null ? job.getLocation().getRegion() : null;
+
+        // With neither signal there is nothing meaningful to be similar to, and a
+        // list of arbitrary recent jobs would be worse than showing nothing.
+        if (industry == null && region == null) {
+            return List.of();
+        }
+
+        return jobRepository
+                .findSimilar(jobId, industry, region, PageRequest.of(0, Math.max(1, limit)))
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JobPostResponseDto> getOtherJobsAtCompany(UUID jobId, int limit) {
+        Job job = findJobOrThrow(jobId);
+        if (job.getCompany() == null) {
+            return List.of();
+        }
+        return jobRepository
+                .findOtherOpenJobsAtCompany(job.getCompany().getId(), jobId,
+                        PageRequest.of(0, Math.max(1, limit)))
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
     private JobPostResponseDto buildResponse(Job job) {
         JobPostResponseDto response = jobResponseMapper.toResponse(job);
+        applyDeadlineState(job, response);
         if (job.getCompany() != null
                 && job.getCompany().getLogo() != null
                 && response.getCompany() != null) {
-            response.getCompany().setLogo(fileMapper.toDto(job.getCompany().getLogo(), publicUrl));
+            response.getCompany().setLogo(fileMapper.toDto(job.getCompany().getLogo()));
         }
         return response;
+    }
+
+    /**
+     * Derive the two deadline fields the UI needs so every screen renders the
+     * same way -- "closes in 6 days", or a closed badge -- without each of them
+     * re-implementing the date arithmetic.
+     */
+    private static void applyDeadlineState(Job job, JobPostResponseDto response) {
+        LocalDate deadline = job.getApplicationDeadline();
+        if (deadline == null) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        if (deadline.isBefore(today)) {
+            response.setExpired(true);
+            return;
+        }
+        response.setDaysUntilDeadline(ChronoUnit.DAYS.between(today, deadline));
     }
 
     private PageResponseDto<JobPostResponseDto> pageToResponse(Page<Job> page) {

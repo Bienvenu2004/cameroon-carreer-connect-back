@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -19,4 +20,10 @@ public class JobApplicationDto {
     private UUID jobId;
     private String jobTitle;
     private String companyName;
+
+    // Interview details — populated once the recruiter schedules an interview.
+    private String interviewPlace;
+    private LocalDateTime interviewDateTime;
+    private String interviewPhone;
+    private String interviewNote;
 }

@@ -13,6 +13,17 @@ import java.util.List;
 import java.util.UUID;
 
 public interface JobService {
+
+    /**
+     * Other roles like this one: same industry, preferring the same region.
+     * The cheapest useful "you might also like" -- no embeddings, no extra
+     * infrastructure -- and it gives a visitor somewhere to go other than the
+     * back button.
+     */
+    List<JobPostResponseDto> getSimilar(UUID jobId, int limit);
+
+    /** Other open listings from the same employer. */
+    List<JobPostResponseDto> getOtherJobsAtCompany(UUID jobId, int limit);
     Job addNew(JobPostActivityUpsertDto dto);
 
     PageResponseDto<JobPostResponseDto> getRecruiterJobs(JobActivityFilterDto filter);

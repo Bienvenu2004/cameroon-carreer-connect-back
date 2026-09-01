@@ -1,5 +1,8 @@
 package com.hostdesign24.jobportal.dto;
 
+import com.hostdesign24.jobportal.model.enums.ExperienceLevel;
+import com.hostdesign24.jobportal.model.enums.DiplomaLevel;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobCompanyResponseDto;
 import com.hostdesign24.jobportal.dto.jobActivityPost.JobLocationDto;
 import com.hostdesign24.jobportal.model.enums.JobLanguage;
@@ -31,7 +34,8 @@ public class JobPostResponseDto {
 
     private JobType type;
 
-    private BigDecimal salary;
+    private BigDecimal salaryMin;
+    private BigDecimal salaryMax;
 
     private SalaryCurrency salaryCurrency;
 
@@ -44,8 +48,13 @@ public class JobPostResponseDto {
 
     private Integer views;
 
+    // Jackson strips the "is" prefix from boolean getters, which would put
+    // these on the wire as "active"/"saved". The frontend JobDto contract
+    // expects "isActive"/"isSaved", so pin the JSON names explicitly.
+    @JsonProperty("isActive")
     private boolean isActive;
 
+    @JsonProperty("isSaved")
     private boolean isSaved;
 
     private LocalDate postedDate;
@@ -59,4 +68,22 @@ public class JobPostResponseDto {
     private JobCompanyResponseDto company;
 
     private Long totalCandidates;
+
+    /* --- added by the functional expansion --- */
+
+    private ExperienceLevel experienceLevel;
+    private DiplomaLevel minimumDiploma;
+
+    /** Last day applications are accepted; null when open-ended. */
+    private LocalDate applicationDeadline;
+
+    /** Convenience for the UI: the deadline has passed. */
+    private boolean expired;
+
+    /** Days until the deadline; null when open-ended or already past. */
+    private Long daysUntilDeadline;
+
+    private boolean publicSector;
+    private String publicSectorRef;
+    private String publicSectorBody;
 }

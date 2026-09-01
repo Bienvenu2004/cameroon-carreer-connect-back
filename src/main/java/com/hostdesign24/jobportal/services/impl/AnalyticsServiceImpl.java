@@ -4,16 +4,13 @@ import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.analytics.DashboardDto;
 import com.hostdesign24.jobportal.dto.analytics.JobStatsDto;
 import com.hostdesign24.jobportal.dto.analytics.RegionalStatsDto;
-import com.hostdesign24.jobportal.model.Address;
-import com.hostdesign24.jobportal.model.Job;
-import com.hostdesign24.jobportal.model.JobApplication;
-import com.hostdesign24.jobportal.model.Skill;
 import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
 import com.hostdesign24.jobportal.model.enums.JobLanguage;
+import com.hostdesign24.jobportal.model.enums.Region;
 import com.hostdesign24.jobportal.model.enums.UserRole;
+import com.hostdesign24.jobportal.repository.AnalyticsRepository;
 import com.hostdesign24.jobportal.repository.JobRepository;
-import com.hostdesign24.jobportal.repository.JobSeekerApplyRepository;
 import com.hostdesign24.jobportal.services.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,19 +27,28 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 /**
  * Aggregates dashboard analytics scoped to the caller's role:
  *   - SYSTEM_ADMIN: platform-wide stats
  *   - RECRUITER: only stats for jobs they themselves created (createdBy = current user id)
  *   - JOB_SEEKER: stats over their own applications (basic)
+ *
+ * All counting is delegated to grouped SQL in {@link AnalyticsRepository}. The
+ * service's job is to pick the right scope and reshape the resulting tuples into
+ * the DTOs; it never loads a table to count it.
  */
 @Service
 @RequiredArgsConstructor
 public class AnalyticsServiceImpl implements AnalyticsService {
 
+    private static final DateTimeFormatter MONTH_FMT = DateTimeFormatter.ofPattern("yyyy-MM");
+    private static final int TOP_N = 5;
+
     private final JobRepository jobRepository;
-    private final JobSeekerApplyRepository jobSeekerApplyRepository;
+    private final AnalyticsRepository analyticsRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -51,62 +57,80 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         UserRole role = currentUser.map(User::getRole).orElse(null);
         UUID actorId = currentUser.map(User::getId).orElse(userId);
 
-        List<Job> jobs = jobRepository.findAll().stream()
-                .filter(j -> !j.isDeleted())
-                .toList();
+        boolean recruiterScope = role == UserRole.RECRUITER && actorId != null;
+        boolean seekerScope = role == UserRole.JOB_SEEKER && actorId != null;
 
-        if (role == UserRole.RECRUITER && actorId != null) {
-            jobs = jobs.stream()
-                    .filter(j -> actorId.equals(j.getCreatedBy()))
-                    .toList();
-        }
+        // ---- per-job breakdown -------------------------------------------
+        // One grouped query replaces findAll() plus a countByJobId call per job.
+        List<Object[]> jobRows = recruiterScope
+                ? analyticsRepository.jobStatsByCreator(actorId)
+                : analyticsRepository.jobStatsAll();
 
-        long totalJobs = jobs.size();
-        long totalActiveJobs = jobs.stream().filter(Job::isActive).count();
+        List<JobStatsDto> jobStatsList = new ArrayList<>(jobRows.size());
         long totalViews = 0;
         long totalApplications = 0;
 
-        java.util.List<JobStatsDto> jobStatsList = new java.util.ArrayList<>();
-
-        for (Job job : jobs) {
-            long appsCount = jobSeekerApplyRepository.countByJobId(job.getId());
-            totalApplications += appsCount;
-            Integer views = job.getViews();
-            long viewsCount = (views == null) ? 0 : views;
-            totalViews += viewsCount;
+        for (Object[] row : jobRows) {
+            long views = ((Number) row[2]).longValue();
+            long apps = ((Number) row[3]).longValue();
+            totalViews += views;
+            totalApplications += apps;
 
             JobStatsDto js = new JobStatsDto();
-            js.setJobId(job.getId());
-            js.setJobTitle(job.getTitle());
-            js.setViews((int) viewsCount);
-            js.setApplicationsCount(appsCount);
+            js.setJobId((UUID) row[0]);
+            js.setJobTitle((String) row[1]);
+            js.setViews((int) views);
+            js.setApplicationsCount(apps);
             jobStatsList.add(js);
         }
 
-        // Application-level aggregates (status, demographics, time-series)
-        java.util.Set<UUID> jobIdSet = new java.util.HashSet<>();
-        jobs.forEach(j -> jobIdSet.add(j.getId()));
+        long totalJobs = recruiterScope
+                ? jobRows.size()
+                : jobRepository.countNotDeleted();
+        long totalActiveJobs = recruiterScope
+                ? jobRepository.countActiveJobsByCreator(actorId)
+                : jobRepository.countActiveJobs();
+
+        // ---- application-level aggregates ---------------------------------
+        LocalDate cutoff6m = LocalDate.now().minusMonths(6);
+
+        List<Object[]> statusRows;
+        List<Object[]> demographicRows;
+        List<Object[]> monthRows;
+
+        if (seekerScope) {
+            statusRows = analyticsRepository.appStatusBySeeker(actorId);
+            demographicRows = analyticsRepository.appDemographicsBySeeker(actorId);
+            monthRows = analyticsRepository.appsByDayBySeeker(actorId, cutoff6m);
+        } else if (recruiterScope) {
+            statusRows = analyticsRepository.appStatusByJobCreator(actorId);
+            demographicRows = analyticsRepository.appDemographicsByJobCreator(actorId);
+            monthRows = analyticsRepository.appsByDayByJobCreator(actorId, cutoff6m);
+        } else {
+            statusRows = analyticsRepository.appStatusAll();
+            demographicRows = analyticsRepository.appDemographicsAll();
+            monthRows = analyticsRepository.appsByDayAll(cutoff6m);
+        }
 
         Map<String, Long> appsByStatus = new HashMap<>();
         for (ApplicationStatus s : ApplicationStatus.values()) appsByStatus.put(s.name(), 0L);
+        for (Object[] row : statusRows) {
+            ApplicationStatus st = row[0] == null ? ApplicationStatus.APPLIED : (ApplicationStatus) row[0];
+            appsByStatus.merge(st.name(), count(row[1]), Long::sum);
+        }
 
         Map<String, Long> demographics = new HashMap<>();
-        Map<String, Long> appsByMonth = new TreeMap<>();
-        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("yyyy-MM");
-        LocalDate cutoff6m = LocalDate.now().minusMonths(6);
+        for (Object[] row : demographicRows) {
+            String city = row[0] == null ? "Unknown" : (String) row[0];
+            String country = row[1] == null ? "Unknown" : (String) row[1];
+            demographics.merge(city + ", " + country, count(row[2]), Long::sum);
+        }
 
-        if (role == UserRole.JOB_SEEKER && actorId != null) {
-            // Seeker view: their own applications.
-            jobSeekerApplyRepository.findAll().stream()
-                    .filter(a -> a.getProfile() != null
-                            && a.getProfile().getUser() != null
-                            && actorId.equals(a.getProfile().getUser().getId()))
-                    .forEach(a -> aggregateApp(a, appsByStatus, demographics, appsByMonth, monthFmt, cutoff6m));
-        } else {
-            // Admin / recruiter view: applications on the visible jobs.
-            jobSeekerApplyRepository.findAll().stream()
-                    .filter(a -> a.getJob() != null && jobIdSet.contains(a.getJob().getId()))
-                    .forEach(a -> aggregateApp(a, appsByStatus, demographics, appsByMonth, monthFmt, cutoff6m));
+        Map<String, Long> appsByMonth = new TreeMap<>();
+        for (Object[] row : monthRows) {
+            LocalDate day = (LocalDate) row[0];
+            if (day == null) continue;
+            appsByMonth.merge(day.format(MONTH_FMT), count(row[1]), Long::sum);
         }
 
         return DashboardDto.builder()
@@ -121,33 +145,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .build();
     }
 
-    private void aggregateApp(JobApplication a,
-                              Map<String, Long> appsByStatus,
-                              Map<String, Long> demographics,
-                              Map<String, Long> appsByMonth,
-                              DateTimeFormatter monthFmt,
-                              LocalDate cutoff6m) {
-        ApplicationStatus st = a.getStatus() == null ? ApplicationStatus.APPLIED : a.getStatus();
-        appsByStatus.merge(st.name(), 1L, Long::sum);
-
-        if (a.getProfile() != null) {
-            Address addr = a.getProfile().getAddress();
-            if (addr != null) {
-                String city = addr.getCity();
-                String country = addr.getCountry();
-                if (city != null || country != null) {
-                    String key = (city != null ? city : "Unknown")
-                            + ", " + (country != null ? country : "Unknown");
-                    demographics.merge(key, 1L, Long::sum);
-                }
-            }
-        }
-
-        if (a.getApplicationDate() != null && !a.getApplicationDate().isBefore(cutoff6m)) {
-            appsByMonth.merge(a.getApplicationDate().format(monthFmt), 1L, Long::sum);
-        }
-    }
-
     /* =========================================================================
      *  Regional analytics — powers the admin Regional Trending dashboard
      * ======================================================================= */
@@ -155,78 +152,51 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     @Transactional(readOnly = true)
     public RegionalStatsDto getRegionalStats() {
-        List<Job> activeJobs = jobRepository.findAll().stream()
-                .filter(j -> !j.isDeleted() && j.isActive())
-                .toList();
-
-        // 1. Jobs per region -------------------------------------------------
         Map<String, Long> jobsByRegion = new HashMap<>();
-        // 2. Top hiring companies per region --------------------------------
-        Map<String, Map<String, Long>> companiesByRegion = new HashMap<>();
-
-        for (Job job : activeJobs) {
-            String regionKey = regionKey(job);
-            if (regionKey == null) continue;
-            jobsByRegion.merge(regionKey, 1L, Long::sum);
-            if (job.getCompany() != null && job.getCompany().getName() != null) {
-                companiesByRegion
-                        .computeIfAbsent(regionKey, k -> new HashMap<>())
-                        .merge(job.getCompany().getName(), 1L, Long::sum);
-            }
+        for (Object[] row : analyticsRepository.activeJobsByRegion()) {
+            jobsByRegion.merge(((Region) row[0]).name(), count(row[1]), Long::sum);
         }
 
-        // 3. Applications per region (region of the job applied to) ----------
         Map<String, Long> applicationsByRegion = new HashMap<>();
-        // 4. Top skills per region (from each applicant's profile) -----------
-        Map<String, Map<String, Long>> skillsByRegion = new HashMap<>();
-
-        List<JobApplication> allApps = jobSeekerApplyRepository.findAll().stream()
-                .filter(a -> a.getJob() != null && !a.getJob().isDeleted())
-                .toList();
-
-        for (JobApplication app : allApps) {
-            String regionKey = regionKey(app.getJob());
-            if (regionKey == null) continue;
-            applicationsByRegion.merge(regionKey, 1L, Long::sum);
-
-            if (app.getProfile() != null && app.getProfile().getSkills() != null) {
-                Map<String, Long> bucket = skillsByRegion
-                        .computeIfAbsent(regionKey, k -> new HashMap<>());
-                for (Skill s : app.getProfile().getSkills()) {
-                    if (s != null && s.getName() != null && !s.getName().isBlank()) {
-                        bucket.merge(s.getName(), 1L, Long::sum);
-                    }
-                }
-            }
+        for (Object[] row : analyticsRepository.applicationsByRegion()) {
+            applicationsByRegion.merge(((Region) row[0]).name(), count(row[1]), Long::sum);
         }
 
-        // 5. Platform-wide language distribution ----------------------------
+        Map<String, Map<String, Long>> companiesByRegion = new HashMap<>();
+        for (Object[] row : analyticsRepository.activeJobsByRegionAndCompany()) {
+            companiesByRegion
+                    .computeIfAbsent(((Region) row[0]).name(), k -> new HashMap<>())
+                    .merge((String) row[1], count(row[2]), Long::sum);
+        }
+
+        Map<String, Map<String, Long>> skillsByRegion = new HashMap<>();
+        for (Object[] row : analyticsRepository.applicantSkillsByRegion()) {
+            skillsByRegion
+                    .computeIfAbsent(((Region) row[0]).name(), k -> new HashMap<>())
+                    .merge((String) row[1], count(row[2]), Long::sum);
+        }
+
+        // Initialize every language bucket so the frontend always has every bar.
         Map<String, Long> languageDistribution = new LinkedHashMap<>();
-        // Initialize all buckets so the frontend always has every bar.
         for (JobLanguage lang : JobLanguage.values()) {
             languageDistribution.put(lang.name(), 0L);
         }
-        for (Job job : activeJobs) {
-            if (job.getRequiredLanguage() != null) {
-                languageDistribution.merge(job.getRequiredLanguage().name(), 1L, Long::sum);
-            }
+        for (Object[] row : analyticsRepository.activeJobsByLanguage()) {
+            languageDistribution.merge(((JobLanguage) row[0]).name(), count(row[1]), Long::sum);
         }
 
         return RegionalStatsDto.builder()
                 .jobsByRegion(jobsByRegion)
                 .applicationsByRegion(applicationsByRegion)
                 .languageDistribution(languageDistribution)
-                .topSkillsByRegion(topN(skillsByRegion, 5, RegionalStatsDto.SkillCount::new))
-                .topCompaniesByRegion(topN(companiesByRegion, 5, RegionalStatsDto.NamedCount::new))
+                .topSkillsByRegion(topN(skillsByRegion, TOP_N, RegionalStatsDto.SkillCount::new))
+                .topCompaniesByRegion(topN(companiesByRegion, TOP_N, RegionalStatsDto.NamedCount::new))
                 .build();
     }
 
-    /** Extract the region key from the job's embedded address (enum name, or null). */
-    private static String regionKey(Job job) {
-        if (job == null) return null;
-        Address loc = job.getLocation();
-        if (loc == null || loc.getRegion() == null) return null;
-        return loc.getRegion().name();
+    /** COUNT() comes back as Long on most dialects, but read it defensively. */
+    private static long count(Object value) {
+        return value == null ? 0L : ((Number) value).longValue();
     }
 
     /**
@@ -237,7 +207,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static <T> Map<String, List<T>> topN(
             Map<String, Map<String, Long>> input,
             int n,
-            java.util.function.BiFunction<String, Long, T> ctor
+            BiFunction<String, Long, T> ctor
     ) {
         Map<String, List<T>> out = new LinkedHashMap<>();
         for (Map.Entry<String, Map<String, Long>> e : input.entrySet()) {
@@ -245,7 +215,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder()))
                     .limit(n)
                     .map(kv -> ctor.apply(kv.getKey(), kv.getValue()))
-                    .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+                    .collect(Collectors.toCollection(ArrayList::new));
             out.put(e.getKey(), top);
         }
         return out;

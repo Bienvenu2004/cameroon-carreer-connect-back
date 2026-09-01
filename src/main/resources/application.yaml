@@ -1,12 +1,7 @@
 spring:
   application:
-    name: retms-backend
+    name: jobportal
     version: 0.0.1-SNAPSHOT
-  datasource:
-    url: ${DB_URL}
-    username: postgres
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
   flyway:
     url: ${DB_URL}
     user: ${DB_USERNAME}
@@ -14,6 +9,11 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     out-of-order: true
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jwt:
     accessTokenExpiration: 900000
     refreshTokenExpiration: 604800000
@@ -23,6 +23,14 @@ spring:
     virtual:
       enabled: true
   jpa:
+    # Open-session-in-view keeps the Hibernate session open through view rendering,
+    # which silently turns every un-fetched lazy association into an extra query
+    # during serialization instead of raising LazyInitializationException. Turning
+    # it off surfaces those N+1s as errors during development rather than hiding
+    # them as latency in production. All read paths map to DTOs inside a
+    # @Transactional(readOnly = true) boundary, so nothing should be touched
+    # outside a session.
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:
@@ -32,8 +40,6 @@ spring:
         jdbc:
           batch_size: 20
           order_inserts: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -62,7 +68,7 @@ springdoc:
     path: /swagger-ui.html
 
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
   tomcat:
     max-swallow-size: -1
     max-http-form-post-size: 10MB
@@ -76,11 +82,72 @@ logging:
         web: INFO
 
 app:
-  storage:
-    base-dir: ${STORAGE_BASE_DIR}
-    base-url: ${PUBLIC_URL}
-    logo-dir: ${LOGO_DIRECTORY}
+  cookies:
+    secure: ${SECURE_COOKIES:false}
+    # SameSite for the session + CSRF cookies.
+    #
+    # Lax is correct whenever the SPA and this API share a site -- including the
+    # Vite proxy used in development and any single-domain deployment. It stops
+    # the browser attaching the session cookie to cross-site requests, which is
+    # the primary defence against CSRF.
+    #
+    # Set to None ONLY if the frontend is served from a different site. None also
+    # requires SECURE_COOKIES=true, and leans entirely on the CSRF token exchange
+    # (GET /api/hjp/auth/csrf) for protection.
+    same-site: ${COOKIE_SAME_SITE:Lax}
   client-url: ${CLIENT_URL}
-  logo-url: ${LOGO_URL}
+  # Logo embedded in outgoing emails. Must be an ABSOLUTE, publicly reachable
+  # URL -- the recipient's mail client fetches it from their own network, so a
+  # localhost address renders as a broken image. Defaults to the copy the
+  # frontend serves at ${app.client-url}/logo/logo-full.png.
+  logo-url: ${LOGO_URL:}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+
+  # ---------------------------------------------------------------------
+  # OAuth2 / social sign-in
+  #
+  # Google Sign-In uses the ID-token flow: the SPA obtains a Google
+  # credential (a signed JWT) and posts it to /api/hjp/auth/google. The
+  # backend verifies it against Google using this client-id as the
+  # expected audience. Use the SAME OAuth 2.0 Web client-id on the
+  # frontend (VITE_GOOGLE_CLIENT_ID). If blank, the endpoint returns a
+  # clear 503 and the Google buttons stay non-functional — the rest of
+  # the app is unaffected.
+  # ---------------------------------------------------------------------
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+
+  # ---------------------------------------------------------------------
+  # AI configuration
+  #
+  # Powers the seeker-side recommendations + (later) the conversational
+  # assistant. We talk to Google Gemini via the Generative Language REST
+  # API using Java 21's built-in HttpClient — no extra dependency.
+  #
+  # If `api-key` is blank the AI features short-circuit gracefully and
+  # the recommendations endpoint returns an empty list. That keeps local
+  # dev usable without a key.
+  # ---------------------------------------------------------------------
+  ai:
+    gemini:
+      base-url: https://generativelanguage.googleapis.com
+      api-key: ${GEMINI_API_KEY:}
+      model: gemini-flash-latest
+      temperature: 0.3
+      max-tokens: 4096
+      timeout-seconds: 60
+      # Explicit "thinking" token budget. Leave <= 0 to omit it entirely
+      # and let the model use its default. NOTE: gemini-flash-latest now
+      # resolves to a Gemini 3.x thinking model, which returns HTTP 400 if
+      # thinkingBudget is 0 — so never set this to 0. Use a positive value
+      # (e.g. 512) only if you want to cap thinking on a model that allows it.
+      thinking-budget: -1
+    recommendations:
+      candidate-pool-size: 50      # max jobs we send to the model per request
+      return-size: 5               # max jobs the model returns to the user
 
 

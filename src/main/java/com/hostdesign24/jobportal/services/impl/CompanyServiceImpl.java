@@ -1,5 +1,11 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import java.util.Map;
+import java.util.EnumMap;
+import com.hostdesign24.jobportal.model.enums.Industry;
+import com.hostdesign24.jobportal.dto.company.IndustryCountDto;
+import com.hostdesign24.jobportal.repository.ApplicationEventRepository;
+import com.hostdesign24.jobportal.dto.company.CompanyResponsivenessDto;
 import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.dto.company.CompanyEntryDto;
@@ -22,7 +28,6 @@ import com.hostdesign24.jobportal.services.CompanyService;
 import com.hostdesign24.jobportal.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -36,6 +41,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
 
+    private final ApplicationEventRepository applicationEventRepository;
+
     private final JobCompanyRepository companyRepository;
     private final JobRepository jobRepository;
     private final CompanyMapper companyMapper;
@@ -43,8 +50,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final FileService fileService;
     private final FileMapper fileMapper;
 
-    @Value("${app.storage.base-url}")
-    private String publicUrl;
+
 
     @Override
     @Transactional
@@ -82,8 +88,8 @@ public class CompanyServiceImpl implements CompanyService {
 
     private @NonNull CompanyResponseDto getCompanyResponseDto(Company company) {
         CompanyResponseDto response = companyMapper.toResponse(company);
-        response.setLogo(fileMapper.toDto(company.getLogo(), publicUrl));
-        response.setBanner(fileMapper.toDto(company.getBanner(), publicUrl));
+        response.setLogo(fileMapper.toDto(company.getLogo()));
+        response.setBanner(fileMapper.toDto(company.getBanner()));
         response.setActiveJobs(jobRepository.countByCompanyIdAndIsActiveTrueAndDeletedFalse(company.getId()));
         return response;
     }
@@ -163,6 +169,19 @@ public class CompanyServiceImpl implements CompanyService {
         if (company.getStatus() == CompanyStatus.APPROVED) {
             return getCompanyResponseDto(company);
         }
+        // Business rule: at most one APPROVED company per name. Enforced here
+        // (the single choke point where a company becomes APPROVED) rather than
+        // at creation, so duplicate PENDING submissions can coexist but only
+        // one can ever be accepted. Case-insensitive; ignores the company's own
+        // row and any soft-deleted companies.
+        String name = company.getName() == null ? "" : company.getName().trim();
+        boolean nameTaken = companyRepository.existsByNameIgnoreCaseAndStatusAndDeletedFalseAndIdNot(
+                name, CompanyStatus.APPROVED, company.getId());
+        if (nameTaken) {
+            throw new InvalidInputException(
+                    "Another approved company already exists with the name \"" + name
+                            + "\". Two approved companies cannot share the same name.");
+        }
         company.setStatus(CompanyStatus.APPROVED);
         company.setRejectionReason(null);
         company.setVerifiedAt(LocalDateTime.now());
@@ -198,5 +217,58 @@ public class CompanyServiceImpl implements CompanyService {
     private Company findCompanyOrThrow(UUID id) {
         return companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
+    }
+
+    /**
+     * Employer responsiveness.
+     *
+     * The threshold matters as much as the arithmetic: publishing "0% response
+     * rate" off a single unanswered application would defame an employer who
+     * joined last week, so below it we say we do not know rather than guessing.
+     */
+    private static final int MIN_APPLICATIONS_FOR_A_RATE = 5;
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyResponsivenessDto getResponsiveness(UUID companyId) {
+        List<Object[]> rows = applicationEventRepository.responsivenessForCompany(companyId);
+
+        long received = 0;
+        long answered = 0;
+        Double avgDays = null;
+
+        if (rows != null && !rows.isEmpty() && rows.get(0) != null) {
+            Object[] row = rows.get(0);
+            received = row[0] == null ? 0 : ((Number) row[0]).longValue();
+            answered = row[1] == null ? 0 : ((Number) row[1]).longValue();
+            avgDays = row[2] == null ? null : ((Number) row[2]).doubleValue();
+        }
+
+        boolean enough = received >= MIN_APPLICATIONS_FOR_A_RATE;
+
+        return CompanyResponsivenessDto.builder()
+                .applicationsReceived(received)
+                .applicationsAnswered(answered)
+                .responseRate(enough ? (int) Math.round(100.0 * answered / received) : null)
+                .averageDaysToRespond(enough && avgDays != null
+                        ? (int) Math.round(Math.max(0, avgDays)) : null)
+                .enoughData(enough)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<IndustryCountDto> getIndustryCounts() {
+        Map<Industry, Long> counts = new EnumMap<>(Industry.class);
+        for (Industry i : Industry.values()) {
+            counts.put(i, 0L);
+        }
+        for (Object[] row : companyRepository.countApprovedByIndustry()) {
+            if (row[0] == null) continue;
+            counts.put((Industry) row[0], ((Number) row[1]).longValue());
+        }
+        return counts.entrySet().stream()
+                .map(e -> new IndustryCountDto(e.getKey(), e.getValue()))
+                .toList();
     }
 }

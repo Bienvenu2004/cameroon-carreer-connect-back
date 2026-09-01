@@ -1,9 +1,12 @@
 package com.hostdesign24.jobportal.dto.jobActivityPost;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import com.hostdesign24.jobportal.model.Address;
+import com.hostdesign24.jobportal.model.enums.DiplomaLevel;
+import com.hostdesign24.jobportal.model.enums.ExperienceLevel;
 import com.hostdesign24.jobportal.model.enums.JobLanguage;
 import com.hostdesign24.jobportal.model.enums.JobSite;
 import com.hostdesign24.jobportal.model.enums.JobType;
@@ -24,7 +27,10 @@ public class JobPostActivityUpsertDto {
 
     private JobType type;
 
-    private BigDecimal salary;
+    /** Advertised pay band. Either bound may be null. */
+    private BigDecimal salaryMin;
+
+    private BigDecimal salaryMax;
 
     private SalaryCurrency salaryCurrency = SalaryCurrency.XAF;
 
@@ -36,4 +42,21 @@ public class JobPostActivityUpsertDto {
     private String title;
 
     private String benefits;
+
+    /** Seniority the role is pitched at. Matched by natural-language search. */
+    private ExperienceLevel experienceLevel;
+
+    /** Minimum qualification, as local adverts express it ("Bac+3 minimum"). */
+    private DiplomaLevel minimumDiploma;
+
+    /** Last day applications are accepted. Null means no fixed deadline. */
+    private LocalDate applicationDeadline;
+
+    /* --- public-sector concours; only an admin may set these --- */
+
+    private Boolean publicSector;
+
+    private String publicSectorRef;
+
+    private String publicSectorBody;
 }

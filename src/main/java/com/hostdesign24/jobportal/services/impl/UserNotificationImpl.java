@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -22,6 +23,7 @@ public class UserNotificationImpl implements UserNotificationService {
     private final NotificationPublisherService publisherService;
 
     @Override
+    @Transactional
     public void createAccountNotification(User user) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "CreateAccount", () ->
@@ -29,6 +31,7 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
+    @Transactional
     public void passwordResetNotification(User user) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "PasswordReset", () ->
@@ -36,10 +39,52 @@ public class UserNotificationImpl implements UserNotificationService {
     }
 
     @Override
-    public void newConnectionDeviceNotification(User user, String deviceName, String deviceIp) {
+    @Transactional
+    public void newConnectionDeviceNotification(User user, String deviceName) {
         UUID userId = validateAndGetUserId(user);
         sendNotification(userId, "AlertConnection", () ->
-                factoryService.userNewConnection(userId, deviceName, deviceIp));
+                factoryService.userNewConnection(userId, deviceName));
+    }
+
+    @Override
+    @Transactional
+    public void newJobApplicationNotification(UUID recruiterId, String candidateName, String jobTitle, UUID applicationId) {
+        Assert.notNull(recruiterId, "Recruiter ID cannot be null");
+        sendNotification(recruiterId, "NewApplication", () ->
+                factoryService.newJobApplication(recruiterId, candidateName, jobTitle, applicationId));
+    }
+
+    @Override
+    @Transactional
+    public void jobInvitationNotification(UUID jobSeekerId, String jobTitle, String companyName, UUID jobId) {
+        Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
+        sendNotification(jobSeekerId, "JobInvitation", () ->
+                factoryService.jobInvitation(jobSeekerId, jobTitle, companyName, jobId));
+    }
+
+    @Override
+    @Transactional
+    public void newJobAtFollowedCompanyNotification(UUID jobSeekerId, String companyName,
+                                                    String jobTitle, UUID jobId) {
+        Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
+        sendNotification(jobSeekerId, "FollowedCompanyPosted", () ->
+                factoryService.newJobAtFollowedCompany(jobSeekerId, companyName, jobTitle, jobId));
+    }
+
+    @Override
+    @Transactional
+    public void jobReportResolvedNotification(UUID reporterId, String jobTitle, boolean upheld, UUID jobId) {
+        Assert.notNull(reporterId, "Reporter ID cannot be null");
+        sendNotification(reporterId, "JobReportResolved", () ->
+                factoryService.jobReportResolved(reporterId, jobTitle, upheld, jobId));
+    }
+
+    @Override
+    @Transactional
+    public void applicationStatusChangedNotification(UUID jobSeekerId, String jobTitle, String newStatus, UUID applicationId) {
+        Assert.notNull(jobSeekerId, "Job seeker ID cannot be null");
+        sendNotification(jobSeekerId, "ApplicationStatusChanged", () ->
+                factoryService.applicationStatusChanged(jobSeekerId, jobTitle, newStatus, applicationId));
     }
 
     /**

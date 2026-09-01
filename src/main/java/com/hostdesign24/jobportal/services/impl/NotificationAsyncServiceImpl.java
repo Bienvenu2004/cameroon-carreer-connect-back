@@ -1,5 +1,6 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.hostdesign24.jobportal.services.EmailService;
 import com.hostdesign24.jobportal.services.GeolocationService;
 import com.hostdesign24.jobportal.services.NotificationAsyncService;
@@ -9,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,21 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class NotificationAsyncServiceImpl implements NotificationAsyncService {
+
+    /**
+
+     * Origin of the SPA, so emails can link straight to the listing.
+
+     * A follower who has to go and search for the job they were just
+
+     * emailed about is a follower who does not apply.
+
+     */
+
+    @Value("${app.client-url:}")
+
+    private String clientUrl;
+
 
     private final EmailService emailService;
     private final GeolocationService geolocationService;
@@ -54,6 +70,159 @@ public class NotificationAsyncServiceImpl implements NotificationAsyncService {
         } catch (Exception e) {
             log.error("Failed to send login notification email to {}", email, e);
             throw e;
+        }
+    }
+
+    @Async
+    @Override
+    public void notifyNewApplication(String recruiterEmail, String candidateName, String jobTitle, String candidateEmail) {
+        try {
+            String logo = storageService.getLogoUrl();
+
+            Map<String, Object> templateModel = Map.of(
+                    "candidateName", candidateName,
+                    "candidateEmail", candidateEmail,
+                    "jobTitle", jobTitle,
+                    "applicationDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+                    "dashboardUrl", "https://yourapp.com/dashboard/applications",
+                    "year", String.valueOf(Year.now().getValue()),
+                    "logo", logo
+            );
+
+            emailService.sendEmail(
+                    recruiterEmail,
+                    "New Application: " + candidateName + " for " + jobTitle,
+                    "new-application",
+                    templateModel
+            );
+
+            log.info("New application notification sent to recruiter {} for job: {}", recruiterEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send new application email to {}", recruiterEmail, e);
+        }
+    }
+
+    @Async
+    @Override
+    public void notifyApplicationInterview(String seekerEmail, String seekerName, String jobTitle, String companyName,
+                                           String interviewPlace, LocalDateTime interviewDateTime,
+                                           String interviewPhone, String interviewNote) {
+        try {
+            String logo = storageService.getLogoUrl();
+
+            String formattedDateTime = interviewDateTime != null
+                    ? interviewDateTime.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy 'at' HH:mm"))
+                    : "To be confirmed";
+
+            // Map.of rejects null values and the interview fields are optional,
+            // so build the model defensively with a HashMap.
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("companyName", companyName);
+            templateModel.put("interviewPlace", interviewPlace != null && !interviewPlace.isBlank() ? interviewPlace : "To be confirmed");
+            templateModel.put("interviewDateTime", formattedDateTime);
+            templateModel.put("interviewPhone", interviewPhone != null && !interviewPhone.isBlank() ? interviewPhone : null);
+            templateModel.put("interviewNote", interviewNote != null && !interviewNote.isBlank() ? interviewNote : null);
+            templateModel.put("dashboardUrl", "https://yourapp.com/dashboard/applications");
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", logo);
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    "Interview invitation for " + jobTitle,
+                    "application-interview",
+                    templateModel
+            );
+
+            log.info("Interview invitation sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send interview invitation to {}", seekerEmail, e);
+        }
+    }
+
+    @Async
+    @Override
+    public void notifyApplicationHired(String seekerEmail, String seekerName, String jobTitle, String companyName) {
+        try {
+            String logo = storageService.getLogoUrl();
+
+            Map<String, Object> templateModel = Map.of(
+                    "name", seekerName,
+                    "jobTitle", jobTitle,
+                    "companyName", companyName,
+                    "dashboardUrl", "https://yourapp.com/dashboard/applications",
+                    "year", String.valueOf(Year.now().getValue()),
+                    "logo", logo
+            );
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    "Congratulations! You've been hired for " + jobTitle,
+                    "application-hired",
+                    templateModel
+            );
+
+            log.info("Hired notification sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send hired notification to {}", seekerEmail, e);
+        }
+    }
+
+    @Async
+    @Override
+    public void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle,
+                                          String companyName, String reason) {
+        try {
+            String logo = storageService.getLogoUrl();
+
+            // Map.of rejects null values, and the reason is optional -- a recruiter
+            // who leaves it blank still gets the generic wording. HashMap it is.
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("companyName", companyName);
+            templateModel.put("dashboardUrl", "https://yourapp.com/dashboard/jobs");
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", logo);
+            templateModel.put("reason", reason == null || reason.isBlank() ? null : reason.trim());
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    "Update on your application for " + jobTitle,
+                    "application-rejected",
+                    templateModel
+            );
+
+            log.info("Rejection notification sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send rejection notification to {}", seekerEmail, e);
+        }
+    }
+
+    @Override
+    @Async
+    public void notifyFollowedCompanyPosted(String seekerEmail, String seekerName, String companyName,
+                                            String jobTitle, java.util.UUID jobId) {
+        try {
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("companyName", companyName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("jobUrl", clientUrl + "/jobs/" + jobId);
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", storageService.getLogoUrl());
+
+            emailService.sendEmail(
+                    seekerEmail,
+                    companyName + " just posted: " + jobTitle,
+                    "followed-company-posted",
+                    templateModel
+            );
+
+            log.info("Followed-company alert sent to {} for job: {}", seekerEmail, jobTitle);
+        } catch (Exception e) {
+            log.error("Failed to send followed-company alert to {}", seekerEmail, e);
         }
     }
 }

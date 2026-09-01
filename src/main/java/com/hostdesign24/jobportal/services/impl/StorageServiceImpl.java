@@ -1,33 +1,39 @@
 package com.hostdesign24.jobportal.services.impl;
 
-import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.model.File;
-import com.hostdesign24.jobportal.model.User;
 import com.hostdesign24.jobportal.repository.FileRepository;
 import com.hostdesign24.jobportal.services.StorageService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.*;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Streams stored files back to the browser.
+ *
+ * Why we proxy the bytes instead of redirecting to Cloudinary:
+ * PDFs are stored as Cloudinary "raw" resources whose delivery URL has no
+ * `.pdf` extension, so Cloudinary serves them as `application/octet-stream`.
+ * A browser can't preview that inline and, on download, saves an
+ * extension-less "unknown" file. By fetching the bytes here and re-sending
+ * them with the correct `Content-Type` (from the stored file metadata) and a
+ * proper filename, both inline preview and download work — for files already
+ * uploaded as well as new ones.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -35,14 +41,25 @@ public class StorageServiceImpl implements StorageService {
 
     private final FileRepository fileRepository;
 
-    @Value("${app.storage.base-dir}")
-    private String storageBaseDir;
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
 
-    @Value("${app.logo-url}")
+    /**
+     * Absolute URL of the logo embedded in every outgoing email.
+     *
+     * It defaults to the copy the frontend serves, because the previous default
+     * was a hard-coded URL on a Cloudinary account this project does not own --
+     * a broken image in every email the day that account changed.
+     *
+     * It has to be absolute and publicly reachable: a mail client fetches it
+     * from wherever the recipient opens the message, so a localhost URL renders
+     * as a broken image. Set LOGO_URL explicitly in production if the frontend
+     * is not the right host for it.
+     */
+    @Value("${app.logo-url:${app.client-url:}/logo/logo-full.png}")
     private String logoUrl;
-
-    @Value("${app.storage.logo-dir}")
-    private String logoDir;
 
     @Override
     public String getLogoUrl() {
@@ -50,178 +67,85 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public ResponseEntity<Resource> streamFile(UUID fileId, HttpHeaders headers) throws IOException {
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> getFileByUrl(UUID fileId) {
+        return stream(fileId, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> downloadFile(UUID fileId) {
+        return stream(fileId, true);
+    }
+
+    /**
+     * Fetch the file's bytes from storage and return them with headers that
+     * make the browser either preview (inline) or download (attachment) it.
+     */
+    private ResponseEntity<Resource> stream(UUID fileId, boolean asAttachment) {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
+        byte[] bytes;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(file.getUrl()))
+                    .timeout(Duration.ofSeconds(30))
+                    .GET()
+                    .build();
+            HttpResponse<byte[]> response =
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-        String storedFilename = file.getUrl()
-                .substring(file.getUrl().lastIndexOf("/") + 1);
-
-        String userId = file.getCreatedBy().toString();
-
-        Path filePath = Paths.get(storageBaseDir, userId)
-                .resolve(storedFilename)
-                .normalize();
-
-        if (!Files.exists(filePath)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        long fileSize = Files.size(filePath);
-        String contentType = file.getType();
-        if (contentType == null) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
-
-        List<HttpRange> ranges = headers.getRange();
-
-        if (ranges.isEmpty()) {
-            Resource resource = new UrlResource(filePath.toUri());
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .contentLength(fileSize)
-                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(resource);
-        }
-
-        HttpRange range = ranges.getFirst();
-        long start = range.getRangeStart(fileSize);
-        long end = range.getRangeEnd(fileSize);
-        long rangeLength = end - start + 1;
-
-        RandomAccessFile raf = new RandomAccessFile(filePath.toFile(), "r");
-        raf.seek(start);
-
-        InputStream inputStream = new InputStream() {
-            @Override
-            public int read() throws IOException {
-                return raf.read();
+            if (response.statusCode() != 200) {
+                log.error("Storage fetch for file {} returned status {}", fileId, response.statusCode());
+                return ResponseEntity.status(response.statusCode()).build();
             }
-
-            @Override
-            public void close() throws IOException {
-                raf.close();
-            }
-        };
-
-        InputStreamResource resource = new InputStreamResource(inputStream);
-
-        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                .contentType(MediaType.parseMediaType(contentType))
-                .contentLength(rangeLength)
-                .header(HttpHeaders.CONTENT_RANGE,
-                        "bytes " + start + "-" + end + "/" + fileSize)
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .body(resource);
-    }
-
-    @Override
-    public ResponseEntity<Resource> downloadFile(UUID fileId) throws IOException {
-        User currentUser = Utils.getCurrentUser().orElseThrow(
-                () -> new RuntimeException("Unauthorized")
-        );
-
-        // Fetch file from database
-        File file = fileRepository.findById(fileId).orElseThrow(
-                () -> new RuntimeException("File not found")
-        );
-
-        // Verify ownership
-        if (!file.getCreatedBy().equals(currentUser.getId())) {
-            throw new SecurityException("Unauthorized access to file");
+            bytes = response.body();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted fetching file {} from storage", fileId, e);
+            return ResponseEntity.status(502).build();
+        } catch (Exception e) {
+            log.error("Failed to fetch file {} from storage: {}", fileId, e.getMessage(), e);
+            return ResponseEntity.status(502).build();
         }
 
-        // Extract stored filename from URL
-        String storedFilename = file.getUrl().substring(file.getUrl().lastIndexOf("/") + 1);
-
-        Path userDir = Paths.get(storageBaseDir, currentUser.getId().toString());
-        Path filePath = userDir.resolve(storedFilename).normalize();
-
-        Resource resource = new UrlResource(filePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
+        MediaType contentType;
+        try {
+            contentType = file.getType() != null
+                    ? MediaType.parseMediaType(file.getType())
+                    : MediaType.APPLICATION_OCTET_STREAM;
+        } catch (Exception e) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM;
         }
 
-        // Determine filename presented to the client
-        String originalFilename = file.getName();
-        if (originalFilename == null || originalFilename.isEmpty()) {
-            originalFilename = filePath.getFileName().toString();
-        }
-
-        // Encode filename for Content-Disposition header
-        String encodedFilename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8)
-                .replace("\\+", "%20");
-
-        String contentType = file.getType();
-        if (contentType == null || contentType.isEmpty()) {
-            contentType = Files.probeContentType(filePath);
-        }
-        if (contentType == null) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
+        String filename = safeFilename(file);
+        ContentDisposition disposition = (asAttachment
+                ? ContentDisposition.attachment()
+                : ContentDisposition.inline())
+                .filename(filename)
+                .build();
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + originalFilename + "\"; filename*=UTF-8''" + encodedFilename)
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.getSize()))
-                .cacheControl(CacheControl.noCache())
-                .body(resource);
+                .contentType(contentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .contentLength(bytes.length)
+                .body(new ByteArrayResource(bytes));
     }
 
-    @Override
-    public @NonNull ResponseEntity<Resource> getFileFromUrl(HttpServletRequest request) throws IOException {
-        String relativePath = request
-                .getRequestURI()
-                .replace("/storage/", "");
-
-        String finalPath = storageBaseDir;
-        Path filePath = Paths.get(finalPath)
-                .resolve(relativePath)
-                .normalize();
-
-        Resource resource = new UrlResource(filePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
+    /**
+     * A download-safe filename: fall back to the file id and, for PDFs, make
+     * sure the name carries a `.pdf` extension so the OS opens it correctly.
+     */
+    private String safeFilename(File file) {
+        String name = file.getName() != null && !file.getName().isBlank()
+                ? file.getName()
+                : file.getId().toString();
+        if ("application/pdf".equalsIgnoreCase(file.getType())
+                && !name.toLowerCase().endsWith(".pdf")) {
+            name = name + ".pdf";
         }
-
-        System.out.println("resource: " + resource);
-        System.out.println("filePath: " + filePath);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(
-                        Files.probeContentType(filePath)))
-                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS))
-                .body(resource);
-    }
-
-    @Override
-    public ResponseEntity<Resource> getLogoFromUrl(HttpServletRequest request) throws IOException {
-        String relativePath = request
-                .getRequestURI()
-                .replace("/logo/", "");
-
-        String finalPath = logoDir;
-        Path filePath = Paths.get(finalPath)
-                .resolve(relativePath)
-                .normalize();
-
-        log.info("Logo file path: " + filePath);
-
-        Resource resource = new UrlResource(filePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(
-                        Files.probeContentType(filePath)))
-                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS))
-                .body(resource);
+        // Strip characters that would break the Content-Disposition header.
+        return name.replaceAll("[\\r\\n\"]", "_");
     }
 }

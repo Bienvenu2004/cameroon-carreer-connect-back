@@ -13,6 +13,8 @@ import com.hostdesign24.jobportal.model.enums.DeviceStatus;
 import com.hostdesign24.jobportal.model.enums.VerificationType;
 import com.hostdesign24.jobportal.repository.EmailVerificationRepository;
 import com.hostdesign24.jobportal.repository.UserRepository;
+import com.hostdesign24.jobportal.security.GoogleTokenVerifier;
+import com.hostdesign24.jobportal.security.GoogleUserInfo;
 import com.hostdesign24.jobportal.security.JwtConfig;
 import com.hostdesign24.jobportal.security.JwtService;
 import com.hostdesign24.jobportal.services.*;
@@ -22,6 +24,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,6 +64,24 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.cookies.secure:false}")
     private boolean cookieSecure;
 
+    /**
+     * SameSite attribute for the session cookies.
+     *
+     * This used to be derived from {@link #cookieSecure}, which meant every
+     * production deployment got {@code SameSite=None} -- telling the browser to
+     * attach the session cookie to requests originating from any site. Combined
+     * with CSRF protection being disabled, that left every state-changing endpoint
+     * open to cross-site request forgery.
+     *
+     * {@code Lax} is now the default and is correct whenever the SPA and the API
+     * share a site (including the Vite proxy setup used in development). Only set
+     * {@code APP_COOKIES_SAME_SITE=None} when the frontend genuinely lives on a
+     * different site -- CSRF tokens then carry the protection, and None additionally
+     * requires Secure=true.
+     */
+    @Value("${app.cookies.same-site:Lax}")
+    private String cookieSameSite;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -75,8 +97,17 @@ public class AuthServiceImpl implements AuthService {
     private final UserDeviceService userDeviceService;
     private final NotificationAsyncService notificationAsyncService;
     private final UserNotificationService userNotificationService;
+    private final GoogleTokenVerifier googleTokenVerifier;
+    private final UsersService usersService;
 
     @Override
+    /**
+     * Transactional because the response maps the authenticated {@link User} to a
+     * DTO, and for a job seeker that walks into the profile's lazily-loaded
+     * skills collection. With open-in-view disabled there is no session open at
+     * that point, so the mapping has to happen inside this boundary.
+     */
+    @Transactional
     public AuthenticationResponse authenticateUser(
             AuthenticationRequest authenticationRequest,
             HttpServletResponse response,
@@ -97,14 +128,12 @@ public class AuthServiceImpl implements AuthService {
         String deviceName = userDeviceService.extractDeviceName(userAgent);
 
         try {
-            //checkDeviceStatus(user, deviceId, deviceName, ip);
-
             log.info("User {} authenticated successfully from verified device: {} (IP: {})",
                     user.getEmail(), deviceName, ip);
 
             userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
 
-            userNotificationService.newConnectionDeviceNotification(userId, deviceName, deviceId);
+            userNotificationService.newConnectionDeviceNotification(userId, deviceName);
             notificationAsyncService.notifyDeviceLogin(user.getEmail(), deviceName, ip);
 
             updateUserLogin(user);
@@ -123,6 +152,46 @@ public class AuthServiceImpl implements AuthService {
             }
             throw e;
         }
+    }
+
+    @Override
+    @Transactional
+    public AuthenticationResponse authenticateWithGoogle(
+            GoogleAuthRequest request,
+            HttpServletResponse response,
+            String clientTypeHeader,
+            HttpServletRequest httpRequest) {
+
+        // 1. Verify the credential against Google (signature, audience, expiry,
+        //    email_verified). Throws on anything untrustworthy.
+        GoogleUserInfo googleUser = googleTokenVerifier.verify(request.getCredential());
+
+        // 2. Resolve or provision the local account. Role only matters for a
+        //    brand-new account (sign-up); existing users keep their role.
+        User user = usersService.findOrCreateGoogleUser(googleUser, request.getRole());
+
+        // 3. Record login activity (best-effort — never blocks the login).
+        final String ip = Utils.getClientIp();
+        String userAgent = httpRequest.getHeader("User-Agent");
+        String deviceName = userAgent;
+        try {
+            String deviceId = userDeviceService.generateDeviceId(userAgent, ip);
+            deviceName = userDeviceService.extractDeviceName(userAgent);
+            userDeviceService.recordLoginActivity(user, deviceId, ip, true, null);
+        } catch (Exception e) {
+            log.warn("Failed to record Google login activity for {}: {}", user.getEmail(), e.getMessage());
+        }
+
+        // 4. Issue the same session tokens/cookies as a password login.
+        updateUserLogin(user);
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        UserDto userDto = mapper.toUserDto(user);
+        userDto.setRole(user.getRole());
+
+        log.info("User {} authenticated via Google (device {}, IP {})", user.getEmail(), deviceName, ip);
+        return getResponse(response, clientTypeHeader, accessToken, refreshToken, userDto);
     }
 
     private AuthenticationResponse getResponse(HttpServletResponse response, String clientTypeHeader, String accessToken, String refreshToken, UserDto userDto) {
@@ -345,43 +414,48 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.clearContext();
     }
 
-
     private void setTokenCookies(HttpServletResponse response, String accessToken,
                                  String refreshToken) {
-        Cookie accessTokenCookie = new Cookie("access_token", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(cookieSecure);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge((int) (jwtConfig.getAccessTokenExpiration() / 1000));
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure);
-        // Path was "/api/v1/auth" — wrong, the controller is at /api/hjp/auth
-        // and we also need this cookie on /api/hjp/auth/logout. Use "/" so the
-        // browser sends it on every refresh / logout call.
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge((int) (jwtConfig.getRefreshTokenExpiration() / 1000));
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(jwtConfig.getAccessTokenExpiration() / 1000)
+                .sameSite(cookieSameSite)
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(jwtConfig.getRefreshTokenExpiration() / 1000)
+                .sameSite(cookieSameSite)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
     private void invalidateCookies(HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("access_token", null);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(cookieSecure);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(0)
+                .sameSite(cookieSameSite)
+                .build();
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(0)
+                .sameSite(cookieSameSite)
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
     @Transactional
