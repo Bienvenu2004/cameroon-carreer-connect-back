@@ -46,7 +46,19 @@ public class StorageServiceImpl implements StorageService {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    @Value("${app.logo-url:https://res.cloudinary.com/dz0jw1sxo/image/upload/v1/jobportal/logo/dark.png}")
+    /**
+     * Absolute URL of the logo embedded in every outgoing email.
+     *
+     * It defaults to the copy the frontend serves, because the previous default
+     * was a hard-coded URL on a Cloudinary account this project does not own --
+     * a broken image in every email the day that account changed.
+     *
+     * It has to be absolute and publicly reachable: a mail client fetches it
+     * from wherever the recipient opens the message, so a localhost URL renders
+     * as a broken image. Set LOGO_URL explicitly in production if the frontend
+     * is not the right host for it.
+     */
+    @Value("${app.logo-url:${app.client-url:}/logo/logo-full.png}")
     private String logoUrl;
 
     @Override

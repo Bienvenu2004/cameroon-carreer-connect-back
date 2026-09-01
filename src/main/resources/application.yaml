@@ -96,6 +96,10 @@ app:
     # (GET /api/hjp/auth/csrf) for protection.
     same-site: ${COOKIE_SAME_SITE:Lax}
   client-url: ${CLIENT_URL}
+  # Logo embedded in outgoing emails. Must be an ABSOLUTE, publicly reachable
+  # URL -- the recipient's mail client fetches it from their own network, so a
+  # localhost address renders as a broken image. Defaults to the copy the
+  # frontend serves at ${app.client-url}/logo/logo-full.png.
   logo-url: ${LOGO_URL:}
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
