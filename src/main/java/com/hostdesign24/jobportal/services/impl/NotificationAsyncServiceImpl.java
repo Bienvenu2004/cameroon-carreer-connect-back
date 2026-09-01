@@ -155,18 +155,21 @@ public class NotificationAsyncServiceImpl implements NotificationAsyncService {
 
     @Async
     @Override
-    public void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle, String companyName) {
+    public void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle,
+                                          String companyName, String reason) {
         try {
             String logo = storageService.getLogoUrl();
 
-            Map<String, Object> templateModel = Map.of(
-                    "name", seekerName,
-                    "jobTitle", jobTitle,
-                    "companyName", companyName,
-                    "dashboardUrl", "https://yourapp.com/dashboard/jobs",
-                    "year", String.valueOf(Year.now().getValue()),
-                    "logo", logo
-            );
+            // Map.of rejects null values, and the reason is optional -- a recruiter
+            // who leaves it blank still gets the generic wording. HashMap it is.
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("name", seekerName);
+            templateModel.put("jobTitle", jobTitle);
+            templateModel.put("companyName", companyName);
+            templateModel.put("dashboardUrl", "https://yourapp.com/dashboard/jobs");
+            templateModel.put("year", String.valueOf(Year.now().getValue()));
+            templateModel.put("logo", logo);
+            templateModel.put("reason", reason == null || reason.isBlank() ? null : reason.trim());
 
             emailService.sendEmail(
                     seekerEmail,

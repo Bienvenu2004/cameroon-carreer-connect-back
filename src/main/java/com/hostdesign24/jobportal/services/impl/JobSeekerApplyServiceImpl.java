@@ -1,5 +1,13 @@
 package com.hostdesign24.jobportal.services.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import org.springframework.data.domain.Pageable;
+import com.hostdesign24.jobportal.repository.JobInvitationRepository;
+import com.hostdesign24.jobportal.repository.ApplicationEventRepository;
+import com.hostdesign24.jobportal.model.ApplicationEvent;
+import com.hostdesign24.jobportal.dto.ApplicationEventDto;
+import com.hostdesign24.jobportal.common.utils.Utils;
 import com.hostdesign24.jobportal.dto.JobApplicationDto;
 import com.hostdesign24.jobportal.dto.JobApplicationFilterDto;
 import com.hostdesign24.jobportal.dto.JobSeekerApplyDto;
@@ -31,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
@@ -39,6 +48,8 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
     private final UsersService usersService;
     private final JobSeekerProfileService jobSeekerProfileService;
     private final JobRepository jobRepository;
+    private final ApplicationEventRepository applicationEventRepository;
+    private final JobInvitationRepository jobInvitationRepository;
     private final JobApplicationSpecification jobApplicationSpecification;
     private final JobApplicationMapper jobApplicationMapper;
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
@@ -113,6 +124,12 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         apply.setCoverLetter(dto.getCoverLetter());
         jobSeekerApplyRepository.save(apply);
 
+        recordEvent(apply, null, ApplicationStatus.APPLIED, user.getId(), null);
+
+        // If a recruiter invited this candidate to this job, mark the invitation
+        // answered so they can see which approaches actually worked.
+        markInvitationAnswered(seekerProfile.getId(), job.getId());
+
         // Notify recruiter: WebSocket + Email
         UUID recruiterId = job.getCreatedBy();
         if (recruiterId != null) {
@@ -169,7 +186,13 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         ApplicationStatus previousStatus = application.getStatus();
         ApplicationStatus status = request.getStatus();
 
+        if (previousStatus == ApplicationStatus.WITHDRAWN) {
+            throw new ActionDeniedException(
+                    "This candidate has withdrawn and cannot be moved back into the pipeline");
+        }
+
         application.setStatus(status);
+        application.setStatusReason(request.getStatusReason());
 
         if (status == ApplicationStatus.INTERVIEW) {
             // Persist the interview details so they can be shown back in the UI
@@ -203,9 +226,135 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
 
         jobSeekerApplyRepository.save(application);
 
+        recordEvent(application, previousStatus, status,
+                Utils.getCurrentUser().map(User::getId).orElse(null),
+                request.getStatusReason());
+
         // Notify job seeker of status change (WebSocket for all,
         // + email for INTERVIEW / HIRED / REJECTED)
         notifyJobSeekerOfStatusChange(application, status);
+    }
+
+    /**
+     * The candidate withdraws.
+     *
+     * Terminal and candidate-owned: a recruiter cannot move an application back
+     * out of WITHDRAWN, because someone who has taken another job has not changed
+     * their mind just because a recruiter would prefer they had. Withdrawing an
+     * application that is already withdrawn is a no-op rather than an error, since
+     * the outcome the caller wanted is already true.
+     */
+    @Override
+    @Transactional
+    public void withdraw(UUID applicationId, String reason) {
+        JobApplication application = jobSeekerApplyRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + applicationId));
+
+        User user = usersService.getCurrentUser();
+        JobSeekerProfile profile = application.getProfile();
+        if (user == null || profile == null || profile.getUser() == null
+                || !profile.getUser().getId().equals(user.getId())) {
+            throw new ActionDeniedException("You can only withdraw your own applications");
+        }
+
+        if (application.getStatus() == ApplicationStatus.WITHDRAWN) {
+            return;
+        }
+        if (application.getStatus() == ApplicationStatus.HIRED) {
+            throw new ActionDeniedException(
+                    "This application ended in an offer. Speak to the employer directly rather than withdrawing here.");
+        }
+
+        ApplicationStatus previous = application.getStatus();
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+        application.setStatusReason(reason);
+        jobSeekerApplyRepository.save(application);
+
+        recordEvent(application, previous, ApplicationStatus.WITHDRAWN, user.getId(), reason);
+
+        // Tell the recruiter, so their shortlist reflects reality without them
+        // having to chase someone who is no longer available.
+        Job withdrawnFrom = application.getJob();
+        if (withdrawnFrom != null && withdrawnFrom.getCreatedBy() != null) {
+            userNotificationService.applicationStatusChangedNotification(
+                    withdrawnFrom.getCreatedBy(),
+                    withdrawnFrom.getTitle(),
+                    ApplicationStatus.WITHDRAWN.name(),
+                    application.getId());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ApplicationEventDto> getTimeline(UUID applicationId) {
+        JobApplication application = jobSeekerApplyRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + applicationId));
+
+        User user = usersService.getCurrentUser();
+        if (user == null || !canSee(application, user)) {
+            throw new ActionDeniedException("You do not have access to this application");
+        }
+
+        return applicationEventRepository
+                .findByApplicationIdOrderByOccurredAtAsc(applicationId)
+                .stream()
+                .map(e -> new ApplicationEventDto(
+                        e.getId(), e.getFromStatus(), e.getToStatus(), e.getNote(), e.getOccurredAt()))
+                .toList();
+    }
+
+    /** The candidate it belongs to, the recruiter who posted the job, or an admin. */
+    private boolean canSee(JobApplication application, User user) {
+        if (user.getRole() == UserRole.SYSTEM_ADMIN) {
+            return true;
+        }
+        JobSeekerProfile profile = application.getProfile();
+        if (profile != null && profile.getUser() != null
+                && profile.getUser().getId().equals(user.getId())) {
+            return true;
+        }
+        Job job = application.getJob();
+        return job != null && user.getId().equals(job.getCreatedBy());
+    }
+
+    private void markInvitationAnswered(UUID profileId, UUID jobId) {
+        jobInvitationRepository
+                .findByProfileIdAndDeletedFalseOrderBySentAtDesc(profileId, Pageable.unpaged())
+                .stream()
+                .filter(inv -> inv.getJob() != null && jobId.equals(inv.getJob().getId()))
+                .filter(inv -> inv.getRespondedAt() == null)
+                .findFirst()
+                .ifPresent(inv -> {
+                    inv.setRespondedAt(LocalDateTime.now());
+                    jobInvitationRepository.save(inv);
+                });
+    }
+
+    /**
+     * Append one row to the application's history.
+     *
+     * Best-effort: failing to write the audit trail must never block the
+     * transition the user actually asked for, so it is logged rather than thrown.
+     * The timeline is a record of what happened, not the mechanism.
+     */
+    private void recordEvent(JobApplication application,
+                             ApplicationStatus from,
+                             ApplicationStatus to,
+                             UUID actorId,
+                             String note) {
+        try {
+            ApplicationEvent event = new ApplicationEvent();
+            event.setApplication(application);
+            event.setFromStatus(from);
+            event.setToStatus(to);
+            event.setActorId(actorId);
+            event.setNote(note);
+            event.setOccurredAt(LocalDateTime.now());
+            applicationEventRepository.save(event);
+        } catch (RuntimeException e) {
+            log.warn("Failed to record application event {} -> {} for {}: {}",
+                    from, to, application.getId(), e.getMessage());
+        }
     }
 
     private void notifyJobSeekerOfStatusChange(JobApplication application, ApplicationStatus status) {
@@ -235,8 +384,9 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
                     application.getInterviewNote()
             );
             case HIRED -> notificationAsyncService.notifyApplicationHired(seekerEmail, seekerName, jobTitle, companyName);
-            case REJECTED -> notificationAsyncService.notifyApplicationRejected(seekerEmail, seekerName, jobTitle, companyName);
-            default -> { /* APPLIED / REVIEWED: WebSocket only */ }
+            case REJECTED -> notificationAsyncService.notifyApplicationRejected(
+                    seekerEmail, seekerName, jobTitle, companyName, application.getStatusReason());
+            default -> { /* APPLIED / REVIEWED / WITHDRAWN: WebSocket only */ }
         }
     }
 }

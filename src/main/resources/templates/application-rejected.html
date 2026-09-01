@@ -36,6 +36,13 @@
                             </div>
                         </div>
 
+                        <!-- Recruiter's reason, when they gave one. Being told why is
+                             the difference between a rejection and being ghosted. -->
+                        <div th:if="${reason}" style="background-color:#f8fafc;border-left:3px solid #0D6E5B;border-radius:6px;padding:16px 20px;margin:24px 0;">
+                            <div style="font-size:13px;font-weight:600;color:#0D6E5B;margin-bottom:6px;">Feedback from the employer</div>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#334155;" th:text="${reason}">Reason</p>
+                        </div>
+
                         <p style="margin:24px 0;font-size:15px;line-height:1.7;color:#334155;">
                             This doesn't reflect on your abilities. The job market in Cameroon is competitive, and we encourage you to keep applying to other opportunities that match your skills.
                         </p>

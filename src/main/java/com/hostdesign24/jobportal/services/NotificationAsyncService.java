@@ -21,5 +21,10 @@ public interface NotificationAsyncService {
     void notifyApplicationHired(String seekerEmail, String seekerName, String jobTitle, String companyName);
 
     @Async
-    void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle, String companyName);
+    /**
+     * @param reason optional explanation from the recruiter, shown to the
+     *               candidate. Null or blank renders the generic wording.
+     */
+    void notifyApplicationRejected(String seekerEmail, String seekerName, String jobTitle,
+                                   String companyName, String reason);
 }

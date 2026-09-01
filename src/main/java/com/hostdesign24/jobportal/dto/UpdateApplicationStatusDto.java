@@ -26,4 +26,15 @@ public class UpdateApplicationStatusDto {
     private LocalDateTime interviewDateTime;
     private String interviewPhone;
     private String interviewNote;
+
+    /**
+     * Why the application reached this status, shown to the candidate and
+     * included in the email.
+     *
+     * This DTO used to carry four fields of care for INTERVIEW and nothing at
+     * all for REJECTED, so a candidate learned they were rejected and never why.
+     * Being ghosted is the most common complaint job seekers have; one sentence
+     * costs a recruiter a click.
+     */
+    private String statusReason;
 }
