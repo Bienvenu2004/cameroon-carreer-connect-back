@@ -24,6 +24,12 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    // Public job and company browsing spends no token -- see RateLimitExemptions
+    // for why, and for how narrowly that is drawn.
+    if (RateLimitExemptions.isExempt(request)) {
+      return true;
+    }
+
     String key = resolveKey();
 
     Bucket bucket = rateLimitingService.resolveBucket(key);
