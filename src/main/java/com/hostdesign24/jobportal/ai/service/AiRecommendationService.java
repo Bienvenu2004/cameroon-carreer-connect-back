@@ -17,6 +17,7 @@ import com.hostdesign24.jobportal.repository.JobSeekerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,7 +123,12 @@ public class AiRecommendationService {
         }
 
         // 5. Build prompt + call the LLM
-        String systemPrompt = promptBuilder.systemPrompt(props.recommendations().returnSize());
+        // The seeker's UI language, resolved from Accept-Language by
+        // I18nConfig's locale resolver, so the explanations come back in the
+        // language they are reading the page in.
+        String systemPrompt = promptBuilder.systemPrompt(
+                props.recommendations().returnSize(),
+                LocaleContextHolder.getLocale());
         String userPrompt = promptBuilder.userPrompt(ctx, candidates);
         String pseudoId = contextBuilder.pseudoIdForLogs(user.getId());
 

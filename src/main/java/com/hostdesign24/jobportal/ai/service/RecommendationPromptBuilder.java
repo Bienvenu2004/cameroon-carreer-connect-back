@@ -6,6 +6,7 @@ import com.hostdesign24.jobportal.model.Job;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class RecommendationPromptBuilder {
      * Intentionally simple — too much instruction backfires with smaller
      * models. Keep this tight.
      */
-    public String systemPrompt(int returnSize) {
+    public String systemPrompt(int returnSize, Locale locale) {
         return """
                 You are a job-matching assistant for a Cameroonian recruitment platform.
                 A candidate profile and a list of active job postings are provided. Your
@@ -48,8 +49,8 @@ public class RecommendationPromptBuilder {
                   - For each pick, give a SHORT 1-sentence explanation that names a
                     concrete reason: a specific skill, language, region, or salary
                     alignment. Avoid vague phrases like "good match for your profile".
-                  - Reply in the same language the candidate profile uses (default
-                    French for Cameroon). Keep the JSON keys in English regardless.
+                  - Write every "reason" in %s, whatever language the profile or the
+                    job postings happen to be written in. Keep the JSON keys in English.
                   - If fewer than %d jobs are a reasonable fit, return only the ones
                     that genuinely match. Returning 2 strong matches beats 5 weak ones.
 
@@ -61,7 +62,32 @@ public class RecommendationPromptBuilder {
                 }
                 The score is a float between 0 and 1 representing your confidence in
                 the match.
-                """.formatted(returnSize, returnSize);
+                """.formatted(returnSize, explanationLanguage(locale), returnSize);
+    }
+
+    /**
+     * The language the model must write its explanations in.
+     *
+     * The reason text is the only prose the model produces that a seeker
+     * actually reads, so it has to arrive in the language they are browsing
+     * in — not in the language the job advert happens to be written in, and
+     * not in a fixed default. The rest of the prompt stays English: the field
+     * labels and JSON keys are machine-facing, and translating them would
+     * only make the model's job harder.
+     *
+     * Naming the language outright works better than asking the model to
+     * infer it. The earlier instruction ("reply in the same language the
+     * candidate profile uses, default French") gave it nothing to infer from,
+     * because every label in the prompt is English — so it always fell
+     * through to the stated default and answered in French.
+     *
+     * This is the interface locale, distinct from {@code JobLanguage}, which
+     * describes the language a job is worked in.
+     */
+    private static String explanationLanguage(Locale locale) {
+        // Mirrors I18nConfig: French when asked for, English for everything
+        // else — including a null locale outside a web request.
+        return locale != null && "fr".equals(locale.getLanguage()) ? "French" : "English";
     }
 
     /** Render the per-call user prompt with the candidate + the job pool. */
