@@ -15,6 +15,7 @@ import com.hostdesign24.jobportal.dto.jobActivityPost.JobActivityFilterDto;
 import com.hostdesign24.jobportal.services.JobService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +24,12 @@ public class JobController {
 
     private final JobService jobService;
 
+    /**
+     * A recruiter's own postings, including closed and inactive ones. The
+     * specification scopes it to the caller; anyone else would get every
+     * recruiter's postings, so it is closed to all but recruiters and admins.
+     */
+    @PreAuthorize("hasAnyRole('RECRUITER', 'SYSTEM_ADMIN')")
     @GetMapping("/")
     public ApiResponse<PageResponseDto<JobPostResponseDto>> getJobs(
             @ModelAttribute JobActivityFilterDto filter) {

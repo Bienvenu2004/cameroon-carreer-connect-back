@@ -21,6 +21,12 @@ public class JobApplicationSpecification {
 
             Optional<User> currentOptUser = Utils.getCurrentUser();
 
+            // Without a caller there is no scope to apply, and an unscoped
+            // query would return every application. Match nothing instead.
+            if (currentOptUser.isEmpty()) {
+                return cb.disjunction();
+            }
+
             currentOptUser.ifPresent(currentUser -> {
                 if (currentUser.getRole() == UserRole.JOB_SEEKER){
                     predicates.add(cb.equal(root.get("createdBy"), currentUser.getId()));
@@ -37,6 +43,12 @@ public class JobApplicationSpecification {
 
             if (filter.getJobId() != null) {
                 predicates.add(cb.equal(root.get("job").get("id"), filter.getJobId()));
+            }
+
+            // ANDed with the role scoping above, so a notification link can
+            // open one of the caller's own applications and nothing else.
+            if (filter.getApplicationId() != null) {
+                predicates.add(cb.equal(root.get("id"), filter.getApplicationId()));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

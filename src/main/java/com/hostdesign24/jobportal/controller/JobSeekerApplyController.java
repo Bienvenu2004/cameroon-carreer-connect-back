@@ -37,6 +37,12 @@ public class JobSeekerApplyController {
         return ApiResponse.success(null, "Applied to job successfully");
     }
 
+    /**
+     * Applications hold cover letters and interview details. The specification
+     * scopes the list to the caller (their own, or those to their jobs), so an
+     * anonymous caller must never reach it.
+     */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/applications")
     public ApiResponse<PageResponseDto<JobApplicationDto>> getJobApplications(@ModelAttribute JobApplicationFilterDto filter) {
 

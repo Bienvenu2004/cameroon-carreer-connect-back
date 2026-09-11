@@ -106,6 +106,12 @@ public class SecurityConfig {
                 .sameSite(cookieSameSite)
                 .path("/"));
 
+        // A path variable that only matches a UUID. A bare "*" also matches
+        // literal segments, and that made "/jobs/*" open the recruiter-only
+        // "/jobs/" list and the private "/jobs/applications" list to anyone.
+        // (PathPattern regexes cannot contain braces, hence no {8}-style counts.)
+        String id = "{id:[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+}";
+
         http.sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfRepository)
@@ -134,23 +140,23 @@ public class SecurityConfig {
                                         // Public job browsing — home page, job listings, job detail
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/all").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/search").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*/similar").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/*/company-jobs").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/" + id).permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/" + id + "/similar").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/jobs/" + id + "/company-jobs").permitAll()
                                         // Reporting a suspect listing is open to anonymous visitors:
                                         // the people most likely to spot a "pay a deposit to secure
                                         // the position" advert are exactly those browsing before they
                                         // trust the site enough to register.
-                                        .requestMatchers(HttpMethod.POST, "/api/hjp/jobs/*/report").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*/responsiveness").permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/hjp/jobs/" + id + "/report").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/" + id + "/responsiveness").permitAll()
                                         // Public company browsing — company list and detail
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies", "/api/hjp/companies/").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/companies/industry-counts").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*/followers/count").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/" + id + "/followers/count").permitAll()
                                         // Derived from public activity only. A visitor with no
                                         // account should be able to see the platform is alive.
                                         .requestMatchers(HttpMethod.GET, "/api/hjp/feed").permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/*").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/hjp/companies/" + id).permitAll()
                                         // AI semantic job search (§5.2) — public, anonymous-friendly
                                         .requestMatchers(HttpMethod.POST, "/api/hjp/ai/search").permitAll()
                                         .anyRequest()

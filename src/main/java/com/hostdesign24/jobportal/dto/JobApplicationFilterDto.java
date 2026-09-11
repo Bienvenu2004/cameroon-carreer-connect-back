@@ -11,4 +11,12 @@ import java.util.UUID;
 public class JobApplicationFilterDto extends FilterDto {
     private UUID jobId;
     private UUID profileId;
+
+    /**
+     * Narrows the list to a single application, for a page opened from a
+     * notification about it. It only ever narrows: the role scoping in
+     * JobApplicationSpecification still applies, so it cannot reach an
+     * application the caller could not already list.
+     */
+    private UUID applicationId;
 }
