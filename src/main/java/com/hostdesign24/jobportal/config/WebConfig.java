@@ -42,20 +42,17 @@ public class WebConfig implements WebMvcConfigurer {
    * in this application uses -- so the interceptor never ran. It is now bound to
    * the real {@code /api/hjp/**} prefix.
    *
-   * Anonymous job and company browsing is excluded: those are the pages a single
-   * visitor hits repeatedly while scrolling listings, and buckets for unauthenticated
-   * callers are keyed by IP -- which, behind the carrier-grade NAT common on
-   * Cameroonian mobile networks, is shared by many genuine users at once.
+   * Anonymous job and company browsing is exempt, but that exemption is applied
+   * inside the interceptor rather than with excludePathPatterns here, because it
+   * depends on the HTTP method and a path pattern cannot express that. Excluding
+   * {@code /api/hjp/companies/**} by path exempted writes to companies as well,
+   * while opening a single job page stayed throttled. See
+   * {@link com.hostdesign24.jobportal.security.interceptor.RateLimitExemptions}.
    */
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(rateLimitingInterceptor)
-        .addPathPatterns("/api/hjp/**")
-        .excludePathPatterns(
-            "/api/hjp/jobs/all",
-            "/api/hjp/jobs/search",
-            "/api/hjp/companies",
-            "/api/hjp/companies/**");
+        .addPathPatterns("/api/hjp/**");
   }
 
 }
