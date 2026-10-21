@@ -80,7 +80,10 @@ public class AiAssistantController {
             return ApiResponse.success(List.of(), "No recommendations available yet");
         }
 
-        String modelVersion = aiProperties.gemini().model() + "/v1";
+        // Recorded from the model that actually answered: with fallbacks it is
+        // not necessarily the configured one, and the stored label is what an
+        // evaluation of recommendation quality would group results by.
+        String modelVersion = recs.get(0).model() + "/v1";
         LocalDateTime now = LocalDateTime.now();
 
         List<RecommendationDto> out = new ArrayList<>(recs.size());

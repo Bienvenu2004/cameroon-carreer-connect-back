@@ -137,6 +137,12 @@ app:
       base-url: https://generativelanguage.googleapis.com
       api-key: ${GEMINI_API_KEY:}
       model: gemini-flash-latest
+      # Tried in order when the model above cannot answer: overloaded (5xx),
+      # rate limited (429) or retired (404). gemini-flash-latest returned 503
+      # on every recommendation request in September 2026 while flash-lite
+      # answered the same request in under two seconds.
+      fallback-models:
+        - gemini-flash-lite-latest
       temperature: 0.3
       max-tokens: 4096
       timeout-seconds: 60

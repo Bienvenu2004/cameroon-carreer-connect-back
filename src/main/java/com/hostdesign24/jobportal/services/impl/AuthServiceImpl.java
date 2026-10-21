@@ -389,16 +389,22 @@ public class AuthServiceImpl implements AuthService {
                 "name", user.getEmail(),
                 "date", user.getPasswordChangedAt(),
                 "year", String.valueOf(Year.now().getValue()),
-                "companyName", "RETMS"
+                "companyName", "JobsConnect CMR"
         );
 
-        // Send confirmation email
-        emailService.sendEmail(
-                user.getEmail(),
-                "Password Changed Successfully",
-                "password-change-confirmation",
-                templateModel
-        );
+        // The password is already changed and saved at this point. A failure to
+        // send the confirmation must not be reported to the caller as a failed
+        // reset, which would send them round the flow again for nothing.
+        try {
+            emailService.sendEmail(
+                    user.getEmail(),
+                    "Password Changed Successfully",
+                    "password-change-confirmation",
+                    templateModel
+            );
+        } catch (Exception e) {
+            log.error("Password changed but the confirmation email failed for: {}", user.getEmail(), e);
+        }
 
         log.info("Password reset completed for user {}", user.getEmail());
     }

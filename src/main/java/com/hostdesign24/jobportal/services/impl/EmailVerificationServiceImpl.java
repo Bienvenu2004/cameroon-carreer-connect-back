@@ -17,6 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -170,8 +172,9 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 verification.setUserId(user.getId());
                 verification.setResetRequestedAt(LocalDateTime.now());
                 emailVerificationRepository.save(verification);
+                // Logs its own outcome: saying "resent" here reported success
+                // even when the message had failed to go out.
                 sendPasswordResetEmail(email, newCode, user);
-                log.info("Resent password reset email for: {}", email);
             }
             case EMAIL_REGISTRATION -> {
                 sendEmailVerification(email, newCode);
@@ -219,12 +222,19 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private void sendPasswordResetEmail(String email, String code, User user) {
         try {
-            String resetUrl = devFrontUrl + "/auth/forgot-password/code?confirmation_code=" + code + "&email=" + email;
+            // Must match the route the SPA actually serves. The page reads both
+            // parameters, so following the link lands on the form with the
+            // address and the code already filled in; the code is also printed
+            // in the message for anyone typing it by hand.
+            String resetUrl = devFrontUrl + "/reset-password"
+                    + "?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
+                    + "&code=" + URLEncoder.encode(code, StandardCharsets.UTF_8);
             String logo = storageService.getLogoUrl();
 
             Map<String, Object> templateModel = Map.of(
                     "name", user.getEmail(),
                     "resetCode", code,
+                    "expiryMinutes", VERIFICATION_CODE_EXPIRY_MINUTES,
                     "year", String.valueOf(Year.now().getValue()),
                     "resetUrl", resetUrl,
                     "logo", logo
@@ -237,9 +247,9 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                     templateModel
             );
 
-            log.info("Password reset email sent");
+            log.info("Password reset email sent for: {}", email);
         } catch (Exception e) {
-            log.error("Failed to send password reset verification email", e);
+            log.error("Failed to send password reset email for: {}", email, e);
         }
     }
 

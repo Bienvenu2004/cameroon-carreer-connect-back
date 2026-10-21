@@ -73,7 +73,7 @@ public class AiRecommendationService {
      * with the model's score + explanation. The controller transforms
      * this into the wire shape the frontend expects.
      */
-    public record Recommendation(Job job, double score, String reason) {}
+    public record Recommendation(Job job, double score, String reason, String model) {}
 
     /**
      * Generate recommendations for the currently-authenticated seeker.
@@ -94,13 +94,13 @@ public class AiRecommendationService {
 
         JobSeekerProfile profile = profileRepository.findByUserId(user.getId());
         if (profile == null) {
-            log.debug("[ai] no seeker profile for user={}, returning empty recommendations", user.getId());
+            log.info("[ai] no seeker profile for user={}, returning empty recommendations", user.getId());
             return List.of();
         }
 
         // 2. Fast bail-out when the key isn't set (local dev)
         if (!props.gemini().isConfigured()) {
-            log.debug("[ai] Gemini API key not configured — returning empty list");
+            log.warn("[ai] Gemini API key not configured — returning empty list");
             return List.of();
         }
 
@@ -110,14 +110,14 @@ public class AiRecommendationService {
                 PageRequest.of(0, props.recommendations().candidatePoolSize())
         );
         if (candidates.isEmpty()) {
-            log.debug("[ai] candidate pool empty for profile={}", profile.getId());
+            log.info("[ai] candidate pool empty for profile={}", profile.getId());
             return List.of();
         }
 
         // 4. Pseudonymize + bail if profile is too thin to match meaningfully
         AnonymizedProfileContext ctx = contextBuilder.fromProfile(profile);
         if (!ctx.hasMatchableSignal()) {
-            log.debug("[ai] profile {} has no matchable signal (no skills, no target hint)",
+            log.info("[ai] profile {} has no matchable signal (no skills, no target hint)",
                     profile.getId());
             return List.of();
         }
@@ -156,7 +156,7 @@ public class AiRecommendationService {
                 log.warn("[ai] dropped hallucinated jobId={} user={}", item.jobId(), pseudoId);
                 continue;
             }
-            recommendations.add(new Recommendation(job, item.score(), item.reason()));
+            recommendations.add(new Recommendation(job, item.score(), item.reason(), result.model()));
             if (recommendations.size() >= props.recommendations().returnSize()) break;
         }
         return recommendations;

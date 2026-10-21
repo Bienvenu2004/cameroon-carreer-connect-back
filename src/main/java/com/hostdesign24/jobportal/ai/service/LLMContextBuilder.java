@@ -126,8 +126,27 @@ public class LLMContextBuilder {
      * a JobPreferences entity, return null and let the model rely purely
      * on skills + languages.
      */
+    /**
+     * The role the seeker currently holds, or else the most recent one.
+     *
+     * This was a stub returning null, so a seeker who had filled in their work
+     * history but no skills was told there was nothing to match on. A job title
+     * is a strong matching signal and says nothing about who the person is: the
+     * employer's name is deliberately left out, keeping the context
+     * pseudonymous.
+     */
     private String deriveTargetRoleHint(JobSeekerProfile profile) {
-        return null;
+        List<WorkExperience> xps = profile.getExperiences();
+        if (xps == null || xps.isEmpty()) return null;
+
+        return xps.stream()
+                .filter(xp -> xp != null && !xp.isDeleted())
+                .filter(xp -> xp.getTitle() != null && !xp.getTitle().isBlank())
+                .max(java.util.Comparator.comparing(WorkExperience::isCurrent)
+                        .thenComparing(WorkExperience::getStartDate,
+                                java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder())))
+                .map(xp -> xp.getTitle().trim())
+                .orElse(null);
     }
 
     /**

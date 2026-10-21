@@ -27,10 +27,24 @@ public record AiProperties(
             double temperature,
             int maxTokens,
             int timeoutSeconds,
-            Integer thinkingBudget
+            Integer thinkingBudget,
+            /** Models tried in order when {@link #model} cannot answer. May be empty. */
+            java.util.List<String> fallbackModels
     ) {
         public boolean isConfigured() {
             return apiKey != null && !apiKey.isBlank();
+        }
+
+        /** The configured model followed by the fallbacks, blanks and repeats removed. */
+        public java.util.List<String> modelsInOrder() {
+            java.util.LinkedHashSet<String> ordered = new java.util.LinkedHashSet<>();
+            if (model != null && !model.isBlank()) ordered.add(model.trim());
+            if (fallbackModels != null) {
+                for (String m : fallbackModels) {
+                    if (m != null && !m.isBlank()) ordered.add(m.trim());
+                }
+            }
+            return java.util.List.copyOf(ordered);
         }
 
         /**

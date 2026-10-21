@@ -80,6 +80,34 @@ public class GeminiClient {
             throw new AiCallException("Gemini API key is not configured");
         }
 
+        // The configured model first, then each fallback in order. A single
+        // model name used to be the only option, so whenever Google reported
+        // it overloaded (HTTP 503, which gemini-flash-latest did for every
+        // request for weeks) every recommendation and every natural-language
+        // search came back empty.
+        ModelUnavailable last = null;
+        for (String model : props.gemini().modelsInOrder()) {
+            try {
+                return callModel(model, systemPrompt, userPrompt, jsonMode, userIdHash);
+            } catch (ModelUnavailable e) {
+                last = e;
+                log.warn("[ai] model {} unavailable ({}), trying the next one", model, e.getMessage());
+            }
+        }
+        throw new AiCallException(
+                last == null ? "No AI model configured" : "No AI model available: " + last.getMessage(),
+                last);
+    }
+
+    /** One attempt against one model. Throws {@link ModelUnavailable} when another model might succeed. */
+    private GeminiResult callModel(
+            String model,
+            String systemPrompt,
+            String userPrompt,
+            boolean jsonMode,
+            String userIdHash
+    ) {
+
         GenerateRequest req = new GenerateRequest(
                 new SystemInstruction(List.of(new Part(systemPrompt))),
                 List.of(new Content("user", List.of(new Part(userPrompt)))),
@@ -107,7 +135,7 @@ public class GeminiClient {
         }
 
         String url = props.gemini().baseUrl()
-                + "/v1beta/models/" + props.gemini().model()
+                + "/v1beta/models/" + model
                 + ":generateContent";
 
         HttpRequest httpReq = HttpRequest.newBuilder()
@@ -130,7 +158,7 @@ public class GeminiClient {
         } catch (Exception e) {
             log.warn("[ai] {} network error after {}ms: {}",
                     requestId, elapsedMs(startNanos), e.getMessage());
-            throw new AiCallException("Could not reach the AI provider", e);
+            throw new ModelUnavailable("could not reach the AI provider: " + e.getMessage(), e);
         }
         long elapsedMs = elapsedMs(startNanos);
 
@@ -142,7 +170,15 @@ public class GeminiClient {
                     : response.body().substring(0, Math.min(300, response.body().length()));
             log.warn("[ai] {} Gemini HTTP {} in {}ms body={}",
                     requestId, response.statusCode(), elapsedMs, snippet);
-            throw new AiCallException("AI provider returned HTTP " + response.statusCode());
+            int status = response.statusCode();
+            // Worth trying another model: rate limited (429), overloaded (5xx),
+            // or a model name Google has retired (404). A rejected key or a
+            // malformed request would fail identically on every model, so
+            // those stop here instead of burning the whole list.
+            if (status == 404 || status == 429 || status >= 500) {
+                throw new ModelUnavailable("HTTP " + status, null);
+            }
+            throw new AiCallException("AI provider returned HTTP " + status);
         }
 
         GenerateResponse parsed;
@@ -184,14 +220,14 @@ public class GeminiClient {
         // Cost log — model, tokens, latency, opaque user id. NO prompt, NO content.
         log.info("[ai-cost] {} model={} user={} tokens_in={} tokens_out={} latency_ms={}",
                 requestId,
-                props.gemini().model(),
+                model,
                 userIdHash,
                 tokensIn,
                 tokensOut,
                 elapsedMs
         );
 
-        return new GeminiResult(content.toString(), tokensIn, tokensOut, elapsedMs);
+        return new GeminiResult(content.toString(), tokensIn, tokensOut, elapsedMs, model);
     }
 
     private static long elapsedMs(long startNanos) {
@@ -254,8 +290,17 @@ public class GeminiClient {
             String rawContent,
             int tokensIn,
             int tokensOut,
-            long latencyMs
+            long latencyMs,
+            /** The model that actually answered, which may be a fallback. */
+            String model
     ) {}
+
+    /** A model that could not serve this request, where another model might. */
+    private static final class ModelUnavailable extends RuntimeException {
+        private ModelUnavailable(String message, Throwable cause) {
+            super(message, cause, false, false);
+        }
+    }
 
     /** Generic upstream-failure exception caught by the service layer. */
     public static class AiCallException extends RuntimeException {

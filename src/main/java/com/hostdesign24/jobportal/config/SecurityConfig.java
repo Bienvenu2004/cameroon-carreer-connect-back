@@ -166,7 +166,13 @@ public class SecurityConfig {
                         exception -> {
                             exception.authenticationEntryPoint(
                                     (request, response, authException) -> {
-                                        log.error(
+                                        // Debug, not error: the interface asks
+                                        // /users/me on every page load to find
+                                        // out whether anyone is signed in, so a
+                                        // visitor who is not produces one of
+                                        // these per visit. It is the expected
+                                        // answer to the question, not a fault.
+                                        log.debug(
                                                 "Authentication error for {} {}: {}",
                                                 request.getMethod(),
                                                 request.getRequestURI(),

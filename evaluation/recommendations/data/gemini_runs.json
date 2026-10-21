@@ -1,0 +1,811 @@
+{
+  "settings": {
+    "models": [
+      "gemini-flash-latest",
+      "gemini-flash-lite-latest"
+    ],
+    "temperature": 0.3,
+    "maxTokens": 4096,
+    "returnSize": 5,
+    "runs": 3,
+    "explanationLanguage": "French"
+  },
+  "runs": {
+    "P01": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1541,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 198,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"ab552d33-ec98-4d37-a239-064a954f18bf\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au rôle cible d'agronome de terrain et est situé dans la région souhaitée de l'OUEST.\"\n    },\n    {\n      \"jobId\": \"3b889f38-b014-484d-8c5d-abc5d0a98621\",\n      \"score\": 0.72,\n      \"reason\": \"Cette offre dans l'agriculture valorise votre expérience en agronomie, bien qu'elle soit localisée dans la région de l'Est.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O07",
+            "jobId": "ab552d33-ec98-4d37-a239-064a954f18bf",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au rôle cible d'agronome de terrain et est situé dans la région souhaitée de l'OUEST."
+          },
+          {
+            "code": "O08",
+            "jobId": "3b889f38-b014-484d-8c5d-abc5d0a98621",
+            "score": 0.72,
+            "reason": "Cette offre dans l'agriculture valorise votre expérience en agronomie, bien qu'elle soit localisée dans la région de l'Est."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1944,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 199,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"ab552d33-ec98-4d37-a239-064a954f18bf\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement à votre rôle cible d'agronome de terrain et se situe dans la région souhaitée de l'Ouest.\"\n    },\n    {\n      \"jobId\": \"3b889f38-b014-484d-8c5d-abc5d0a98621\",\n      \"score\": 0.75,\n      \"reason\": \"Cette offre dans l'agriculture met à profit vos compétences en agronomie, bien qu'elle soit localisée dans la région de l'Est.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O07",
+            "jobId": "ab552d33-ec98-4d37-a239-064a954f18bf",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement à votre rôle cible d'agronome de terrain et se situe dans la région souhaitée de l'Ouest."
+          },
+          {
+            "code": "O08",
+            "jobId": "3b889f38-b014-484d-8c5d-abc5d0a98621",
+            "score": 0.75,
+            "reason": "Cette offre dans l'agriculture met à profit vos compétences en agronomie, bien qu'elle soit localisée dans la région de l'Est."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-latest",
+        "modelVersion": "gemini-3.8-flash",
+        "latencyMs": 8344,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 200,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"ab552d33-ec98-4d37-a239-064a954f18bf\",\n      \"score\": 0.98,\n      \"reason\": \"Correspondance parfaite avec l'intitulé de poste ciblé, la région de l'Ouest et vos compétences en formation d'agriculteurs.\"\n    },\n    {\n      \"jobId\": \"3b889f38-b014-484d-8c5d-abc5d0a98621\",\n      \"score\": 0.72,\n      \"reason\": \"Poste à temps plein dans le secteur agricole valorisant votre profil d'agronome pour piloter une initiative agroforestière.\"\n    }\n  ]\n}",
+        "unavailable": [],
+        "picks": [
+          {
+            "code": "O07",
+            "jobId": "ab552d33-ec98-4d37-a239-064a954f18bf",
+            "score": 0.98,
+            "reason": "Correspondance parfaite avec l'intitulé de poste ciblé, la région de l'Ouest et vos compétences en formation d'agriculteurs."
+          },
+          {
+            "code": "O08",
+            "jobId": "3b889f38-b014-484d-8c5d-abc5d0a98621",
+            "score": 0.72,
+            "reason": "Poste à temps plein dans le secteur agricole valorisant votre profil d'agronome pour piloter une initiative agroforestière."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P02": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1796,
+        "finishReason": "STOP",
+        "tokensIn": 1601,
+        "tokensOut": 184,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"add897b3-a969-49e8-bcf9-25e005208fea\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement au profil cible d'analyste de crédit et se situe dans la région souhaitée du CENTRE.\"\n    },\n    {\n      \"jobId\": \"65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10\",\n      \"score\": 0.85,\n      \"reason\": \"Cette offre dans le secteur bancaire à Yaoundé utilise les compétences en finance et la langue française du candidat.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O03",
+            "jobId": "add897b3-a969-49e8-bcf9-25e005208fea",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement au profil cible d'analyste de crédit et se situe dans la région souhaitée du CENTRE."
+          },
+          {
+            "code": "O11",
+            "jobId": "65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10",
+            "score": 0.85,
+            "reason": "Cette offre dans le secteur bancaire à Yaoundé utilise les compétences en finance et la langue française du candidat."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 2204,
+        "finishReason": "STOP",
+        "tokensIn": 1601,
+        "tokensOut": 182,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"add897b3-a969-49e8-bcf9-25e005208fea\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement à la spécialisation en analyse de crédit et à la région CENTRE recherchée.\"\n    },\n    {\n      \"jobId\": \"65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10\",\n      \"score\": 0.85,\n      \"reason\": \"Cette opportunité bancaire à Yaoundé valorise l'expérience en modélisation financière et en gestion des risques.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O03",
+            "jobId": "add897b3-a969-49e8-bcf9-25e005208fea",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement à la spécialisation en analyse de crédit et à la région CENTRE recherchée."
+          },
+          {
+            "code": "O11",
+            "jobId": "65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10",
+            "score": 0.85,
+            "reason": "Cette opportunité bancaire à Yaoundé valorise l'expérience en modélisation financière et en gestion des risques."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 17066,
+        "finishReason": "STOP",
+        "tokensIn": 1601,
+        "tokensOut": 269,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"add897b3-a969-49e8-bcf9-25e005208fea\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil de Credit Analyst et se situe à Yaoundé dans la région du CENTRE.\"\n    },\n    {\n      \"jobId\": \"65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10\",\n      \"score\": 0.85,\n      \"reason\": \"Cette offre dans le secteur bancaire à Yaoundé valorise vos compétences en analyse financière et gestion des risques.\"\n    },\n    {\n      \"jobId\": \"cd57ff6d-6976-4d85-8a2a-2c57a578b136\",\n      \"score\": 0.65,\n      \"reason\": \"Ce rôle financier nécessite des compétences en réconciliation et traitement de données compatibles avec votre maîtrise d'Excel.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O03",
+            "jobId": "add897b3-a969-49e8-bcf9-25e005208fea",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement à votre profil de Credit Analyst et se situe à Yaoundé dans la région du CENTRE."
+          },
+          {
+            "code": "O11",
+            "jobId": "65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10",
+            "score": 0.85,
+            "reason": "Cette offre dans le secteur bancaire à Yaoundé valorise vos compétences en analyse financière et gestion des risques."
+          },
+          {
+            "code": "O02",
+            "jobId": "cd57ff6d-6976-4d85-8a2a-2c57a578b136",
+            "score": 0.65,
+            "reason": "Ce rôle financier nécessite des compétences en réconciliation et traitement de données compatibles avec votre maîtrise d'Excel."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P03": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 21619,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 110,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"37a3fdea-0368-4547-a9af-5bd8ef3e7441\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste de stagiaire en génie logiciel à Yaoundé correspond parfaitement à votre profil de 1 an d'expérience et à votre recherche dans la région du Centre.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O20",
+            "jobId": "37a3fdea-0368-4547-a9af-5bd8ef3e7441",
+            "score": 0.95,
+            "reason": "Ce poste de stagiaire en génie logiciel à Yaoundé correspond parfaitement à votre profil de 1 an d'expérience et à votre recherche dans la région du Centre."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 31067,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 100,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"37a3fdea-0368-4547-a9af-5bd8ef3e7441\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste de stage en génie logiciel à Yaoundé dans la région du Centre correspond parfaitement au profil junior recherché.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O20",
+            "jobId": "37a3fdea-0368-4547-a9af-5bd8ef3e7441",
+            "score": 0.95,
+            "reason": "Ce poste de stage en génie logiciel à Yaoundé dans la région du Centre correspond parfaitement au profil junior recherché."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1413,
+        "finishReason": "STOP",
+        "tokensIn": 1610,
+        "tokensOut": 108,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"37a3fdea-0368-4547-a9af-5bd8ef3e7441\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste de stage en génie logiciel à Yaoundé correspond parfaitement à votre profil de débutant recherchant un contrat de type stage dans la région du Centre.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O20",
+            "jobId": "37a3fdea-0368-4547-a9af-5bd8ef3e7441",
+            "score": 0.95,
+            "reason": "Ce poste de stage en génie logiciel à Yaoundé correspond parfaitement à votre profil de débutant recherchant un contrat de type stage dans la région du Centre."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P04": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1801,
+        "finishReason": "STOP",
+        "tokensIn": 1636,
+        "tokensOut": 281,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"09440e5e-9f26-4d15-82e3-ab4f84597fc1\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au rôle cible d'infirmière et se situe dans la région privilégiée du Nord-Ouest.\"\n    },\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.9,\n      \"reason\": \"Ce poste en santé publique à Bamenda valorise l'expérience en santé maternelle de la candidate dans le Nord-Ouest.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.75,\n      \"reason\": \"L'expérience de la candidate en soins aux patients et en vaccination s'aligne directement sur les tâches requises pour ce rôle.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O17",
+            "jobId": "09440e5e-9f26-4d15-82e3-ab4f84597fc1",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au rôle cible d'infirmière et se situe dans la région privilégiée du Nord-Ouest."
+          },
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.9,
+            "reason": "Ce poste en santé publique à Bamenda valorise l'expérience en santé maternelle de la candidate dans le Nord-Ouest."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.75,
+            "reason": "L'expérience de la candidate en soins aux patients et en vaccination s'aligne directement sur les tâches requises pour ce rôle."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-latest",
+        "modelVersion": "gemini-3.8-flash",
+        "latencyMs": 8083,
+        "finishReason": "STOP",
+        "tokensIn": 1636,
+        "tokensOut": 279,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"09440e5e-9f26-4d15-82e3-ab4f84597fc1\",\n      \"score\": 0.98,\n      \"reason\": \"Correspond parfaitement à votre rôle cible d'infirmier d'État et à votre localisation souhaitée dans le Nord-Ouest à Bamenda.\"\n    },\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.82,\n      \"reason\": \"Poste à temps plein situé dans le Nord-Ouest qui valorise directement votre expérience en santé maternelle.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.65,\n      \"reason\": \"Mobilise directement vos compétences en vaccination et en santé maternelle et infantile au sein d'une organisation de santé reconnue.\"\n    }\n  ]\n}",
+        "unavailable": [],
+        "picks": [
+          {
+            "code": "O17",
+            "jobId": "09440e5e-9f26-4d15-82e3-ab4f84597fc1",
+            "score": 0.98,
+            "reason": "Correspond parfaitement à votre rôle cible d'infirmier d'État et à votre localisation souhaitée dans le Nord-Ouest à Bamenda."
+          },
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.82,
+            "reason": "Poste à temps plein situé dans le Nord-Ouest qui valorise directement votre expérience en santé maternelle."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.65,
+            "reason": "Mobilise directement vos compétences en vaccination et en santé maternelle et infantile au sein d'une organisation de santé reconnue."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-latest",
+        "modelVersion": "gemini-3.8-flash",
+        "latencyMs": 8195,
+        "finishReason": "STOP",
+        "tokensIn": 1636,
+        "tokensOut": 284,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"09440e5e-9f26-4d15-82e3-ab4f84597fc1\",\n      \"score\": 0.98,\n      \"reason\": \"Correspondance parfaite avec votre profil d'infirmier diplômé d'État, vos compétences en soins aux patients et votre localisation dans le Nord-Ouest.\"\n    },\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.85,\n      \"reason\": \"Ce poste à temps plein basé à Bamenda s'aligne directement avec votre expertise en santé maternelle.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.68,\n      \"reason\": \"Mobilise vos compétences en vaccination et soins de santé maternelle au sein du même réseau de santé, malgré un changement de région.\"\n    }\n  ]\n}",
+        "unavailable": [],
+        "picks": [
+          {
+            "code": "O17",
+            "jobId": "09440e5e-9f26-4d15-82e3-ab4f84597fc1",
+            "score": 0.98,
+            "reason": "Correspondance parfaite avec votre profil d'infirmier diplômé d'État, vos compétences en soins aux patients et votre localisation dans le Nord-Ouest."
+          },
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.85,
+            "reason": "Ce poste à temps plein basé à Bamenda s'aligne directement avec votre expertise en santé maternelle."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.68,
+            "reason": "Mobilise vos compétences en vaccination et soins de santé maternelle au sein du même réseau de santé, malgré un changement de région."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P05": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1482,
+        "finishReason": "STOP",
+        "tokensIn": 1627,
+        "tokensOut": 178,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.82,\n      \"reason\": \"Ce poste correspond à votre profil de gestion de programmes de santé publique avec 7 ans d'expérience.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.65,\n      \"reason\": \"Cette offre dans le domaine de la santé correspond à vos compétences en mobilisation communautaire.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.82,
+            "reason": "Ce poste correspond à votre profil de gestion de programmes de santé publique avec 7 ans d'expérience."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.65,
+            "reason": "Cette offre dans le domaine de la santé correspond à vos compétences en mobilisation communautaire."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1494,
+        "finishReason": "STOP",
+        "tokensIn": 1627,
+        "tokensOut": 180,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.82,\n      \"reason\": \"Ce poste correspond parfaitement à vos 7 années d'expérience en tant que coordinateur de programmes de santé publique.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.65,\n      \"reason\": \"Cette offre dans le secteur de la santé valorise votre expertise en mobilisation communautaire.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.82,
+            "reason": "Ce poste correspond parfaitement à vos 7 années d'expérience en tant que coordinateur de programmes de santé publique."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.65,
+            "reason": "Cette offre dans le secteur de la santé valorise votre expertise en mobilisation communautaire."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-latest",
+        "modelVersion": "gemini-3.8-flash",
+        "latencyMs": 16273,
+        "finishReason": "STOP",
+        "tokensIn": 1627,
+        "tokensOut": 183,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"7acde681-3fa4-45b2-923b-c00a1820ac5b\",\n      \"score\": 0.88,\n      \"reason\": \"Ce poste correspond parfaitement à votre rôle cible et valorise votre solide expérience en gestion de programmes de santé publique.\"\n    },\n    {\n      \"jobId\": \"3596a81b-73ba-4a7e-b4fe-c8ff75977459\",\n      \"score\": 0.58,\n      \"reason\": \"Cette mission en santé communautaire mobilise vos compétences en sensibilisation de terrain et votre profil bilingue.\"\n    }\n  ]\n}",
+        "unavailable": [],
+        "picks": [
+          {
+            "code": "O15",
+            "jobId": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+            "score": 0.88,
+            "reason": "Ce poste correspond parfaitement à votre rôle cible et valorise votre solide expérience en gestion de programmes de santé publique."
+          },
+          {
+            "code": "O01",
+            "jobId": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+            "score": 0.58,
+            "reason": "Cette mission en santé communautaire mobilise vos compétences en sensibilisation de terrain et votre profil bilingue."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P06": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1676,
+        "finishReason": "STOP",
+        "tokensIn": 1625,
+        "tokensOut": 190,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"2a38fc56-2eac-4b98-beaf-32243133e8a3\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil grâce à votre expérience en moteurs diesel et maintenance mécanique dans la région de Douala.\"\n    },\n    {\n      \"jobId\": \"ddda98ed-44ef-472d-a3a2-8b2e09ad2171\",\n      \"score\": 0.75,\n      \"reason\": \"Ce poste à Douala bénéficie de vos 6 années d'expérience en maintenance et gestion d'usine dans le secteur manufacturier.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O09",
+            "jobId": "2a38fc56-2eac-4b98-beaf-32243133e8a3",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement à votre profil grâce à votre expérience en moteurs diesel et maintenance mécanique dans la région de Douala."
+          },
+          {
+            "code": "O14",
+            "jobId": "ddda98ed-44ef-472d-a3a2-8b2e09ad2171",
+            "score": 0.75,
+            "reason": "Ce poste à Douala bénéficie de vos 6 années d'expérience en maintenance et gestion d'usine dans le secteur manufacturier."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 14319,
+        "finishReason": "STOP",
+        "tokensIn": 1625,
+        "tokensOut": 193,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"2a38fc56-2eac-4b98-beaf-32243133e8a3\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil grâce à votre expérience en moteurs diesel et maintenance mécanique à Douala dans la région du Littoral.\"\n    },\n    {\n      \"jobId\": \"ddda98ed-44ef-472d-a3a2-8b2e09ad2171\",\n      \"score\": 0.78,\n      \"reason\": \"Ce poste basé à Douala met à profit vos compétences en maintenance préventive et en supervision industrielle au sein d'une usine.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O09",
+            "jobId": "2a38fc56-2eac-4b98-beaf-32243133e8a3",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement à votre profil grâce à votre expérience en moteurs diesel et maintenance mécanique à Douala dans la région du Littoral."
+          },
+          {
+            "code": "O14",
+            "jobId": "ddda98ed-44ef-472d-a3a2-8b2e09ad2171",
+            "score": 0.78,
+            "reason": "Ce poste basé à Douala met à profit vos compétences en maintenance préventive et en supervision industrielle au sein d'une usine."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-latest",
+        "modelVersion": "gemini-3.8-flash",
+        "latencyMs": 6739,
+        "finishReason": "STOP",
+        "tokensIn": 1625,
+        "tokensOut": 189,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"2a38fc56-2eac-4b98-beaf-32243133e8a3\",\n      \"score\": 0.96,\n      \"reason\": \"Ce poste basé à Douala correspond idéalement à vos compétences en maintenance mécanique et moteurs diesel.\"\n    },\n    {\n      \"jobId\": \"ddda98ed-44ef-472d-a3a2-8b2e09ad2171\",\n      \"score\": 0.58,\n      \"reason\": \"Ce rôle en usine à Douala permet de mettre à profit vos 6 ans d'expérience industrielle et votre profil technique dans la région du Littoral.\"\n    }\n  ]\n}",
+        "unavailable": [],
+        "picks": [
+          {
+            "code": "O09",
+            "jobId": "2a38fc56-2eac-4b98-beaf-32243133e8a3",
+            "score": 0.96,
+            "reason": "Ce poste basé à Douala correspond idéalement à vos compétences en maintenance mécanique et moteurs diesel."
+          },
+          {
+            "code": "O14",
+            "jobId": "ddda98ed-44ef-472d-a3a2-8b2e09ad2171",
+            "score": 0.58,
+            "reason": "Ce rôle en usine à Douala permet de mettre à profit vos 6 ans d'expérience industrielle et votre profil technique dans la région du Littoral."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P07": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1654,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 101,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d793a87f-ff25-4d1d-ae98-b4aff876b4f5\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond exactement à vos compétences en contrôle qualité et se situe dans la région souhaitée du Littoral à Douala.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O16",
+            "jobId": "d793a87f-ff25-4d1d-ae98-b4aff876b4f5",
+            "score": 0.95,
+            "reason": "Ce poste correspond exactement à vos compétences en contrôle qualité et se situe dans la région souhaitée du Littoral à Douala."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 2572,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 186,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d793a87f-ff25-4d1d-ae98-b4aff876b4f5\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement au profil recherché de technicien en contrôle qualité basé à Douala dans la région du Littoral.\"\n    },\n    {\n      \"jobId\": \"ddda98ed-44ef-472d-a3a2-8b2e09ad2171\",\n      \"score\": 0.78,\n      \"reason\": \"Ce poste de superviseur de production à Douala requiert de faire respecter les procédures de qualité et de sécurité.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O16",
+            "jobId": "d793a87f-ff25-4d1d-ae98-b4aff876b4f5",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement au profil recherché de technicien en contrôle qualité basé à Douala dans la région du Littoral."
+          },
+          {
+            "code": "O14",
+            "jobId": "ddda98ed-44ef-472d-a3a2-8b2e09ad2171",
+            "score": 0.78,
+            "reason": "Ce poste de superviseur de production à Douala requiert de faire respecter les procédures de qualité et de sécurité."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1356,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 100,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d793a87f-ff25-4d1d-ae98-b4aff876b4f5\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil de technicien en contrôle qualité basé à Douala dans la région du Littoral.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O16",
+            "jobId": "d793a87f-ff25-4d1d-ae98-b4aff876b4f5",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement à votre profil de technicien en contrôle qualité basé à Douala dans la région du Littoral."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P08": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 2545,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 200,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d992e11e-99fe-4895-8f31-8e0c39b93647\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au rôle cible de conseiller en vente et est situé dans la région souhaitée du Nord-Ouest à Bamenda.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.85,\n      \"reason\": \"L'expérience du candidat en service client et en Mobile Money s'aligne directement sur les exigences de ce poste de support client chez MTN.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O18",
+            "jobId": "d992e11e-99fe-4895-8f31-8e0c39b93647",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au rôle cible de conseiller en vente et est situé dans la région souhaitée du Nord-Ouest à Bamenda."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.85,
+            "reason": "L'expérience du candidat en service client et en Mobile Money s'aligne directement sur les exigences de ce poste de support client chez MTN."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 2594,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 195,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d992e11e-99fe-4895-8f31-8e0c39b93647\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au rôle visé de conseiller en vente et se situe dans la région recherchée du Nord-Ouest à Bamenda.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.85,\n      \"reason\": \"L'expérience du candidat en service client et en Mobile Money est directement applicable pour ce poste de support chez MTN.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O18",
+            "jobId": "d992e11e-99fe-4895-8f31-8e0c39b93647",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au rôle visé de conseiller en vente et se situe dans la région recherchée du Nord-Ouest à Bamenda."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.85,
+            "reason": "L'expérience du candidat en service client et en Mobile Money est directement applicable pour ce poste de support chez MTN."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1599,
+        "finishReason": "STOP",
+        "tokensIn": 1638,
+        "tokensOut": 193,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"d992e11e-99fe-4895-8f31-8e0c39b93647\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au rôle cible de conseiller en vente et se situe dans la région privilégiée du Nord-Ouest à Bamenda.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.85,\n      \"reason\": \"L'expérience du candidat en service client et en Mobile Money est directement applicable à ce poste de support client.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O18",
+            "jobId": "d992e11e-99fe-4895-8f31-8e0c39b93647",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au rôle cible de conseiller en vente et se situe dans la région privilégiée du Nord-Ouest à Bamenda."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.85,
+            "reason": "L'expérience du candidat en service client et en Mobile Money est directement applicable à ce poste de support client."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P09": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1751,
+        "finishReason": "STOP",
+        "tokensIn": 1629,
+        "tokensOut": 192,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"befc89fe-296a-4f93-a311-f01887dbfe1c\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement au profil grâce à la gestion de campagnes marketing et sa localisation à Douala dans la région du Littoral.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.75,\n      \"reason\": \"Ce poste à Douala utilise les compétences en communication et exige un bilinguisme français et anglais maîtrisé par le candidat.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O10",
+            "jobId": "befc89fe-296a-4f93-a311-f01887dbfe1c",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement au profil grâce à la gestion de campagnes marketing et sa localisation à Douala dans la région du Littoral."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.75,
+            "reason": "Ce poste à Douala utilise les compétences en communication et exige un bilinguisme français et anglais maîtrisé par le candidat."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1670,
+        "finishReason": "STOP",
+        "tokensIn": 1629,
+        "tokensOut": 182,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"befc89fe-296a-4f93-a311-f01887dbfe1c\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil en marketing digital avec une localisation à Douala dans la région du Littoral.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.72,\n      \"reason\": \"Ce poste à Douala exige le bilinguisme français et anglais que vous maîtrisez.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O10",
+            "jobId": "befc89fe-296a-4f93-a311-f01887dbfe1c",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement à votre profil en marketing digital avec une localisation à Douala dans la région du Littoral."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.72,
+            "reason": "Ce poste à Douala exige le bilinguisme français et anglais que vous maîtrisez."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1456,
+        "finishReason": "STOP",
+        "tokensIn": 1629,
+        "tokensOut": 186,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"befc89fe-296a-4f93-a311-f01887dbfe1c\",\n      \"score\": 0.95,\n      \"reason\": \"Ce poste correspond parfaitement au rôle cible de marketing et se situe dans la région privilégiée du Littoral à Douala.\"\n    },\n    {\n      \"jobId\": \"9410c363-c145-4084-b8e0-f1445bfafc60\",\n      \"score\": 0.65,\n      \"reason\": \"Ce poste basé à Douala requiert le bilinguisme français-anglais que maîtrise le candidat.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O10",
+            "jobId": "befc89fe-296a-4f93-a311-f01887dbfe1c",
+            "score": 0.95,
+            "reason": "Ce poste correspond parfaitement au rôle cible de marketing et se situe dans la région privilégiée du Littoral à Douala."
+          },
+          {
+            "code": "O04",
+            "jobId": "9410c363-c145-4084-b8e0-f1445bfafc60",
+            "score": 0.65,
+            "reason": "Ce poste basé à Douala requiert le bilinguisme français-anglais que maîtrise le candidat."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ],
+    "P10": [
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1334,
+        "finishReason": "STOP",
+        "tokensIn": 1620,
+        "tokensOut": 105,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"1122d3e6-8bc0-4702-a917-e32fc9c877da\",\n      \"score\": 0.99,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'utilisation requise de Python et Spark dans la région du Littoral.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O06",
+            "jobId": "1122d3e6-8bc0-4702-a917-e32fc9c877da",
+            "score": 0.99,
+            "reason": "Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'utilisation requise de Python et Spark dans la région du Littoral."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1419,
+        "finishReason": "STOP",
+        "tokensIn": 1620,
+        "tokensOut": 111,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"1122d3e6-8bc0-4702-a917-e32fc9c877da\",\n      \"score\": 0.98,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'exigence des compétences en Python et Spark, tout en étant basé dans la région du Littoral.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 503"
+        ],
+        "picks": [
+          {
+            "code": "O06",
+            "jobId": "1122d3e6-8bc0-4702-a917-e32fc9c877da",
+            "score": 0.98,
+            "reason": "Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'exigence des compétences en Python et Spark, tout en étant basé dans la région du Littoral."
+          }
+        ],
+        "hallucinated": 0
+      },
+      {
+        "model": "gemini-flash-lite-latest",
+        "modelVersion": "gemini-3.5-flash-lite",
+        "latencyMs": 1571,
+        "finishReason": "STOP",
+        "tokensIn": 1620,
+        "tokensOut": 105,
+        "raw": "{\n  \"recommendations\": [\n    {\n      \"jobId\": \"1122d3e6-8bc0-4702-a917-e32fc9c877da\",\n      \"score\": 0.99,\n      \"reason\": \"Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'utilisation requise de Python et Spark dans la région du Littoral.\"\n    }\n  ]\n}",
+        "unavailable": [
+          "gemini-flash-latest: HTTP 429"
+        ],
+        "picks": [
+          {
+            "code": "O06",
+            "jobId": "1122d3e6-8bc0-4702-a917-e32fc9c877da",
+            "score": 0.99,
+            "reason": "Ce poste correspond parfaitement à votre profil de Data Engineer grâce à l'utilisation requise de Python et Spark dans la région du Littoral."
+          }
+        ],
+        "hallucinated": 0
+      }
+    ]
+  }
+}

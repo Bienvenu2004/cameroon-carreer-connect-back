@@ -1,0 +1,725 @@
+{
+  "seed": 20260917,
+  "poolSize": 10,
+  "excludedTitles": [
+    "Dish asher",
+    "Enseignant",
+    "We need a prompt engineer"
+  ],
+  "offers": [
+    {
+      "id": "3596a81b-73ba-4a7e-b4fe-c8ff75977459",
+      "title": "Community Health Worker (Sud)",
+      "company": "Cameroon Baptist Convention Health Services",
+      "industry": "HEALTHCARE",
+      "city": "Ebolowa",
+      "region": "SUD",
+      "country": "Cameroon",
+      "type": "CONTRACT",
+      "site": "ONSITE",
+      "language": "BILINGUAL",
+      "salaryMin": "320000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Support outreach clinics in rural Sud. Vaccination drives, mother-and-child care.",
+      "createdAt": "2026-05-06T10:04:21.305019",
+      "code": "O01"
+    },
+    {
+      "id": "cd57ff6d-6976-4d85-8a2a-2c57a578b136",
+      "title": "Cooperative Finance Officer",
+      "company": "SoFaVinc Agribusiness",
+      "industry": "AGRICULTURE",
+      "city": "Bafoussam",
+      "region": "OUEST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "",
+      "salaryMin": "620000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Track member payouts, reconcile bank transactions, prepare monthly cooperative statements.",
+      "createdAt": "2026-05-06T10:04:21.303053",
+      "code": "O02"
+    },
+    {
+      "id": "add897b3-a969-49e8-bcf9-25e005208fea",
+      "title": "Credit Risk Analyst",
+      "company": "Afriland First Bank",
+      "industry": "BANKING_FINANCE",
+      "city": "Yaoundé",
+      "region": "CENTRE",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "950000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Assess loan applications using our internal scoring model and recommend approval levels.",
+      "createdAt": "2026-05-06T10:04:21.300014",
+      "code": "O03"
+    },
+    {
+      "id": "9410c363-c145-4084-b8e0-f1445bfafc60",
+      "title": "Customer Experience Associate",
+      "company": "MTN Cameroon",
+      "industry": "TELECOMMUNICATIONS",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "BILINGUAL",
+      "salaryMin": "450000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Front-line support for MTN Mobile Money customers. Bilingual English/French required.",
+      "createdAt": "2026-05-06T10:04:21.299009",
+      "code": "O04"
+    },
+    {
+      "id": "b17d6718-1574-4780-8c41-13ce20148a9f",
+      "title": "Customer Success Lead (Schools)",
+      "company": "EduFirst Cameroon",
+      "industry": "EDUCATION",
+      "city": "Yaoundé",
+      "region": "CENTRE",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "ENGLISH",
+      "salaryMin": "820000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Onboard partner schools, train teachers, monitor adoption KPIs. Frequent travel.",
+      "createdAt": "2026-05-06T10:04:21.305019",
+      "code": "O05"
+    },
+    {
+      "id": "1122d3e6-8bc0-4702-a917-e32fc9c877da",
+      "title": "Data Engineer (Python/Spark)",
+      "company": "MTN Cameroon",
+      "industry": "TELECOMMUNICATIONS",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "REMOTE",
+      "language": "ENGLISH",
+      "salaryMin": "1200000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Build and maintain our customer-360 data lake. Strong SQL + PySpark experience required.",
+      "createdAt": "2026-05-06T10:04:21.299009",
+      "code": "O06"
+    },
+    {
+      "id": "ab552d33-ec98-4d37-a239-064a954f18bf",
+      "title": "Field Agronomist",
+      "company": "SoFaVinc Agribusiness",
+      "industry": "AGRICULTURE",
+      "city": "Bafoussam",
+      "region": "OUEST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "550000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Train and support cocoa cooperative members in the Ouest region. Frequent field visits.",
+      "createdAt": "2026-05-06T10:04:21.303053",
+      "code": "O07"
+    },
+    {
+      "id": "3b889f38-b014-484d-8c5d-abc5d0a98621",
+      "title": "Forest-Coffee Project Lead (Est)",
+      "company": "SoFaVinc Agribusiness",
+      "industry": "AGRICULTURE",
+      "city": "Bertoua",
+      "region": "EST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "FRENCH",
+      "salaryMin": "900000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Lead our agroforestry coffee initiative in the Est region. Strong project-management background required.",
+      "createdAt": "2026-05-06T10:04:21.310023",
+      "code": "O08"
+    },
+    {
+      "id": "2a38fc56-2eac-4b98-beaf-32243133e8a3",
+      "title": "Locomotive Mechanical Engineer",
+      "company": "Camrail",
+      "industry": "LOGISTICS_TRANSPORT",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "1050000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Maintenance lead for our diesel-electric locomotive fleet at the Bessengue depot.",
+      "createdAt": "2026-05-06T10:04:21.302015",
+      "code": "O09"
+    },
+    {
+      "id": "befc89fe-296a-4f93-a311-f01887dbfe1c",
+      "title": "Marketing Campaign Manager",
+      "company": "Orange Cameroun",
+      "industry": "TELECOMMUNICATIONS",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "BILINGUAL",
+      "salaryMin": "1100000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Plan, run and measure cross-channel campaigns for our consumer mobile offers.",
+      "createdAt": "2026-05-06T10:04:21.301017",
+      "code": "O10"
+    },
+    {
+      "id": "65dc9a52-b9d2-41dd-9b2a-d08ddbb5ce10",
+      "title": "Mobile Banking Product Manager",
+      "company": "Afriland First Bank",
+      "industry": "BANKING_FINANCE",
+      "city": "Yaoundé",
+      "region": "CENTRE",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "FRENCH",
+      "salaryMin": "1400000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Own the roadmap for our mobile banking app. Coordinate with engineering, marketing and risk.",
+      "createdAt": "2026-05-06T10:04:21.300014",
+      "code": "O11"
+    },
+    {
+      "id": "a56e7a81-61ef-4c58-829f-f37622ba5592",
+      "title": "Operations Coordinator (Ngaoundéré)",
+      "company": "Camrail",
+      "industry": "LOGISTICS_TRANSPORT",
+      "city": "Ngaoundéré",
+      "region": "ADAMAOUA",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "FRENCH",
+      "salaryMin": "680000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Coordinate freight loading, train dispatch and customer communication at our Ngaoundéré yard.",
+      "createdAt": "2026-05-06T10:04:21.302015",
+      "code": "O12"
+    },
+    {
+      "id": "413cd26b-0dbf-4164-83f6-2c15862bb024",
+      "title": "Pedagogical Content Designer (FR)",
+      "company": "EduFirst Cameroon",
+      "industry": "EDUCATION",
+      "city": "Yaoundé",
+      "region": "CENTRE",
+      "country": "Cameroon",
+      "type": "PART_TIME",
+      "site": "REMOTE",
+      "language": "",
+      "salaryMin": "400000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Design lesson scripts and learning sequences for our French primary curriculum.",
+      "createdAt": "2026-05-06T10:04:21.304016",
+      "code": "O13"
+    },
+    {
+      "id": "ddda98ed-44ef-472d-a3a2-8b2e09ad2171",
+      "title": "Production Supervisor",
+      "company": "Chococam SA",
+      "industry": "MANUFACTURING",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "750000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Supervise the daytime shift at our Bassa factory. Enforce quality and safety procedures.",
+      "createdAt": "2026-05-06T10:04:21.300014",
+      "code": "O14"
+    },
+    {
+      "id": "7acde681-3fa4-45b2-923b-c00a1820ac5b",
+      "title": "Public-Health Programme Coordinator",
+      "company": "Cameroon Baptist Convention Health Services",
+      "industry": "HEALTHCARE",
+      "city": "Bamenda",
+      "region": "NORD_OUEST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "FRENCH",
+      "salaryMin": "780000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Coordinate our maternal-health outreach across the Northwest. Driving licence essential.",
+      "createdAt": "2026-05-06T10:04:21.304016",
+      "code": "O15"
+    },
+    {
+      "id": "d793a87f-ff25-4d1d-ae98-b4aff876b4f5",
+      "title": "Quality Assurance Technician",
+      "company": "Chococam SA",
+      "industry": "MANUFACTURING",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "ENGLISH",
+      "salaryMin": "520000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Test incoming raw cocoa and outgoing batches against our quality standards.",
+      "createdAt": "2026-05-06T10:04:21.301017",
+      "code": "O16"
+    },
+    {
+      "id": "09440e5e-9f26-4d15-82e3-ab4f84597fc1",
+      "title": "Registered Nurse — Mbingo Baptist Hospital",
+      "company": "Cameroon Baptist Convention Health Services",
+      "industry": "HEALTHCARE",
+      "city": "Bamenda",
+      "region": "NORD_OUEST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "450000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Ward nursing care, patient education, supervision of nursing assistants. State Registered Nurse required.",
+      "createdAt": "2026-05-06T10:04:21.303053",
+      "code": "O17"
+    },
+    {
+      "id": "d992e11e-99fe-4895-8f31-8e0c39b93647",
+      "title": "Retail Sales Advisor (Bamenda)",
+      "company": "Orange Cameroun",
+      "industry": "TELECOMMUNICATIONS",
+      "city": "Bamenda",
+      "region": "NORD_OUEST",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "ONSITE",
+      "language": "",
+      "salaryMin": "280000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Welcome customers in our Bamenda store and advise them on prepaid and postpaid plans.",
+      "createdAt": "2026-05-06T10:04:21.302015",
+      "code": "O18"
+    },
+    {
+      "id": "ee56159e-4df5-4267-ba64-e28f37e92b28",
+      "title": "Senior Network Engineer",
+      "company": "MTN Cameroon",
+      "industry": "TELECOMMUNICATIONS",
+      "city": "Douala",
+      "region": "LITTORAL",
+      "country": "Cameroon",
+      "type": "FULL_TIME",
+      "site": "HYBRID",
+      "language": "ENGLISH",
+      "salaryMin": "1500000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Lead engineer for our LTE/5G core network. Plan capacity, troubleshoot incidents, mentor junior engineers.",
+      "createdAt": "2026-05-06T10:04:21.295753",
+      "code": "O19"
+    },
+    {
+      "id": "37a3fdea-0368-4547-a9af-5bd8ef3e7441",
+      "title": "Software Engineering Intern (6 months)",
+      "company": "EduFirst Cameroon",
+      "industry": "EDUCATION",
+      "city": "Yaoundé",
+      "region": "CENTRE",
+      "country": "Cameroon",
+      "type": "INTERN",
+      "site": "HYBRID",
+      "language": "ENGLISH",
+      "salaryMin": "150000.00",
+      "salaryMax": "",
+      "salaryCurrency": "XAF",
+      "description": "Pair with our senior engineers on real product features. Stipend + mentorship.",
+      "createdAt": "2026-05-06T10:04:21.311052",
+      "code": "O20"
+    }
+  ],
+  "profiles": [
+    {
+      "code": "P01",
+      "summaryFr": "Agronome de terrain, 4 ans d'expérience, basé à l'Ouest.",
+      "skills": [
+        "Agronomy",
+        "Soil analysis",
+        "Crop protection",
+        "Farmer training",
+        "GPS field mapping"
+      ],
+      "spokenLanguages": [
+        "French",
+        "English"
+      ],
+      "yearsOfExperience": 4,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "OUEST",
+      "targetRole": "Field Agronomist",
+      "targetIndustries": [
+        "AGRICULTURE"
+      ]
+    },
+    {
+      "code": "P02",
+      "summaryFr": "Analyste crédit junior, 3 ans en banque, basé au Centre.",
+      "skills": [
+        "Credit analysis",
+        "Financial modelling",
+        "Excel",
+        "IFRS",
+        "Risk assessment"
+      ],
+      "spokenLanguages": [
+        "French"
+      ],
+      "yearsOfExperience": 3,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Credit Analyst",
+      "targetIndustries": [
+        "BANKING_FINANCE"
+      ]
+    },
+    {
+      "code": "P03",
+      "summaryFr": "Développeur backend débutant (1 an), Java et React, basé au Centre.",
+      "skills": [
+        "Java",
+        "Spring Boot",
+        "React",
+        "SQL",
+        "Git"
+      ],
+      "spokenLanguages": [
+        "English",
+        "French"
+      ],
+      "yearsOfExperience": 1,
+      "employmentType": "Internship or full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Junior Backend Developer",
+      "targetIndustries": [
+        "EDUCATION",
+        "TELECOMMUNICATIONS"
+      ]
+    },
+    {
+      "code": "P04",
+      "summaryFr": "Infirmière diplômée d'État, 5 ans en hôpital, basée au Nord-Ouest.",
+      "skills": [
+        "Patient care",
+        "Triage",
+        "Vaccination",
+        "Maternal health",
+        "Medical record keeping"
+      ],
+      "spokenLanguages": [
+        "English",
+        "Pidgin"
+      ],
+      "yearsOfExperience": 5,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "NORD_OUEST",
+      "targetRole": "Registered Nurse",
+      "targetIndustries": [
+        "HEALTHCARE"
+      ]
+    },
+    {
+      "code": "P05",
+      "summaryFr": "Chargé de programmes de santé publique, 7 ans d'expérience, basé au Centre.",
+      "skills": [
+        "Epidemiology",
+        "Programme management",
+        "Monitoring and evaluation",
+        "Community mobilisation",
+        "DHIS2"
+      ],
+      "spokenLanguages": [
+        "French",
+        "English"
+      ],
+      "yearsOfExperience": 7,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Public Health Programme Officer",
+      "targetIndustries": [
+        "HEALTHCARE"
+      ]
+    },
+    {
+      "code": "P06",
+      "summaryFr": "Ingénieur mécanicien de maintenance, 6 ans d'expérience, basé au Littoral.",
+      "skills": [
+        "Mechanical maintenance",
+        "Diesel engines",
+        "Preventive maintenance",
+        "AutoCAD",
+        "Hydraulics"
+      ],
+      "spokenLanguages": [
+        "French"
+      ],
+      "yearsOfExperience": 6,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Maintenance Engineer",
+      "targetIndustries": [
+        "LOGISTICS_TRANSPORT",
+        "MANUFACTURING"
+      ]
+    },
+    {
+      "code": "P07",
+      "summaryFr": "Technicienne contrôle qualité agroalimentaire, 2 ans d'expérience, basée au Littoral.",
+      "skills": [
+        "Quality control",
+        "HACCP",
+        "ISO 22000",
+        "Laboratory testing",
+        "Food safety"
+      ],
+      "spokenLanguages": [
+        "French",
+        "English"
+      ],
+      "yearsOfExperience": 2,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Quality Control Technician",
+      "targetIndustries": [
+        "MANUFACTURING"
+      ]
+    },
+    {
+      "code": "P08",
+      "summaryFr": "Conseiller commercial et service client, 2 ans d'expérience, basé à Bamenda.",
+      "skills": [
+        "Customer service",
+        "Retail sales",
+        "Mobile money",
+        "CRM",
+        "Complaint handling"
+      ],
+      "spokenLanguages": [
+        "English",
+        "French"
+      ],
+      "yearsOfExperience": 2,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "NORD_OUEST",
+      "targetRole": "Sales Advisor",
+      "targetIndustries": [
+        "TELECOMMUNICATIONS"
+      ]
+    },
+    {
+      "code": "P09",
+      "summaryFr": "Responsable marketing digital, 5 ans d'expérience, basée au Littoral.",
+      "skills": [
+        "Digital marketing",
+        "Campaign management",
+        "Social media",
+        "Market research",
+        "Copywriting"
+      ],
+      "spokenLanguages": [
+        "French",
+        "English"
+      ],
+      "yearsOfExperience": 5,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Marketing Officer",
+      "targetIndustries": [
+        "TELECOMMUNICATIONS"
+      ]
+    },
+    {
+      "code": "P10",
+      "summaryFr": "Ingénieur de données, 4 ans d'expérience, Python et Spark, basé au Littoral.",
+      "skills": [
+        "Python",
+        "Apache Spark",
+        "SQL",
+        "Airflow",
+        "Data pipelines"
+      ],
+      "spokenLanguages": [
+        "English"
+      ],
+      "yearsOfExperience": 4,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Data Engineer",
+      "targetIndustries": [
+        "TELECOMMUNICATIONS",
+        "BANKING_FINANCE"
+      ]
+    }
+  ],
+  "pools": {
+    "P01": [
+      "O20",
+      "O08",
+      "O15",
+      "O07",
+      "O02",
+      "O10",
+      "O16",
+      "O11",
+      "O03",
+      "O06"
+    ],
+    "P02": [
+      "O20",
+      "O08",
+      "O13",
+      "O02",
+      "O07",
+      "O18",
+      "O11",
+      "O03",
+      "O04",
+      "O19"
+    ],
+    "P03": [
+      "O20",
+      "O13",
+      "O15",
+      "O17",
+      "O18",
+      "O14",
+      "O03",
+      "O06",
+      "O04",
+      "O19"
+    ],
+    "P04": [
+      "O20",
+      "O08",
+      "O01",
+      "O05",
+      "O15",
+      "O17",
+      "O07",
+      "O12",
+      "O16",
+      "O11"
+    ],
+    "P05": [
+      "O20",
+      "O08",
+      "O01",
+      "O15",
+      "O17",
+      "O07",
+      "O16",
+      "O03",
+      "O04",
+      "O06"
+    ],
+    "P06": [
+      "O08",
+      "O01",
+      "O02",
+      "O17",
+      "O09",
+      "O12",
+      "O16",
+      "O14",
+      "O04",
+      "O19"
+    ],
+    "P07": [
+      "O08",
+      "O13",
+      "O17",
+      "O12",
+      "O18",
+      "O16",
+      "O14",
+      "O11",
+      "O04",
+      "O06"
+    ],
+    "P08": [
+      "O08",
+      "O01",
+      "O07",
+      "O18",
+      "O10",
+      "O11",
+      "O03",
+      "O06",
+      "O04",
+      "O19"
+    ],
+    "P09": [
+      "O20",
+      "O08",
+      "O17",
+      "O18",
+      "O10",
+      "O14",
+      "O03",
+      "O04",
+      "O06",
+      "O19"
+    ],
+    "P10": [
+      "O08",
+      "O05",
+      "O13",
+      "O07",
+      "O18",
+      "O03",
+      "O11",
+      "O06",
+      "O04",
+      "O19"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+Objet : Demande de participation à une évaluation (40 minutes) — mémoire de Master 2
+
+Bonjour [Nom],
+
+Dans le cadre de mon mémoire de Master 2 (SIGL, Université de Yaoundé I), j'ai développé une plateforme de recrutement qui recommande automatiquement des offres d'emploi aux candidats à l'aide d'une intelligence artificielle. Pour savoir si ces recommandations sont pertinentes, j'ai besoin de les comparer au jugement de professionnels du recrutement.
+
+Je vous serais très reconnaissant de bien vouloir remplir le fichier Excel ci-joint (environ 40 minutes). Il présente dix candidats fictifs et, pour chacun, dix offres d'emploi. Il s'agit simplement d'indiquer, pour chaque paire, dans quelle mesure l'offre convient au candidat, par une note de 0 à 3. Les consignes figurent dans le premier onglet.
+
+Quelques précisions :
+- les candidats sont fictifs et les offres proviennent de la base de démonstration de la plateforme ;
+- vos réponses sont traitées de façon anonyme ;
+- merci de remplir le fichier seul, sans échanger avec les autres évaluateurs.
+
+Une fois le fichier renvoyé, je vous transmettrai une seconde partie plus courte (environ 15 minutes).
+
+Je vous remercie par avance pour votre aide.
+
+Cordialement,
+AMBASSA Bienvenu Prosper
+Étudiant en Master 2 SIGL — Université de Yaoundé I

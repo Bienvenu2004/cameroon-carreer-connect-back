@@ -1,0 +1,131 @@
+{
+  "_comment": [
+    "Fictional candidate profiles for the recruiter evaluation of the AI recommendations.",
+    "None of them describes a real person. Each carries exactly the fields the production",
+    "context builder (LLMContextBuilder) sends to the model, so the model and the recruiters",
+    "judge the same information. 'targetIndustries' is used only to build the offer pool",
+    "(pooling) and is shown to neither the model nor the recruiters."
+  ],
+  "profiles": [
+    {
+      "code": "P01",
+      "summaryFr": "Agronome de terrain, 4 ans d'expérience, basé à l'Ouest.",
+      "skills": ["Agronomy", "Soil analysis", "Crop protection", "Farmer training", "GPS field mapping"],
+      "spokenLanguages": ["French", "English"],
+      "yearsOfExperience": 4,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "OUEST",
+      "targetRole": "Field Agronomist",
+      "targetIndustries": ["AGRICULTURE"]
+    },
+    {
+      "code": "P02",
+      "summaryFr": "Analyste crédit junior, 3 ans en banque, basé au Centre.",
+      "skills": ["Credit analysis", "Financial modelling", "Excel", "IFRS", "Risk assessment"],
+      "spokenLanguages": ["French"],
+      "yearsOfExperience": 3,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Credit Analyst",
+      "targetIndustries": ["BANKING_FINANCE"]
+    },
+    {
+      "code": "P03",
+      "summaryFr": "Développeur backend débutant (1 an), Java et React, basé au Centre.",
+      "skills": ["Java", "Spring Boot", "React", "SQL", "Git"],
+      "spokenLanguages": ["English", "French"],
+      "yearsOfExperience": 1,
+      "employmentType": "Internship or full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Junior Backend Developer",
+      "targetIndustries": ["EDUCATION", "TELECOMMUNICATIONS"]
+    },
+    {
+      "code": "P04",
+      "summaryFr": "Infirmière diplômée d'État, 5 ans en hôpital, basée au Nord-Ouest.",
+      "skills": ["Patient care", "Triage", "Vaccination", "Maternal health", "Medical record keeping"],
+      "spokenLanguages": ["English", "Pidgin"],
+      "yearsOfExperience": 5,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "NORD_OUEST",
+      "targetRole": "Registered Nurse",
+      "targetIndustries": ["HEALTHCARE"]
+    },
+    {
+      "code": "P05",
+      "summaryFr": "Chargé de programmes de santé publique, 7 ans d'expérience, basé au Centre.",
+      "skills": ["Epidemiology", "Programme management", "Monitoring and evaluation", "Community mobilisation", "DHIS2"],
+      "spokenLanguages": ["French", "English"],
+      "yearsOfExperience": 7,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "CENTRE",
+      "targetRole": "Public Health Programme Officer",
+      "targetIndustries": ["HEALTHCARE"]
+    },
+    {
+      "code": "P06",
+      "summaryFr": "Ingénieur mécanicien de maintenance, 6 ans d'expérience, basé au Littoral.",
+      "skills": ["Mechanical maintenance", "Diesel engines", "Preventive maintenance", "AutoCAD", "Hydraulics"],
+      "spokenLanguages": ["French"],
+      "yearsOfExperience": 6,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Maintenance Engineer",
+      "targetIndustries": ["LOGISTICS_TRANSPORT", "MANUFACTURING"]
+    },
+    {
+      "code": "P07",
+      "summaryFr": "Technicienne contrôle qualité agroalimentaire, 2 ans d'expérience, basée au Littoral.",
+      "skills": ["Quality control", "HACCP", "ISO 22000", "Laboratory testing", "Food safety"],
+      "spokenLanguages": ["French", "English"],
+      "yearsOfExperience": 2,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Quality Control Technician",
+      "targetIndustries": ["MANUFACTURING"]
+    },
+    {
+      "code": "P08",
+      "summaryFr": "Conseiller commercial et service client, 2 ans d'expérience, basé à Bamenda.",
+      "skills": ["Customer service", "Retail sales", "Mobile money", "CRM", "Complaint handling"],
+      "spokenLanguages": ["English", "French"],
+      "yearsOfExperience": 2,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "NORD_OUEST",
+      "targetRole": "Sales Advisor",
+      "targetIndustries": ["TELECOMMUNICATIONS"]
+    },
+    {
+      "code": "P09",
+      "summaryFr": "Responsable marketing digital, 5 ans d'expérience, basée au Littoral.",
+      "skills": ["Digital marketing", "Campaign management", "Social media", "Market research", "Copywriting"],
+      "spokenLanguages": ["French", "English"],
+      "yearsOfExperience": 5,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Marketing Officer",
+      "targetIndustries": ["TELECOMMUNICATIONS"]
+    },
+    {
+      "code": "P10",
+      "summaryFr": "Ingénieur de données, 4 ans d'expérience, Python et Spark, basé au Littoral.",
+      "skills": ["Python", "Apache Spark", "SQL", "Airflow", "Data pipelines"],
+      "spokenLanguages": ["English"],
+      "yearsOfExperience": 4,
+      "employmentType": "Full-time",
+      "workAuthorization": "Cameroonian citizen",
+      "preferredRegion": "LITTORAL",
+      "targetRole": "Data Engineer",
+      "targetIndustries": ["TELECOMMUNICATIONS", "BANKING_FINANCE"]
+    }
+  ]
+}

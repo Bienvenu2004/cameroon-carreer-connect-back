@@ -20,7 +20,14 @@ public class Skill extends BaseEntity {
 
     private int yearsOfExperience = 0;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    /**
+     * No cascade from a skill to its owner. This used to be CascadeType.ALL,
+     * which runs the wrong way: removing one skill cascaded the REMOVE up to
+     * the profile, so deleting a single skill tried to delete the job seeker's
+     * whole profile. The profile owns its skills (see JobSeekerProfile.skills),
+     * never the reverse.
+     */
+    @ManyToOne
     @JoinColumn(name = "job_seeker_profile")
     private JobSeekerProfile jobSeekerProfile;
 }

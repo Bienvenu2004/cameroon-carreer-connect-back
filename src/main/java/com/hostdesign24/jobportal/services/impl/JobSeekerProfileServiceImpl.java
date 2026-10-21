@@ -78,7 +78,19 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
         );
     }
 
+    /**
+     * Saving a profile touches four LAZY collections: the mapper clears skills,
+     * and the sync helpers clear experiences and educations so orphanRemoval
+     * fires. Every one of those needs an open Hibernate session, and without a
+     * transaction here the entity was already detached by the time the mapper
+     * reached it, so saving any profile failed with a LazyInitializationException.
+     *
+     * The transaction also makes the save atomic: the method writes the profile,
+     * its files, its skills, its experiences and its educations in several steps,
+     * and a failure half way through must not leave a profile in that state.
+     */
     @Override
+    @Transactional
     public JobSeekerProfile addNew(JobSeekerProfileSaveDto dto) {
 
         User currentUser = Utils.getCurrentUser().orElseThrow(
@@ -110,8 +122,7 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
 
         jobSeekerProfile = jobSeekerProfileRepository.save(jobSeekerProfile);
 
-        List<Skill> skills = createSkillsFromDto(dto, jobSeekerProfile);
-        jobSeekerProfile.setSkills(skills);
+        syncSkillsFromDto(dto, jobSeekerProfile);
 
         // Sync experiences. We mutate the existing managed collection
         // in-place — clear() + addAll() — so Hibernate's orphanRemoval
@@ -279,25 +290,43 @@ public class JobSeekerProfileServiceImpl implements JobSeekerProfileService {
      * {@code CollectionType.replaceElements} on save. Always return a fresh
      * {@link ArrayList}.
      */
-    private List<Skill> createSkillsFromDto(JobSeekerProfileSaveDto dto, JobSeekerProfile jobSeekerProfile) {
-        if (dto == null || dto.getSkills() == null || dto.getSkills().isEmpty()) {
-            return new ArrayList<>();
+    /**
+     * Replace the profile's skills with the ones the DTO sent.
+     *
+     * Mirrors {@link #syncEducationsFromDto}: the managed collection is mutated
+     * in place, so orphanRemoval deletes the skills that were dropped. The old
+     * version saved a new row per skill and swapped the list reference, which
+     * left every previous row in place, so each save duplicated the profile's
+     * skills.
+     *
+     * The endpoint is a full replace: its only caller, the profile form, sends
+     * the whole profile on every save. A multipart request cannot carry an empty
+     * list, so a seeker who removed every skill sends no skills field at all,
+     * and that has to clear them -- exactly as experiences and educations
+     * already behave. Names are de-duplicated case-insensitively, so a repeated
+     * entry cannot recreate the duplicates either.
+     */
+    private void syncSkillsFromDto(JobSeekerProfileSaveDto dto, JobSeekerProfile profile) {
+        if (profile.getSkills() == null) {
+            profile.setSkills(new ArrayList<>());
+        }
+        profile.getSkills().clear();
+
+        if (dto == null || dto.getSkills() == null) {
+            return;
         }
 
-        return dto.getSkills().stream()
-                .filter(Objects::nonNull)
-                .map(skillDto -> {
-                    Skill skill = skillMapper.toEntity(skillDto);
-                    if (skill == null) {
-                        return null;
-                    }
-                    if (jobSeekerProfile != null) {
-                        skill.setJobSeekerProfile(jobSeekerProfile);
-                    }
-                    return skillRepository.save(skill);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(ArrayList::new));
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (var row : dto.getSkills()) {
+            if (row == null || row.getName() == null || row.getName().isBlank()) continue;
+            if (!seen.add(row.getName().trim().toLowerCase(java.util.Locale.ROOT))) continue;
+
+            Skill skill = skillMapper.toEntity(row);
+            if (skill == null) continue;
+            skill.setName(row.getName().trim());
+            skill.setJobSeekerProfile(profile);
+            profile.getSkills().add(skill);
+        }
     }
 
     @Override

@@ -55,7 +55,7 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     if (currentUser != null) {
       return currentUser.getId().toString();
     }
-    log.info("this is the users current ip" + Utils.getClientIp());
+    log.debug("Rate limiting request from {}", Utils.getClientIp());
     return Utils.getClientIp();
   }
 }

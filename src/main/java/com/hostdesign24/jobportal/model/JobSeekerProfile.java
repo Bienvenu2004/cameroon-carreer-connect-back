@@ -69,7 +69,16 @@ public class JobSeekerProfile extends BaseEntity {
      * them a page at a time instead of a row at a time.
      */
     @BatchSize(size = 25)
-    @OneToMany(targetEntity = Skill.class, cascade = CascadeType.ALL, mappedBy = "jobSeekerProfile")
+    @OneToMany(
+            targetEntity = Skill.class,
+            mappedBy = "jobSeekerProfile",
+            cascade = CascadeType.ALL,
+            // A skill the seeker removed is deleted, not left behind. Without
+            // this every profile save added a fresh copy of each skill beside
+            // the old ones: one account had 42 rows for 6 skills.
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private List<Skill> skills;
 
     /**
