@@ -24,15 +24,4 @@ public class EmailServiceImpl implements EmailService {
 
     service.sendEmailAsync(to, subject, htmlBody);
   }
-    @Override
-    public void sendContractByEmail(String to, String subject,String htmlBody, byte[] file, String filename) {
-        String body = (htmlBody != null) ? htmlBody : "Please find attached your lease agreement.";
-      service.sendEmailWithAttachment(to, subject, body, file, filename);
-    }
-
-  @Override
-  public void sendEmailWithHTML(String to, String subject, String htmlBody) {
-    service.sendEmailAsync(to, subject, htmlBody);
-  }
-
 }
