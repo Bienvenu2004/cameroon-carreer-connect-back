@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
      * Whether session cookies should carry the Secure flag.
      * MUST be true in production (HTTPS only). Defaults to false so dev
      * over plain http://localhost works out of the box; flip this to true
-     * via the env var APP_COOKIES_SECURE=true when deploying.
+     * via the env var {@code SECURE_COOKIES=true} when deploying.
      */
     @Value("${app.cookies.secure:false}")
     private boolean cookieSecure;
@@ -75,9 +75,20 @@ public class AuthServiceImpl implements AuthService {
      *
      * {@code Lax} is now the default and is correct whenever the SPA and the API
      * share a site (including the Vite proxy setup used in development). Only set
-     * {@code APP_COOKIES_SAME_SITE=None} when the frontend genuinely lives on a
-     * different site -- CSRF tokens then carry the protection, and None additionally
-     * requires Secure=true.
+     * {@code COOKIE_SAME_SITE=None} when the frontend genuinely lives on a different
+     * site -- CSRF tokens then carry the protection, and None additionally requires
+     * {@code SECURE_COOKIES=true}.
+     *
+     * Those are the environment variable names: {@code SECURE_COOKIES} and
+     * {@code COOKIE_SAME_SITE}, bound in application.yaml. Earlier revisions of this
+     * comment named {@code APP_COOKIES_*}, which sent at least one deployment hunting
+     * for a variable the configuration never reads.
+     *
+     * Leaving this at {@code Lax} for a cross-site deployment fails in a way that
+     * looks like anything but a cookie problem: the browser silently refuses to store
+     * {@code XSRF-TOKEN}, the login POST arrives with the header but no cookie, and
+     * Spring answers {@code 403 Forbidden -- You do not have permission to perform
+     * this action}, as though the credentials or the route were at fault.
      */
     @Value("${app.cookies.same-site:Lax}")
     private String cookieSameSite;

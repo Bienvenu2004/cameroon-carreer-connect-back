@@ -1,6 +1,7 @@
 package com.hostdesign24.jobportal.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import com.hostdesign24.jobportal.security.JwtFilters;
 import com.hostdesign24.jobportal.security.SpringSecurityAuditorAwareImpl;
@@ -51,6 +52,31 @@ public class SecurityConfig {
 
     @Value("${app.cookies.same-site:Lax}")
     private String cookieSameSite;
+
+    /**
+     * States the cookie policy in the startup log, and warns about the two
+     * combinations a browser refuses outright.
+     *
+     * Neither failure is visible from the outside: the browser declines to store the
+     * cookie without saying so, the next request simply arrives without it, and the
+     * application answers 403 as though the caller lacked a permission. A deployment
+     * then looks broken everywhere except where the fault is. One line in the log at
+     * boot turns that into a thirty-second check.
+     */
+    @PostConstruct
+    void logCookiePolicy() {
+        log.info("Session and CSRF cookies: Secure={}, SameSite={}", cookieSecure, cookieSameSite);
+
+        if ("None".equalsIgnoreCase(cookieSameSite) && !cookieSecure) {
+            log.error("SameSite=None requires Secure. Browsers reject this cookie outright, so "
+                    + "every authenticated request will fail. Set SECURE_COOKIES=true.");
+        } else if (!"None".equalsIgnoreCase(cookieSameSite)) {
+            log.info("SameSite={} assumes the frontend and this API share a site. If the SPA is "
+                    + "served from a different site, the browser will drop these cookies and "
+                    + "state-changing requests will be answered 403; set COOKIE_SAME_SITE=None "
+                    + "together with SECURE_COOKIES=true.", cookieSameSite);
+        }
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
