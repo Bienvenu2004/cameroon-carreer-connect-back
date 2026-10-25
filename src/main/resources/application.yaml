@@ -40,19 +40,30 @@ spring:
         jdbc:
           batch_size: 20
           order_inserts: true
+  # Outgoing mail. Defaults target Gmail over implicit TLS (465): set
+  # MAIL_USERNAME to the Gmail address and MAIL_PASSWORD to a 16-character
+  # app password (Google Account > Security > 2-Step Verification > App
+  # passwords), never the account's real password. Gmail sends From the
+  # authenticated address whatever we ask for, so only the display name is ours.
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:465}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     protocol: smtp
-    from: ${MAIL_FROM}
+    from-name: ${MAIL_FROM_NAME:JobsConnect CMR}
     properties:
       mail:
         smtp:
           auth: true
           ssl:
             enable: true
+          # Without these JavaMail waits forever on a host that silently drops
+          # SMTP traffic (several free hosting tiers do), tying up the async
+          # mail thread on every retry instead of logging a clear failure.
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 
   output:
     ansi:

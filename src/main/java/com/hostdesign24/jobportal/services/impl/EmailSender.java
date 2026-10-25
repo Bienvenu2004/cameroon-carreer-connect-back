@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -26,16 +27,24 @@ public class EmailSender {
     private static final int MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB limit
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
+    /**
+     * Content-ID of the logo carried inside every message. Templates point at
+     * "cid:" + LOGO_CID instead of a URL: a remote image that fails to load (a
+     * localhost address, a sleeping host) is a classic spam signal, and many
+     * clients block remote images anyway.
+     */
+    public static final String LOGO_CID = "jcc-logo";
+    private static final String LOGO_RESOURCE = "email/logo-white.png";
+
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
     private String fromAddress;
 
-    @Value("${spring.mail.from:LandLordCloud}")
+    // Display name only. This used to read spring.mail.from, which held an email
+    // address, so recipients saw an address where the sender's name belongs.
+    @Value("${spring.mail.from-name:JobsConnect CMR}")
     private String fromName;
-
-    @Value("${spring.mail.properties.mail.smtp.timeout:5000}")
-    private int mailTimeout;
 
     /**
      * Sends an email asynchronously with retry capability
@@ -49,8 +58,9 @@ public class EmailSender {
     public void sendEmailAsync(
             @NotBlank @Email String to,
             @NotBlank String subject,
-            @NotBlank String htmlBody) {
-        sendEmail(to, subject, htmlBody, null, null);
+            @NotBlank String htmlBody,
+            @NotBlank String textBody) {
+        sendEmail(to, subject, htmlBody, textBody, null, null);
     }
 
     /**
@@ -68,13 +78,14 @@ public class EmailSender {
             @NotBlank String htmlBody,
             @NotNull byte[] attachment,
             @NotBlank String filename) {
-        sendEmail(to, subject, htmlBody, attachment, filename);
+        sendEmail(to, subject, htmlBody, null, attachment, filename);
     }
 
     /**
      * Core email sending logic used by both public methods
      */
-    private void sendEmail(String to, String subject, String htmlBody, byte[] attachment, String filename) {
+    private void sendEmail(String to, String subject, String htmlBody, String textBody,
+                           byte[] attachment, String filename) {
         // Log masked email address for security
         String maskedEmail = maskEmail(to);
         log.info("Attempting to send email to {}...", maskedEmail);
@@ -83,12 +94,27 @@ public class EmailSender {
             validateAttachment(attachment);
 
             MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
 
             helper.setTo(to);
             helper.setFrom(fromAddress, fromName);
+            helper.setReplyTo(fromAddress);
             helper.setSubject(subject);
-            helper.setText(htmlBody, true);
+            // Spam filters score HTML-only mail as suspicious; a real plain-text
+            // alternative is what legitimate senders ship.
+            if (textBody != null) {
+                helper.setText(textBody, htmlBody);
+            } else {
+                helper.setText(htmlBody, true);
+            }
+            // RFC 3834: marks the message as automated, so auto-responders stay quiet.
+            mimeMessage.setHeader("Auto-Submitted", "auto-generated");
+
+            // Inline parts must be added after the body.
+            if (htmlBody.contains("cid:" + LOGO_CID)) {
+                helper.addInline(LOGO_CID, new ClassPathResource(LOGO_RESOURCE), "image/png");
+            }
 
             if (attachment != null && filename != null) {
                 helper.addAttachment(filename, new ByteArrayResource(attachment));
