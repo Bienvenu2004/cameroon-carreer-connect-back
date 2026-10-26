@@ -15,6 +15,7 @@ import com.hostdesign24.jobportal.dto.UpdateApplicationStatusDto;
 import com.hostdesign24.jobportal.dto.common.PageResponseDto;
 import com.hostdesign24.jobportal.mapper.JobApplicationMapper;
 import com.hostdesign24.jobportal.exception.ActionDeniedException;
+import com.hostdesign24.jobportal.exception.DataConflictException;
 import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.model.*;
 import com.hostdesign24.jobportal.model.enums.ApplicationStatus;
@@ -85,6 +86,7 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
     }
 
     @Override
+    @Transactional
     public void addNew(JobSeekerApplyDto dto) {
         if (dto == null) {
             throw new IllegalArgumentException("JobSeekerApplyDto must not be null");
@@ -116,6 +118,13 @@ public class JobSeekerApplyServiceImpl implements JobSeekerApplyService {
         // between the seeker's page load and their click.
         if (!job.isActive() || job.isDeleted()) {
             throw new ActionDeniedException("This job is no longer accepting applications");
+        }
+
+        // One application per seeker per job. The frontend already shows "Already
+        // applied", but nothing on the server stopped a second request (a double
+        // click, a retry) from recording a duplicate.
+        if (jobSeekerApplyRepository.existsByJobIdAndProfileIdAndDeletedFalse(job.getId(), seekerProfile.getId())) {
+            throw new DataConflictException("You have already applied to this job");
         }
 
         JobApplication apply = new JobApplication();

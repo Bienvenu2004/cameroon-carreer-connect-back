@@ -18,7 +18,9 @@ import java.time.LocalDate;
 @Setter
 public class Job extends BaseEntity {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // No cascade: a job is always attached to an existing, approved company, and
+    // removing a job must never remove the company that published it.
+    @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 

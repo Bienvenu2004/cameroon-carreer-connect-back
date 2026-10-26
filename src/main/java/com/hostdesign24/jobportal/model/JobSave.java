@@ -13,11 +13,13 @@ import java.time.LocalDate;
 @Setter
 public class JobSave extends BaseEntity {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // No cascade: un-saving a job deletes this row, and with CascadeType.ALL that
+    // delete reached through to the Job and the seeker's profile.
+    @ManyToOne
     @JoinColumn(name = "job_seeker_profile_id")
     private JobSeekerProfile profile;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "job_id")
     private Job job;
 

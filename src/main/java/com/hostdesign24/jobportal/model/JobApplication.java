@@ -18,11 +18,14 @@ import java.util.List;
 })
 public class JobApplication extends BaseEntity implements Serializable {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // No cascade on either link: an application references a profile and a job
+    // that exist independently of it. Cascading ALL made saving an application
+    // try to persist the (detached) Job, and would make deleting one delete them.
+    @ManyToOne
     @JoinColumn(name = "profile_id")
     private JobSeekerProfile profile;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "job_id")
     private Job job;
 
