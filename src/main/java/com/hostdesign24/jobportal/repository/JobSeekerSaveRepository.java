@@ -19,4 +19,6 @@ public interface JobSeekerSaveRepository extends JpaRepository<JobSave, UUID>,
      * non-toggling implementation in a single shot.
      */
     List<JobSave> findByJobIdAndProfileIdAndDeletedFalse(UUID jobId, UUID profileId);
+
+    List<JobSave> findByProfileIdAndDeletedFalse(UUID profileId);
 }

@@ -17,6 +17,8 @@ public interface JobSeekerApplyRepository extends JpaRepository<JobApplication, 
 
     boolean existsByJobIdAndProfileIdAndDeletedFalse(UUID jobId, UUID profileId);
 
+    List<JobApplication> findByProfileIdAndDeletedFalse(UUID profileId);
+
     /** Application counts per status, as Object[]{ ApplicationStatus, Long }. */
     @Query("SELECT a.status, COUNT(a) FROM JobApplication a GROUP BY a.status")
     List<Object[]> countByStatus();

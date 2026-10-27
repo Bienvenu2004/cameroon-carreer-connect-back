@@ -1,6 +1,7 @@
 package com.hostdesign24.jobportal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hostdesign24.jobportal.model.enums.AuthProvider;
 import com.hostdesign24.jobportal.model.enums.UserRole;
 import lombok.Data;
 import lombok.Getter;
@@ -16,6 +17,8 @@ public class UserDto {
     private String email;
     private boolean active;
     private UserRole role;
+    /** LOCAL or GOOGLE: tells the client how this account confirms sensitive actions. */
+    private AuthProvider authProvider;
     private Date passwordChangedAt;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Date lastLogin;

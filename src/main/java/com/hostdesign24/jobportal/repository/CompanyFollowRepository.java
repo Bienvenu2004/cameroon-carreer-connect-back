@@ -18,6 +18,8 @@ public interface CompanyFollowRepository extends JpaRepository<CompanyFollow, UU
 
     Optional<CompanyFollow> findByCompanyIdAndProfileIdAndDeletedFalse(UUID companyId, UUID profileId);
 
+    List<CompanyFollow> findByProfileIdAndDeletedFalse(UUID profileId);
+
     /**
      * A soft-deleted follow, so re-following restores the original row rather
      * than colliding with the unique constraint on (company_id, profile_id).

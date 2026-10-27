@@ -11,10 +11,11 @@ import lombok.Setter;
  * <p>{@code credential} is the Google ID token (a signed JWT) produced by
  * Google Identity Services in the browser.</p>
  *
- * <p>{@code role} is only consulted when the account does not yet exist — i.e.
- * on first sign-up. It lets the registration screen choose between
- * JOB_SEEKER and RECRUITER. For an already-registered user it is ignored and
- * the stored role wins. When omitted, new accounts default to JOB_SEEKER.</p>
+ * <p>{@code role} is sent by the sign-up screen only (JOB_SEEKER or RECRUITER).
+ * With a role, a new account is created with it, and an existing account with a
+ * different role is refused with 409 rather than signed in under the old role.
+ * Without a role (the sign-in screen), only existing accounts can sign in; an
+ * unknown address is told to sign up and choose a role.</p>
  */
 @Getter
 @Setter

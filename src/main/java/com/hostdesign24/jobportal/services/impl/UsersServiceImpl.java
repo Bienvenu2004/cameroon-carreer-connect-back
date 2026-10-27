@@ -2,7 +2,10 @@ package com.hostdesign24.jobportal.services.impl;
 
 import com.hostdesign24.jobportal.dto.UserDto;
 import com.hostdesign24.jobportal.dto.UserRegistrationDto;
+import com.hostdesign24.jobportal.exception.ActionDeniedException;
+import com.hostdesign24.jobportal.exception.DataConflictException;
 import com.hostdesign24.jobportal.exception.InvalidVerificationException;
+import com.hostdesign24.jobportal.exception.ResourceNotFoundException;
 import com.hostdesign24.jobportal.exception.TooManyAttemptsException;
 import com.hostdesign24.jobportal.mapper.UserMapper;
 import com.hostdesign24.jobportal.model.EmailVerification;
@@ -59,6 +62,11 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public User createUser(@Valid UserRegistrationDto request) {
+        // The role comes from the request body; only the two public roles may be
+        // self-registered (administrators are created by migration).
+        if (request.getRole() == UserRole.SYSTEM_ADMIN) {
+            throw new ActionDeniedException("This role cannot be chosen at sign-up.");
+        }
         String normalizedEmail = normalizeEmail(request.getEmail());
         request.setEmail(normalizedEmail);
 
@@ -110,13 +118,35 @@ public class UsersServiceImpl implements UsersService {
     public User findOrCreateGoogleUser(GoogleUserInfo info, UserRole desiredRole) {
         String normalizedEmail = normalizeEmail(info.email());
 
-        Optional<User> existing = userRepository.findByEmailAndDeletedFalse(normalizedEmail);
-        if (existing.isPresent()) {
-            log.info("Google sign-in for existing account: {}", normalizedEmail);
-            return existing.get();
+        // Self-registration may only ever produce the two public roles. The role
+        // arrives in the request body, so anything else is a forged request.
+        if (desiredRole == UserRole.SYSTEM_ADMIN) {
+            throw new ActionDeniedException("This role cannot be chosen at sign-up.");
         }
 
-        UserRole role = desiredRole != null ? desiredRole : UserRole.JOB_SEEKER;
+        Optional<User> existing = userRepository.findByEmailAndDeletedFalse(normalizedEmail);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            // A role is only sent from the sign-up page. Signing in silently with
+            // the old role would leave someone who chose "Recruiter" inside a job
+            // seeker account without telling them why.
+            if (desiredRole != null && user.getRole() != desiredRole) {
+                throw new DataConflictException("This Google account is already registered as a "
+                        + describe(user.getRole()) + ". Sign in with it, or delete that account from your "
+                        + "profile before registering it as a " + describe(desiredRole) + ".");
+            }
+            log.info("Google sign-in for existing account: {}", normalizedEmail);
+            return user;
+        }
+
+        // The sign-in page sends no role. Creating an account there would decide
+        // the role on the person's behalf, so send them to sign-up to choose it.
+        if (desiredRole == null) {
+            throw new ResourceNotFoundException("No account uses this Google address yet. "
+                    + "Create one from the sign-up page and choose whether you are a job seeker or a recruiter.");
+        }
+
+        UserRole role = desiredRole;
         log.info("Provisioning new account via Google sign-in: {} (role {})", normalizedEmail, role);
 
         User user = new User();
@@ -146,6 +176,10 @@ public class UsersServiceImpl implements UsersService {
         sendWelcomeEmail(user);
         log.info("Google account {} created successfully with role {}", user.getEmail(), role);
         return user;
+    }
+
+    private static String describe(UserRole role) {
+        return role == UserRole.RECRUITER ? "recruiter" : "job seeker";
     }
 
     /**

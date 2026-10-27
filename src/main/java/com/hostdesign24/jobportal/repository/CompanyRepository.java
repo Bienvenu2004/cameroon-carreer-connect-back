@@ -13,4 +13,6 @@ public interface CompanyRepository extends JpaRepository<Company, UUID>, JpaSpec
     /** Company counts per verification status, as Object[]{ CompanyStatus, Long }. */
     @Query("SELECT c.status, COUNT(c) FROM Company c WHERE c.deleted = false GROUP BY c.status")
     List<Object[]> countByStatus();
+
+    List<Company> findByCreatedByAndDeletedFalse(UUID createdBy);
 }
