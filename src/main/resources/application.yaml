@@ -93,6 +93,12 @@ logging:
         web: INFO
 
 app:
+  # Administrator bootstrap (see AdminAccountBootstrap). Set both in the
+  # deployment's variables to create or promote that account at startup; the
+  # password is only applied when the account is not yet an active admin.
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
   cookies:
     secure: ${SECURE_COOKIES:false}
     # SameSite for the session + CSRF cookies.
