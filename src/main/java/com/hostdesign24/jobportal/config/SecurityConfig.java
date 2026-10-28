@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import java.util.HashMap;
@@ -231,8 +232,17 @@ public class SecurityConfig {
                                         Map<String, Object> body = new HashMap<>();
                                         body.put("status", HttpStatus.FORBIDDEN.value());
                                         body.put("error", "Forbidden");
-                                        body.put(MESSAGE, "You do not have permission to perform this action");
                                         body.put("path", request.getRequestURI());
+                                        // A stale CSRF token is not a missing permission. The
+                                        // token rotates when the session is refreshed, and the
+                                        // SPA refetches it and retries only when it can tell
+                                        // the two apart, so say which one this is.
+                                        if (accessDeniedException instanceof CsrfException) {
+                                            body.put("errorCode", "CSRF_TOKEN_INVALID");
+                                            body.put(MESSAGE, "Invalid or missing CSRF token");
+                                        } else {
+                                            body.put(MESSAGE, "You do not have permission to perform this action");
+                                        }
 
                                         objectMapper.writeValue(response.getOutputStream(), body);
                                     });
